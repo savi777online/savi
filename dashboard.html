@@ -337,14 +337,14 @@
             const m = docSnap.data();
             const marketName = docSnap.id;
             const gamePrice = Number(m.price) || 100; 
-            const isGloballyLocked = m.marketStatus === "locked";
+            const marketStatus = m.marketStatus || 'active'; // 'active', 'locked', 'force_show'
             
             const unlockTime = unlockedGames[marketName];
-            const isUnlocked = !isGloballyLocked && unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000);
+            const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000));
 
             let innerContent = "";
 
-            if (isGloballyLocked) {
+            if (marketStatus === 'locked') {
                 innerContent = `
                     <div class="z-10 pt-1 text-center">
                         <div class="w-full bg-gray-800 text-gray-300 font-bold text-xs py-3 px-4 rounded-xl uppercase tracking-wider">
