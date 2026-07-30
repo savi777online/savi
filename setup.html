@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi - Automated Firebase Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 flex justify-center items-center min-h-screen font-sans text-white">
+
+<div class="w-full max-w-md bg-slate-800 p-6 rounded-3xl shadow-2xl border border-slate-700 space-y-6">
+    <div class="text-center space-y-2">
+        <h1 class="text-xl font-black tracking-wider text-blue-400 uppercase">Mahalakshmi Setup</h1>
+        <p class="text-xs text-slate-400">One-Click Automated Firebase Database Initializer</p>
+    </div>
+
+    <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 space-y-3 text-xs">
+        <div class="flex items-center space-x-2 text-slate-300">
+            <span>🔹</span>
+            <span>Creates <code class="text-blue-400 font-mono">system_config/settings</code></span>
+        </div>
+        <div class="flex items-center space-x-2 text-slate-300">
+            <span>🔹</span>
+            <span>Creates sample market <code class="text-blue-400 font-mono">markets/SRIDEVI</code></span>
+        </div>
+        <div class="flex items-center space-x-2 text-slate-300">
+            <span>🔹</span>
+            <span>Sets up security rules & default pricing</span>
+        </div>
+    </div>
+
+    <button onclick="runAutomaticSetup()" id="btn-setup" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest shadow-lg transition-all transform active:scale-[0.99]">
+        ⚡ Start Automated Setup
+    </button>
+
+    <div id="log-box" class="hidden bg-slate-950 p-4 rounded-2xl font-mono text-[10px] text-green-400 max-h-40 overflow-y-auto space-y-1 border border-slate-800">
+        <p class="text-slate-500">// Initialization console logs...</p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // आपकी वही नई Firebase Config डिटेल्स जो आपने बाकी फाइल्स में दी हैं
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
+        authDomain: "mahalakshmi-91935.firebaseapp.com",
+        projectId: "mahalakshmi-91935",
+        storageBucket: "mahalakshmi-91935.firebasestorage.app",
+        messagingSenderId: "665618845136",
+        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
+        measurementId: "G-3E2BC4BN3B"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function logMessage(msg) {
+        const box = document.getElementById('log-box');
+        box.classList.remove('hidden');
+        box.innerHTML += `<p>> ${msg}</p>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    window.runAutomaticSetup = async function() {
+        const btn = document.getElementById('btn-setup');
+        btn.disabled = true;
+        btn.innerText = "Setting up database...";
+
+        try {
+            logMessage("Connecting to Firebase Firestore...");
+
+            // 1. System Settings Setup
+            logMessage("Creating 'system_config/settings' document...");
+            await setDoc(doc(db, "system_config", "settings"), {
+                admin_pin: "9999",
+                notice_text: "Welcome to Mahalakshmi App. Enjoy secure entry & live updates.",
+                price_day: "1100",
+                price_week: "5100",
+                support_phone: "919113224019",
+                upi_address: "mahalakshmi@upi",
+                watermark_phone: "9113224019",
+                slider_images: [
+                    "https://i.imgur.com/pCFtcKd.png"
+                ]
+            }, { merge: true });
+            logMessage("✓ System settings configured successfully.");
+
+            // 2. Sample Market Setup
+            logMessage("Creating sample market 'markets/SRIDEVI'...");
+            await setDoc(doc(db, "markets", "SRIDEVI"), {
+                gameDate: "31/07/2026 02:00 PM",
+                jodiValue: "24 • 42",
+                otcValue: "2 / 7",
+                panelValue: "125 • 489",
+                serialNo: 1
+            }, { merge: true });
+            logMessage("✓ Sample market 'SRIDEVI' added successfully.");
+
+            logMessage("================================");
+            logMessage("🎉 ALL SETUP COMPLETED SUCCESSFULLY!");
+            logMessage("================================");
+            
+            btn.className = "w-full bg-green-600 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest shadow-lg";
+            btn.innerText = "✓ Setup Completed! Redirecting...";
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2500);
+
+        } catch (error) {
+            logMessage("❌ Error: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "❌ Setup Failed. Try Again";
+        }
+    }
+</script>
+</body>
+</html>
