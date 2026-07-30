@@ -146,13 +146,22 @@
                         <input type="number" id="mkt-serial" placeholder="1" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs">
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Price (₹)</label>
+                        <input type="number" id="mkt-price" placeholder="100" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-mono font-bold text-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Market Global Status</label>
+                        <select id="mkt-status" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-bold text-gray-800">
+                            <option value="active">Active (Open)</option>
+                            <option value="locked">Locked (Closed)</option>
+                        </select>
+                    </div>
+                </div>
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Display Timestamp</label>
                     <input type="text" id="mkt-date" placeholder="17/06/2026 9:35 AM" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-mono">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Price (₹)</label>
-                    <input type="number" id="mkt-price" placeholder="100" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-mono font-bold text-blue-600">
                 </div>
                 <div class="space-y-2">
                     <div>
@@ -457,9 +466,15 @@
             sorted.forEach(doc => {
                 const m = doc.data();
                 globalMarketsCache[doc.id] = m;
+                const isLocked = m.marketStatus === "locked";
                 list.innerHTML += `
                     <div class="bg-white p-3 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer" onclick="populateMarketForm('${doc.id}')">
-                        <div><span class="text-xs font-black text-blue-600 font-mono mr-1">[${m.serialNo}]</span><span class="font-bold text-gray-800 text-xs uppercase mr-2">${doc.id}</span><span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">₹${m.price || 100}</span></div>
+                        <div>
+                            <span class="text-xs font-black text-blue-600 font-mono mr-1">[${m.serialNo}]</span>
+                            <span class="font-bold text-gray-800 text-xs uppercase mr-2">${doc.id}</span>
+                            <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">₹${m.price || 100}</span>
+                            <span class="text-[9px] ${isLocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'} px-1.5 py-0.5 rounded font-bold ml-1">${isLocked ? 'Locked' : 'Active'}</span>
+                        </div>
                         <button onclick="event.stopPropagation(); deleteMarket('${doc.id}')" class="text-red-500 text-xs font-bold">Delete</button>
                     </div>`;
             });
@@ -572,12 +587,10 @@
 
             const blockBadge = isBlocked ? '<span class="text-white bg-gray-900 px-2 py-0.5 rounded font-bold text-[10px]">BLOCKED</span>' : '<span class="text-green-600 bg-green-50 px-2 py-0.5 rounded font-bold text-[10px]">Active</span>';
 
-            // Generate individual lock buttons for unlocked markets
             let unlockedMarketsHtml = "";
             let hasUnlocked = false;
             for(let marketName in unlockedObj) {
                 const timeVal = unlockedObj[marketName];
-                // check if not expired (3 hours)
                 if(Date.now() - timeVal < 3 * 60 * 60 * 1000) {
                     hasUnlocked = true;
                     unlockedMarketsHtml += `
@@ -641,7 +654,6 @@
         }
     }
 
-    // Function to lock a specific market for a user
     window.lockSpecificMarketForUser = async function(userId, marketName) {
         if(confirm(`Do you want to lock market '${marketName}' for this user?`)) {
             try {
@@ -665,6 +677,7 @@
         document.getElementById('mkt-serial').value = m.serialNo || '';
         document.getElementById('mkt-date').value = m.gameDate || '';
         document.getElementById('mkt-price').value = m.price || 100;
+        document.getElementById('mkt-status').value = m.marketStatus || 'active';
         document.getElementById('mkt-otc').value = m.otcValue || '';
         document.getElementById('mkt-jodi').value = m.jodiValue || '';
         document.getElementById('mkt-panel').value = m.panelValue || '';
@@ -691,11 +704,13 @@
     window.addOrUpdateMarket = async function() {
         const name = document.getElementById('mkt-name').value.trim().toUpperCase(); if(!name) return alert("Enter Game Name.");
         const priceVal = Number(document.getElementById('mkt-price').value) || 100;
+        const statusVal = document.getElementById('mkt-status').value;
         
         await setDoc(doc(db, "markets", name), {
             serialNo: Number(document.getElementById('mkt-serial').value) || 0,
             gameDate: document.getElementById('mkt-date').value.trim(),
             price: priceVal,
+            marketStatus: statusVal,
             otcValue: document.getElementById('mkt-otc').value.trim(),
             jodiValue: document.getElementById('mkt-jodi').value.trim(),
             panelValue: document.getElementById('mkt-panel').value.trim()
