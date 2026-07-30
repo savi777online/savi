@@ -358,29 +358,53 @@
         const container = document.getElementById('games-container'); if(!container) return;
         let htmlBuffer = ""; const isPremiumUser = (userSubscriptionStatus === "active");
 
-        cachedMarkets.forEach((doc) => {
-            const m = doc.data();
-            const otcText = isPremiumUser ? (m.otcValue || "••") : "only for members";
-            const jodiText = isPremiumUser ? (m.jodiValue || "•• ••") : "only for members";
-            const panelText = isPremiumUser ? (m.panelValue || "••• •••") : "only for members";
-            const dataStyle = isPremiumUser ? "font-sans font-extrabold text-base tracking-wide" : "font-semibold italic text-xs tracking-normal text-blue-200";
-
+        cachedMarkets.forEach((docSnap) => {
+            const m = docSnap.data();
             const watermarkOverlayHtml = watermarkNumber ? `
                 <div class="watermark-overlay"><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div></div>` : "";
+
+            let innerContent = "";
+
+            if (isPremiumUser) {
+                innerContent = `
+                    <div class="space-y-3 z-10 text-center">
+                        <div class="bg-white/10 border border-white/5 rounded-2xl p-3">
+                            <p class="text-xs font-bold text-blue-200 uppercase tracking-widest">🎲 OTC</p>
+                            <p class="text-lg font-black tracking-wider mt-0.5">${m.otcValue || '••'}</p>
+                        </div>
+                        <div class="bg-white/10 border border-white/5 rounded-2xl p-3">
+                            <p class="text-xs font-bold text-blue-200 uppercase tracking-widest">🔗 Jodi</p>
+                            <p class="text-lg font-black tracking-wider mt-0.5">${m.jodiValue || '•• ••'}</p>
+                        </div>
+                        <div class="bg-white/10 border border-white/5 rounded-2xl p-3">
+                            <p class="text-xs font-bold text-blue-200 uppercase tracking-widest">📊 Panel</p>
+                            <p class="text-lg font-black tracking-wider mt-0.5">${m.panelValue || '••• •••'}</p>
+                        </div>
+                    </div>`;
+            } else {
+                innerContent = `
+                    <div class="z-10 py-6 text-center">
+                        <button onclick="openPlanModal()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-sm py-4 px-6 rounded-2xl shadow-lg uppercase tracking-wider transition-transform transform active:scale-95">
+                            🔥 GET GAME
+                        </button>
+                    </div>`;
+            }
 
             htmlBuffer += `
                 <div class="watermark-container bg-blue-600 text-white rounded-3xl p-5 shadow-md border border-blue-400/20 flex flex-col space-y-4">
                     ${watermarkOverlayHtml}
-                    <div class="flex items-center justify-between z-10">
-                        <div class="flex items-center space-x-2"><div class="w-1.5 h-6 bg-amber-400 rounded-full"></div><h3 class="font-black text-xl uppercase tracking-wider">${doc.id}</h3></div>
-                        <div class="bg-blue-800 text-[11px] font-bold px-3 py-1 rounded-full font-mono">${m.gameDate || '--'}</div>
-                        <div class="bg-indigo-700 text-[10px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center space-x-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span><span>LIVE</span></div>
+                    <!-- TOP CENTERED MARKET NAME & DATE -->
+                    <div class="flex flex-col items-center justify-center text-center z-10 space-y-1">
+                        <div class="flex items-center space-x-1.5 bg-indigo-700/80 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase mb-1">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                            <span>LIVE</span>
+                        </div>
+                        <h3 class="font-black text-xl uppercase tracking-wider text-white">${docSnap.id}</h3>
+                        <p class="text-xs font-mono font-bold text-blue-200">${m.gameDate || '--'}</p>
                     </div>
-                    <div class="space-y-2 z-10">
-                        <div class="bg-white/10 border border-white/5 rounded-2xl px-4 py-2.5 flex items-center"><span class="text-xs font-bold text-blue-100 w-24 shrink-0">🎲 OTC : &rarr;</span><span class="${dataStyle}">${otcText}</span></div>
-                        <div class="bg-white/10 border border-white/5 rounded-2xl px-4 py-2.5 flex items-center"><span class="text-xs font-bold text-blue-100 w-24 shrink-0">🔗 Jodi : &rarr;</span><span class="${dataStyle}">${jodiText}</span></div>
-                        <div class="bg-white/10 border border-white/5 rounded-2xl px-4 py-2.5 flex items-center"><span class="text-xs font-bold text-blue-100 w-24 shrink-0">📊 Panel : &rarr;</span><span class="${dataStyle}">${panelText}</span></div>
-                    </div>
+                    
+                    <!-- VALUES OR GET GAME BUTTON -->
+                    ${innerContent}
                 </div>`;
         });
         container.innerHTML = htmlBuffer;
