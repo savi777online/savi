@@ -123,19 +123,13 @@
                 </div>
             </div>
 
-            <!-- INTERACTIVE FORM SWITCH PANEL -->
+            <!-- INTERACTIVE FORM PANEL -->
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-blue-100/60 space-y-4">
                 
-                <!-- TAB SWITCH BUTTONS -->
-                <div class="grid grid-cols-2 p-1 bg-blue-50 rounded-xl font-bold text-xs text-center">
-                    <button onclick="toggleFormAuthMode('login')" id="btn-tab-login" class="py-2.5 rounded-lg transition-all bg-white text-blue-600 shadow-sm">LOG IN</button>
-                    <button onclick="toggleFormAuthMode('register')" id="btn-tab-register" class="py-2.5 rounded-lg transition-all text-gray-500">CREATE ACCOUNT</button>
-                </div>
-
                 <div class="space-y-3">
-                    <!-- FULL NAME INPUT (Hidden on pure login mode) -->
+                    <!-- FULL NAME INPUT (Appears automatically for new users) -->
                     <div id="field-name-block" class="hidden">
-                        <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Full Name</label>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Full Name (New Account)</label>
                         <input type="text" id="user-name" placeholder="Enter your full name" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-3 text-xs text-gray-800 font-bold focus:outline-none focus:border-blue-500">
                     </div>
 
@@ -153,7 +147,7 @@
                 </div>
 
                 <!-- FORGOT PIN LINK PANEL -->
-                <div id="forgot-pin-block" class="text-right px-1">
+                <div class="text-right px-1">
                     <a id="link-forgot-pin" href="#" target="_blank" class="text-[11px] text-blue-600 font-extrabold tracking-wide uppercase hover:underline">Forgot PIN?</a>
                 </div>
 
@@ -189,36 +183,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     let activeSliderTimer = null;
-    let currentAuthMode = "login";
+    let isRegistrationMode = false;
+    let verifiedMobile = "";
+    let verifiedPin = "";
 
     window.addEventListener('DOMContentLoaded', initializeLandingPage);
 
-    window.toggleFormAuthMode = function(mode) {
-        currentAuthMode = mode;
-        const btnLogin = document.getElementById('btn-tab-login');
-        const btnRegister = document.getElementById('btn-tab-register');
-        const nameBlock = document.getElementById('field-name-block');
-        const btnSubmit = document.getElementById('btn-auth-submit');
-        const forgotBlock = document.getElementById('forgot-pin-block');
-
-        if(mode === 'login') {
-            btnLogin.className = "py-2.5 rounded-lg transition-all bg-white text-blue-600 shadow-sm";
-            btnRegister.className = "py-2.5 rounded-lg transition-all text-gray-500";
-            nameBlock.classList.add('hidden');
-            forgotBlock.classList.remove('hidden');
-            btnSubmit.innerText = "🔓 Verify Credentials & Enter";
-        } else {
-            btnRegister.className = "py-2.5 rounded-lg transition-all bg-white text-blue-700 shadow-sm";
-            btnLogin.className = "py-2.5 rounded-lg transition-all text-gray-500";
-            nameBlock.classList.remove('hidden');
-            forgotBlock.classList.add('hidden');
-            btnSubmit.innerText = "✨ Register Profile & Enter";
-        }
-    }
-
     function initializeLandingPage() {
+        // Auto-login: If already logged in, skip login page completely
         if (localStorage.getItem('app_user_mobile')) {
-            window.location.href = 'dashboard.html';
+            window.location.replace('dashboard.html');
             return;
         }
 
@@ -274,11 +248,10 @@
     }
 
     window.handleUserAuthentication = async function() {
-        const nameInput = document.getElementById('user-name').value.trim();
         const mobileInput = document.getElementById('user-mobile').value.trim();
         const pinInput = document.getElementById('user-pin').value.trim();
+        const nameInput = document.getElementById('user-name').value.trim();
 
-        if (currentAuthMode === "register" && !nameInput) return alert("Please enter your Full Name to sign up.");
         if (mobileInput.length !== 10 || isNaN(mobileInput)) return alert("Please enter a valid 10-Digit Mobile Number.");
         if (pinInput.length !== 4 || isNaN(pinInput)) return alert("Please enter your 4-Digit Security PIN.");
 
@@ -298,32 +271,54 @@
             const userRef = doc(db, "users", mobileInput);
             const userSnap = await getDoc(userRef);
 
-            if (currentAuthMode === "login") {
+            if (!isRegistrationMode) {
                 if (!userSnap.exists()) {
-                    throw new Error("No account found with this mobile number. Please click 'Create Account' first.");
+                    // New user: Prompt for Name right on the same screen
+                    verifiedMobile = mobileInput;
+                    verifiedPin = pinInput;
+                    isRegistrationMode = true;
+
+                    document.getElementById('loading-screen').style.opacity = '0';
+                    document.getElementById('loading-screen').style.visibility = 'hidden';
+
+                    document.getElementById('field-name-block').classList.remove('hidden');
+                    document.getElementById('btn-auth-submit').innerText = "✨ Complete & Enter";
+                    document.getElementById('user-mobile').disabled = true;
+                    document.getElementById('user-pin').disabled = true;
+                    alert("New account detected. Please enter your Full Name to continue.");
+                    return;
                 }
+
                 const userData = userSnap.data();
+                if (userData.status === "blocked") {
+                    throw new Error("Your account has been suspended.");
+                }
                 if (userData.pin && userData.pin !== pinInput) {
                     throw new Error("Incorrect 4-Digit Security PIN. Please try again.");
                 }
                 await updateDoc(userRef, { lastSeen: Date.now() });
+                localStorage.setItem('app_user_mobile', mobileInput);
+                window.location.replace('dashboard.html');
+
             } else {
-                if (userSnap.exists()) {
-                    throw new Error("This mobile number is already registered. Please click 'Log In' instead.");
+                // Register new user
+                if (!nameInput) {
+                    throw new Error("Please enter your Full Name.");
                 }
+
                 await setDoc(userRef, {
                     name: nameInput,
-                    mobile: mobileInput,
-                    pin: pinInput,
-                    subscription: "inactive",
-                    subscriptionExpiresAt: 0,
+                    mobile: verifiedMobile,
+                    pin: verifiedPin,
+                    walletBalance: 0,
+                    status: "allowed",
                     joinedAt: Date.now(),
                     lastSeen: Date.now()
                 });
-            }
 
-            localStorage.setItem('app_user_mobile', mobileInput);
-            window.location.href = 'dashboard.html';
+                localStorage.setItem('app_user_mobile', verifiedMobile);
+                window.location.replace('dashboard.html');
+            }
 
         } catch(e) {
             document.getElementById('loading-screen').style.opacity = '0';
