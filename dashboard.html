@@ -185,7 +185,6 @@
 
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
 
-        // Calculate Server Time Offset using HEAD request
         try {
             const startTest = Date.now();
             const response = await fetch(window.location.href, { method: 'HEAD' });
@@ -219,7 +218,6 @@
             currentUserWallet = Number(uData.walletBalance) || 0;
             document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
 
-            // Sync unlockedGames from Firestore (so admin locks take effect instantly)
             unlockedGames = uData.unlockedGames || {};
             renderGameCards();
         });
@@ -227,6 +225,44 @@
         onSnapshot(collection(db, "markets"), (querySnapshot) => {
             cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
             renderGameCards();
+        });
+
+        onSnapshot(collection(db, "app_links"), (querySnapshot) => {
+            const section = document.getElementById('app-links-section');
+            const container = document.getElementById('links-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((lDoc) => {
+                    const l = lDoc.data();
+                    container.innerHTML += `
+                        <a href="${l.url}" onclick="return processAndRedirectSecureLink(event, '${l.url}')" class="flex items-center justify-between bg-blue-50 hover:bg-blue-100 border border-blue-200 p-2.5 rounded-xl text-blue-900 font-bold text-xs shadow-sm transition-colors">
+                            <span class="truncate pr-2">${l.headline || 'Quick Link'}</span>
+                            <span class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px] shrink-0 uppercase">Open</span>
+                        </a>`;
+                });
+            }
+        });
+
+        onSnapshot(collection(db, "voicenotes"), (querySnapshot) => {
+            const section = document.getElementById('voice-notes-section');
+            const container = document.getElementById('voice-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((vDoc) => {
+                    const v = vDoc.data();
+                    container.innerHTML += `
+                        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl space-y-1.5 shadow-sm">
+                            <p class="font-bold text-blue-900 text-xs">${v.title || 'Voice Note'}</p>
+                            <audio controls class="w-full h-8"><source src="${v.url}" type="audio/webm"><source src="${v.url}" type="audio/mp4">Your browser does not support audio playback.</audio>
+                        </div>`;
+                });
+            }
         });
 
         onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
@@ -301,13 +337,21 @@
             const m = docSnap.data();
             const marketName = docSnap.id;
             const gamePrice = Number(m.price) || 100; 
+            const isGloballyLocked = m.marketStatus === "locked";
             
             const unlockTime = unlockedGames[marketName];
-            const isUnlocked = unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000);
+            const isUnlocked = !isGloballyLocked && unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000);
 
             let innerContent = "";
 
-            if (isUnlocked) {
+            if (isGloballyLocked) {
+                innerContent = `
+                    <div class="z-10 pt-1 text-center">
+                        <div class="w-full bg-gray-800 text-gray-300 font-bold text-xs py-3 px-4 rounded-xl uppercase tracking-wider">
+                            🔒 MARKET CLOSED BY ADMIN
+                        </div>
+                    </div>`;
+            } else if (isUnlocked) {
                 innerContent = `
                     <div class="grid grid-cols-3 gap-2 z-10 text-center pt-1">
                         <div class="bg-white/10 border border-white/10 rounded-xl p-2">
