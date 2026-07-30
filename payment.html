@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #ffffff; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 24px; overflow: hidden; }
+        .app-container::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- REGULAR HEADER -->
+    <div id="payment-header" class="bg-blue-600 text-white px-4 py-4 flex items-center justify-between shadow-md">
+        <h3 class="font-black text-sm uppercase tracking-wider">UPI Payment Gateway</h3>
+        <button id="btn-header-cancel" class="text-xs bg-white/20 px-3 py-1.5 rounded-lg font-bold">Cancel</button>
+    </div>
+
+    <!-- MAIN APP SCREEN WRAPPER -->
+    <div id="main-payment-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6 bg-amber-50/30">
+        <div>
+            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Amount Due Safely</p>
+            <p id="pay-amount" class="text-4xl font-black text-gray-800 mt-1">₹0.00</p>
+        </div>
+
+        <!-- STATIC DISPLAY IMAGE CONTAINER -->
+        <div class="bg-white p-5 border-2 border-dashed border-blue-200 rounded-3xl shadow-inner">
+            <img id="payment-qr" src="" class="w-56 h-56 object-contain mx-auto" alt="Merchant QR">
+            <p class="text-[10px] text-gray-500 font-extrabold uppercase mt-2">Scan QR code using PhonePe / GPay</p>
+        </div>
+
+        <!-- TRANSACTION NOTE PREVIEW PANEL -->
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl w-full max-w-sm text-left space-y-1.5">
+            <p class="text-[11px] text-blue-900 font-bold uppercase tracking-wider">🔒 Auto-Filled Message Note:</p>
+            <p id="pay-note-preview" class="text-sm font-mono bg-white p-2.5 rounded-lg border border-blue-200/60 text-gray-900 font-black tracking-widest text-center"></p>
+            <p class="text-[9px] text-gray-400 font-medium text-center leading-normal">Scanning this QR code will automatically add your phone number into your UPI application message/remark box for verification.</p>
+        </div>
+
+        <div class="w-full max-w-xs space-y-3">
+            <button id="btn-submit-paid" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-4 rounded-xl shadow-md uppercase text-xs tracking-widest">
+                ✅ I Have Paid Successfully
+            </button>
+            <button id="btn-bottom-back" class="w-full bg-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider">Go Back</button>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRMATION MODAL 1 -->
+    <div id="custom-confirm-1" class="absolute inset-0 bg-gray-950/80 z-50 flex items-center justify-center p-6 hidden">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-[320px] text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-3xl">🤔</div>
+            <h3 class="font-black text-gray-800 text-lg">Did you pay?</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Did you finish sending the money inside your UPI payment application?</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button id="btn-confirm1-no" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-xs uppercase">No, Cancel</button>
+                <button id="btn-confirm1-yes" class="bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md">Yes, I Did</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRMATION MODAL 2 -->
+    <div id="custom-confirm-2" class="absolute inset-0 bg-gray-950/80 z-50 flex items-center justify-center p-6 hidden">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-[320px] text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto text-3xl">⚠️</div>
+            <h3 class="font-black text-gray-800 text-lg">Are you sure?</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Are you absolutely sure the payment went through successfully?</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button id="btn-confirm2-no" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-xs uppercase">No, Go Back</button>
+                <button id="btn-confirm2-yes" class="bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md">Yes, Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM ALERT MODAL -->
+    <div id="custom-alert-modal" class="absolute inset-0 bg-gray-950/80 z-50 flex items-center justify-center p-6 hidden">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-[320px] text-center space-y-4 shadow-2xl">
+            <div id="alert-icon" class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-3xl">✅</div>
+            <h3 id="alert-title" class="font-black text-gray-800 text-lg">Notice</h3>
+            <p id="alert-message" class="text-xs text-gray-500 font-semibold leading-relaxed text-center px-2"></p>
+            <button id="btn-alert-ok" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md mt-2">OK</button>
+        </div>
+    </div>
+
+    <!-- 3 MINUTES LOCKDOWN SCREEN -->
+    <div id="lockdown-modal" class="absolute inset-0 bg-gray-950 z-50 flex flex-col items-center justify-center p-6 text-center hidden">
+        <div class="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+        <h2 class="text-xl font-black text-white uppercase tracking-wide">Verifying Your Payment</h2>
+        <p class="text-xs text-gray-400 max-w-xs mt-2">Checking your phone number note inside our bank system statements.</p>
+        
+        <div class="mt-6 bg-white/5 border border-white/10 rounded-2xl px-6 py-2.5 font-mono text-3xl font-bold text-blue-400 tracking-widest shadow-inner">
+            <span id="lockdown-timer">03:00</span>
+        </div>
+        
+        <p class="text-[11px] text-amber-500 font-black uppercase tracking-widest mt-6 animate-pulse">⚠️ Please do not go back or close this tab screen!</p>
+    </div>
+</div>
+
+<!-- PART 1: CORE APP WORKFLOW AND FIREBASE HOOKS -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
+        authDomain: "mahalakshmi-91935.firebaseapp.com",
+        projectId: "mahalakshmi-91935",
+        storageBucket: "mahalakshmi-91935.firebasestorage.app",
+        messagingSenderId: "665618845136",
+        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
+        measurementId: "G-3E2BC4BN3B"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const savedMobile = localStorage.getItem('app_user_mobile');
+    const selectedPlan = localStorage.getItem('selected_pay_plan');
+
+    let countdownInterval = null;
+    let requestUnsubscribe = null;
+    let fallbackLoopInterval = null;
+
+    if(!savedMobile || !selectedPlan) { window.location.href = 'dashboard.html'; }
+
+    window.addEventListener('DOMContentLoaded', initializePaymentPage);
+
+    async function initializePaymentPage() {
+        const settingsSnap = await getDoc(doc(db, "system_config", "settings"));
+        let upi = "mahalakshmi@upi";
+        let amt = "1100";
+
+        if(settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            upi = data.upi_address || "mahalakshmi@upi";
+            amt = (selectedPlan === 'day') ? (data.price_day || "1100") : (data.price_week || "5100");
+        }
+
+        const txNote = savedMobile; 
+        document.getElementById('pay-amount').innerText = `₹${amt}`;
+        document.getElementById('pay-note-preview').innerText = txNote;
+
+        const rawUpiUrl = `upi://pay?pa=${upi}&pn=Mahalakshmi%20Console&am=${amt}&tn=${encodeURIComponent(txNote)}&cu=INR`;
+        document.getElementById('payment-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(rawUpiUrl)}`;
+        
+        localStorage.setItem('computed_pay_amt', amt);
+    }
+
+    window.executeFinalPaymentSubmit = async function() {
+        document.getElementById('custom-confirm-2').classList.add('hidden');
+
+        const amt = localStorage.getItem('computed_pay_amt') || "0";
+        const userSnap = await getDoc(doc(db, "users", savedMobile));
+        let profileName = "Ganesh";
+        if(userSnap.exists()) { profileName = userSnap.data().name || "Ganesh"; }
+
+        await setDoc(doc(db, "deposits", savedMobile), {
+            userMobile: savedMobile,
+            userName: profileName,
+            amount: amt,
+            note: savedMobile,
+            status: "pending",
+            timestamp: Date.now()
+        });
+
+        localStorage.removeItem('selected_pay_plan');
+        localStorage.removeItem('computed_pay_amt');
+
+        startVerificationLockdownClock();
+    }
+
+    function startVerificationLockdownClock() {
+        document.getElementById('payment-header').classList.add('hidden');
+        document.getElementById('main-payment-screen').classList.add('hidden');
+        document.getElementById('lockdown-modal').classList.remove('hidden');
+
+        let totalSeconds = 180; 
+        countdownInterval = setInterval(() => {
+            totalSeconds--;
+            let mins = Math.floor(totalSeconds / 60);
+            let secs = totalSeconds % 60;
+            document.getElementById('lockdown-timer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if(totalSeconds <= 0) {
+                stopAllActiveWatcherLoops();
+                cancelDepositLockdownWipe("timeout");
+            }
+        }, 1000);
+
+        requestUnsubscribe = onSnapshot(doc(db, "deposits", savedMobile), (snap) => {
+            if (snap.exists()) {
+                const depositData = snap.data();
+                processIncomingStatusUpdate(depositData.status);
+            }
+        });
+
+        fallbackLoopInterval = setInterval(async () => {
+            try {
+                const manualSnap = await getDoc(doc(db, "deposits", savedMobile));
+                if (manualSnap.exists()) {
+                    processIncomingStatusUpdate(manualSnap.data().status);
+                }
+            } catch(e) { console.log("Fallback loop context check active"); }
+        }, 3000);
+    }
+
+    async function processIncomingStatusUpdate(status) {
+        if (status === "approved") {
+            stopAllActiveWatcherLoops();
+            
+            try { await deleteDoc(doc(db, "deposits", savedMobile)); } catch(e) {}
+            
+            document.getElementById('lockdown-modal').classList.add('hidden');
+            
+            window.showCustomAlert("✅ Approved!", "Your payment was verified successfully! Opening your premium panel dashboard now.", "success", () => {
+                window.location.replace('dashboard.html');
+            });
+        } 
+        else if (status === "rejected") {
+            stopAllActiveWatcherLoops();
+            cancelDepositLockdownWipe("rejected");
+        }
+    }
+
+    function stopAllActiveWatcherLoops() {
+        if(countdownInterval) clearInterval(countdownInterval);
+        if(fallbackLoopInterval) clearInterval(fallbackLoopInterval);
+        if(requestUnsubscribe) requestUnsubscribe();
+    }
+
+    async function cancelDepositLockdownWipe(reason) {
+        stopAllActiveWatcherLoops();
+        try { await deleteDoc(doc(db, "deposits", savedMobile)); } catch(e) {}
+        
+        document.getElementById('lockdown-modal').classList.add('hidden');
+        
+        if(reason === "rejected") {
+            window.showCustomAlert("❌ Request Rejected", "Your payment verification statement was rejected by the admin. Please verify data parameters or double check your transfer statement.", "error", () => {
+                window.location.replace('dashboard.html');
+            });
+        } else {
+            window.showCustomAlert("⏱️ Session Timed Out", "Verification clock timed out. Please link up directly with customer support desk on WhatsApp.", "error", () => {
+                window.location.replace('dashboard.html');
+            });
+        }
+    }
+</script>
+
+<!-- PART 2: GLOBAL ACTIONS INTERCEPTOR -->
+<script>
+    (function() {
+        var postAlertAction = null;
+
+        window.showCustomConfirm1 = function() { document.getElementById('custom-confirm-1').classList.remove('hidden'); };
+        window.hideCustomConfirm1 = function() { document.getElementById('custom-confirm-1').classList.add('hidden'); };
+        
+        window.showCustomConfirm2 = function() {
+            window.hideCustomConfirm1();
+            document.getElementById('custom-confirm-2').classList.remove('hidden');
+        };
+        window.hideCustomConfirm2 = function() { document.getElementById('custom-confirm-2').classList.add('hidden'); };
+
+        window.showCustomAlert = function(title, message, type, callback) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            var iconDiv = document.getElementById('alert-icon');
+            var btn = document.getElementById('btn-alert-ok');
+            
+            if (type === 'success') {
+                iconDiv.innerText = "✅";
+                iconDiv.className = "w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-3xl";
+                btn.className = "w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md mt-2";
+            } else {
+                iconDiv.innerText = "❌";
+                iconDiv.className = "w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl";
+                btn.className = "w-full bg-red-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md mt-2";
+            }
+            postAlertAction = callback;
+            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        };
+
+        window.closeCustomAlert = function() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+            if (postAlertAction) postAlertAction();
+        };
+
+        window.abortPayment = function() {
+            localStorage.removeItem('selected_pay_plan');
+            localStorage.removeItem('computed_pay_amt');
+            window.location.replace('dashboard.html');
+        };
+
+        window.onload = function() {
+            document.getElementById('btn-submit-paid').onclick = window.showCustomConfirm1;
+            document.getElementById('btn-header-cancel').onclick = window.abortPayment;
+            document.getElementById('btn-bottom-back').onclick = window.abortPayment;
+            
+            document.getElementById('btn-confirm1-no').onclick = window.hideCustomConfirm1;
+            document.getElementById('btn-confirm1-yes').onclick = window.showCustomConfirm2;
+            
+            document.getElementById('btn-confirm2-no').onclick = window.hideCustomConfirm2;
+            document.getElementById('btn-confirm2-yes').onclick = function() {
+                if (typeof window.executeFinalPaymentSubmit === 'function') {
+                    window.executeFinalPaymentSubmit();
+                }
+            };
+            
+            document.getElementById('btn-alert-ok').onclick = window.closeCustomAlert;
+        };
+    })();
+</script>
+</body>
+</html>
