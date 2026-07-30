@@ -556,6 +556,7 @@
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
             const walletBal = Number(u.walletBalance) || 0;
+            const unlockedObj = u.unlockedGames || {};
             
             let lastSeenStr = "Never";
             if(u.lastSeen) {
@@ -571,6 +572,25 @@
 
             const blockBadge = isBlocked ? '<span class="text-white bg-gray-900 px-2 py-0.5 rounded font-bold text-[10px]">BLOCKED</span>' : '<span class="text-green-600 bg-green-50 px-2 py-0.5 rounded font-bold text-[10px]">Active</span>';
 
+            // Generate individual lock buttons for unlocked markets
+            let unlockedMarketsHtml = "";
+            let hasUnlocked = false;
+            for(let marketName in unlockedObj) {
+                const timeVal = unlockedObj[marketName];
+                // check if not expired (3 hours)
+                if(Date.now() - timeVal < 3 * 60 * 60 * 1000) {
+                    hasUnlocked = true;
+                    unlockedMarketsHtml += `
+                        <div class="flex justify-between items-center bg-blue-50 border border-blue-100 p-1.5 rounded mt-1">
+                            <span class="font-bold text-blue-900 text-[10px] uppercase">🎮 ${marketName}</span>
+                            <button onclick="lockSpecificMarketForUser('${u.id}', '${marketName}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 rounded text-[9px] font-bold uppercase">Lock Market</button>
+                        </div>`;
+                }
+            }
+            if(!hasUnlocked) {
+                unlockedMarketsHtml = `<p class="text-[9px] text-gray-400 italic mt-1">No active game unlocks for this user.</p>`;
+            }
+
             container.innerHTML += `
                 <div class="bg-amber-50/30 border border-gray-100 p-3 rounded-xl flex flex-col space-y-2 text-xs">
                     <div class="flex justify-between items-start">
@@ -583,14 +603,13 @@
                         </div>
                         <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold">Delete</button>
                     </div>
-                    <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-gray-200/50 items-center">
-                        <div class="flex space-x-1 col-span-2">
-                            <input type="number" id="add-amt-${u.id}" placeholder="Amount" class="w-20 bg-white border border-gray-200 rounded p-1 text-[11px] font-mono focus:outline-none">
-                            <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
-                        </div>
-                        <button onclick="resetUserGames('${u.id}')" class="bg-amber-500 hover:bg-amber-600 text-white py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow">
-                            Reset / Lock
-                        </button>
+                    <div class="flex space-x-1 pt-1 border-t border-gray-200/50">
+                        <input type="number" id="add-amt-${u.id}" placeholder="Amount" class="w-24 bg-white border border-gray-200 rounded p-1 text-[11px] font-mono focus:outline-none">
+                        <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
+                    </div>
+                    <div class="pt-1">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Active Unlocks Management:</p>
+                        ${unlockedMarketsHtml}
                     </div>
                     <div class="pt-1">
                         <button onclick="toggleUserBlockStatus('${u.id}', ${isBlocked})" class="w-full ${isBlocked ? 'bg-gray-600' : 'bg-gray-950'} text-white py-1.5 rounded text-[10px] font-bold uppercase tracking-wider">
@@ -622,14 +641,20 @@
         }
     }
 
-    // Function to reset/lock games for a specific user from admin panel
-    window.resetUserGames = async function(userId) {
-        if(confirm("Do you want to reset/lock all unlocked games for this user? They will need to get game again.")) {
+    // Function to lock a specific market for a user
+    window.lockSpecificMarketForUser = async function(userId, marketName) {
+        if(confirm(`Do you want to lock market '${marketName}' for this user?`)) {
             try {
-                await updateDoc(doc(db, "users", userId), { gameResetToken: Date.now() });
-                alert("User games successfully locked/reset!");
+                const userRef = doc(db, "users", userId);
+                const userSnap = await getDoc(userRef);
+                if(userSnap.exists()) {
+                    let unlocked = userSnap.data().unlockedGames || {};
+                    delete unlocked[marketName];
+                    await updateDoc(userRef, { unlockedGames: unlocked });
+                    alert("Market successfully locked for user!");
+                }
             } catch(e) {
-                alert("Failed to reset games: " + e.message);
+                alert("Failed to lock market: " + e.message);
             }
         }
     }
