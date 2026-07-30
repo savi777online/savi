@@ -23,10 +23,10 @@
     <!-- MAIN APP SCREEN WRAPPER -->
     <div id="main-payment-screen" class="flex-1 flex flex-col items-center justify-center p-5 text-center space-y-4 bg-amber-50/30">
         
-        <!-- MANUAL AMOUNT INPUT BOX -->
+        <!-- MANUAL AMOUNT INPUT BOX (Default empty with min 100 constraint) -->
         <div class="w-full max-w-sm space-y-1">
-            <label class="block text-[11px] text-gray-500 font-bold uppercase tracking-wider">Enter Amount to Add (₹)</label>
-            <input type="number" id="input-custom-amount" value="500" oninput="updateDynamicQR()" placeholder="Enter amount" class="w-full bg-white border-2 border-blue-200 rounded-2xl p-3 text-2xl font-black text-blue-700 text-center font-mono focus:outline-none focus:border-blue-600 shadow-inner">
+            <label class="block text-[11px] text-gray-500 font-bold uppercase tracking-wider">Enter Amount (Minimum ₹100)</label>
+            <input type="number" id="input-custom-amount" oninput="updateDynamicQR()" placeholder="Min ₹100" class="w-full bg-white border-2 border-blue-200 rounded-2xl p-3 text-2xl font-black text-blue-700 text-center font-mono focus:outline-none focus:border-blue-600 shadow-inner">
         </div>
 
         <!-- STATIC DISPLAY QR IMAGE CONTAINER -->
@@ -151,18 +151,18 @@
 
     window.executeFinalPaymentSubmit = async function() {
         const utrNumber = document.getElementById('input-utr-number').value.trim();
+        const amt = Number(localStorage.getItem('computed_pay_amt')) || 0;
+
+        if(amt < 100) {
+            window.showCustomAlert("⚠️ Minimum Amount", "Minimum deposit amount is ₹100.", "error", null);
+            return;
+        }
         if(!utrNumber) {
             window.showCustomAlert("⚠️ UTR Required", "Please enter your UTR reference number before proceeding.", "error", null);
             return;
         }
 
         document.getElementById('custom-confirm-2').classList.add('hidden');
-
-        const amt = Number(localStorage.getItem('computed_pay_amt')) || 0;
-        if(amt <= 0) {
-            window.showCustomAlert("⚠️ Invalid Amount", "Please enter a valid amount greater than zero.", "error", null);
-            return;
-        }
 
         const userSnap = await getDoc(doc(db, "users", savedMobile));
         let profileName = "Ganesh";
@@ -266,8 +266,9 @@
         window.showCustomConfirm1 = function() {
             const utrNumber = document.getElementById('input-utr-number').value.trim();
             const amt = Number(document.getElementById('input-custom-amount').value) || 0;
-            if(amt <= 0) {
-                window.showCustomAlert("⚠️ Invalid Amount", "Please enter a valid amount.", "error", null);
+            
+            if(amt < 100) {
+                window.showCustomAlert("⚠️ Invalid Amount", "Minimum deposit amount is ₹100.", "error", null);
                 return;
             }
             if(!utrNumber) {
