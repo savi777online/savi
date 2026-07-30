@@ -48,7 +48,7 @@
         <!-- SETTINGS TAB -->
         <div id="tab-system" class="space-y-4">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 space-y-3">
-                <h3 class="font-black text-xs text-blue-600 uppercase tracking-wider">Subscription Control & Pricing</h3>
+                <h3 class="font-black text-xs text-blue-600 uppercase tracking-wider">System Control & Pricing</h3>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">1 Day Price (₹)</label>
@@ -164,6 +164,10 @@
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Display Timestamp</label>
                     <input type="text" id="mkt-date" placeholder="17/06/2026 9:35 AM" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-mono">
                 </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Price (₹)</label>
+                    <input type="number" id="mkt-price" placeholder="100" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-mono font-bold text-blue-600">
+                </div>
                 <div class="space-y-2">
                     <div>
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">🎲 OTC Value Line</label>
@@ -188,13 +192,13 @@
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-blue-100 flex flex-col space-y-2">
                 <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search user by name or phone number..." class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2.5 text-xs text-gray-800 font-semibold focus:outline-none focus:border-blue-500">
                 <div class="bg-blue-50 rounded-lg px-2.5 py-1.5 flex justify-between items-center text-[11px] font-bold text-blue-800 border border-blue-200">
-                    <span>Total Subscribed Users Matrix:</span>
+                    <span>Total Registered Users Matrix:</span>
                     <span id="label-total-users" class="bg-blue-600 text-white px-2 py-0.5 rounded font-black font-mono">0</span>
                 </div>
             </div>
 
             <div class="bg-amber-50/60 rounded-2xl p-4 border border-amber-200 space-y-2">
-                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">Pending Payments Queue</h3>
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">Pending Deposit Requests</h3>
                 <div id="deposit-queue-zone" class="space-y-2"></div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 space-y-3">
@@ -472,7 +476,7 @@
                 globalMarketsCache[doc.id] = m;
                 list.innerHTML += `
                     <div class="bg-white p-3 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer" onclick="populateMarketForm('${doc.id}')">
-                        <div><span class="text-xs font-black text-blue-600 font-mono mr-1">[${m.serialNo}]</span><span class="font-bold text-gray-800 text-xs uppercase">${doc.id}</span></div>
+                        <div><span class="text-xs font-black text-blue-600 font-mono mr-1">[${m.serialNo}]</span><span class="font-bold text-gray-800 text-xs uppercase mr-2">${doc.id}</span><span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">₹${m.price || 100}</span></div>
                         <button onclick="event.stopPropagation(); deleteMarket('${doc.id}')" class="text-red-500 text-xs font-bold">Delete</button>
                     </div>`;
             });
@@ -483,13 +487,6 @@
             querySnapshot.forEach(uDoc => { cachedUsersList.push({ id: uDoc.id, ...uDoc.data() }); });
             
             cachedUsersList.sort((a, b) => {
-                const aAct = a.subscription === "active" ? 1 : 0;
-                const bAct = b.subscription === "active" ? 1 : 0;
-                
-                if (bAct !== aAct) {
-                    return bAct - aAct; 
-                }
-                
                 const aTime = Number(a.joinedAt) || 0;
                 const bTime = Number(b.joinedAt) || 0;
                 return bTime - aTime;
@@ -503,11 +500,12 @@
             const zone = document.getElementById('deposit-queue-zone');
             const dot = document.getElementById('req-dot');
             zone.innerHTML = '';
-            if(querySnapshot.empty) { zone.innerHTML = `<p class="text-[11px] text-blue-800 font-semibold italic">No requests.</p>`; dot.classList.add('hidden'); return; }
-            dot.classList.remove('hidden');
+            let pendingCount = 0;
+            
             querySnapshot.forEach(dDoc => {
                 const d = dDoc.data();
                 if(d.status !== "pending") return;
+                pendingCount++;
 
                 let parsedDepositTime = "--";
                 if(d.timestamp) {
@@ -517,26 +515,49 @@
 
                 zone.innerHTML += `
                     <div class="bg-white p-3 rounded-xl border border-blue-200 flex flex-col space-y-1 text-xs">
-                        <div class="flex justify-between font-bold"><span>Name: ${d.userName || 'Unknown'}</span><span class="text-green-600">₹${d.amount}</span></div>
+                        <div class="flex justify-between font-bold"><span>Name: ${d.userName || 'Unknown'}</span><span class="text-green-600 text-sm">₹${d.amount}</span></div>
                         <p class="text-[10px] text-gray-500 font-mono">Mobile: ${d.userMobile}</p>
                         <p class="text-[9px] text-blue-700 font-bold font-mono">📅 Requested At: ${parsedDepositTime}</p>
-                        <p class="text-[10px] text-blue-600 font-bold font-mono bg-blue-50 p-1 rounded">Note: ${d.note || '--'}</p>
+                        <p class="text-[10px] text-blue-600 font-bold font-mono bg-blue-50 p-1 rounded">Note/Ref: ${d.note || '--'}</p>
                         <div class="grid grid-cols-2 gap-2 pt-1.5">
-                            <button onclick="approvePaymentRequest('${d.userMobile}', '${dDoc.id}')" class="bg-green-600 text-white py-1.5 rounded-lg font-bold text-[11px]">APPROVE</button>
-                            <button onclick="rejectPaymentRequest('${dDoc.id}')" class="bg-red-600 text-white py-1.5 rounded-lg font-bold text-[11px]">REJECT</button>
+                            <button onclick="approveDepositRequest('${d.userMobile}', '${dDoc.id}', ${Number(d.amount) || 0})" class="bg-green-600 text-white py-1.5 rounded-lg font-bold text-[11px]">APPROVE</button>
+                            <button onclick="rejectDepositRequest('${dDoc.id}')" class="bg-red-600 text-white py-1.5 rounded-lg font-bold text-[11px]">REJECT</button>
                         </div>
                     </div>`;
             });
+
+            if(pendingCount === 0) {
+                zone.innerHTML = `<p class="text-[11px] text-blue-800 font-semibold italic">No pending requests.</p>`;
+                dot.classList.add('hidden');
+            } else {
+                dot.classList.remove('hidden');
+            }
         });
     }
 
-    window.approvePaymentRequest = async function(userMobile, docId) {
-        const expiryTime = Date.now() + (1 * 24 * 60 * 60 * 1000); 
-        await updateDoc(doc(db, "users", userMobile), { subscription: "active", expiresAt: expiryTime });
-        await updateDoc(doc(db, "deposits", docId), { status: "approved" });
+    window.approveDepositRequest = async function(userMobile, docId, depositAmount) {
+        try {
+            const userRef = doc(db, "users", userMobile);
+            const userSnap = await getDoc(userRef);
+            let currentWallet = 0;
+            if(userSnap.exists()) {
+                currentWallet = Number(userSnap.data().walletBalance) || 0;
+            }
+            const updatedWallet = currentWallet + depositAmount;
+
+            // Update user wallet balance and deposit status
+            await updateDoc(userRef, { walletBalance: updatedWallet });
+            await updateDoc(doc(db, "deposits", docId), { status: "approved" });
+            alert("Deposit approved successfully! ₹" + depositAmount + " added to user wallet.");
+        } catch(e) {
+            alert("Approval failed: " + e.message);
+        }
     }
 
-    window.rejectPaymentRequest = async function(docId) { await updateDoc(doc(db, "deposits", docId), { status: "rejected" }); }
+    window.rejectDepositRequest = async function(docId) { 
+        await updateDoc(doc(db, "deposits", docId), { status: "rejected" }); 
+        alert("Deposit request rejected.");
+    }
 
     window.triggerUserFilterDisplay = function() {
         const query = document.getElementById('user-search-bar').value.toLowerCase().trim();
@@ -552,7 +573,7 @@
         container.innerHTML = '';
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
-            const isActive = u.subscription === "active";
+            const walletBal = Number(u.walletBalance) || 0;
             
             let lastSeenStr = "Never";
             if(u.lastSeen) {
@@ -566,49 +587,52 @@
                 joinedStr = joinedObj.toLocaleDateString() + ' ' + joinedObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
 
-            let remainingText = "";
-            if(isActive && u.expiresAt) {
-                const diff = u.expiresAt - Date.now();
-                if(diff > 0) {
-                    const hoursTotal = Math.floor(diff / (1000 * 60 * 60));
-                    const days = Math.floor(hoursTotal / 24);
-                    const hours = hoursTotal % 24;
-                    remainingText = `<p class="text-[10px] text-green-600 font-bold">Time Ending In: ${days}d ${hours}h</p>`;
-                } else { remainingText = `<p class="text-[10px] text-red-500 font-bold">Expired</p>`; }
-            }
-
-            const subBadge = isBlocked ? 
-                '<span class="text-white bg-gray-900 px-2 py-0.5 rounded font-bold text-[10px]">BLOCKED</span>' : 
-                (isActive ? '<span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold text-[10px]">Active</span>' : '<span class="text-red-500 bg-red-50 px-2 py-0.5 rounded font-bold text-[10px]">Inactive</span>');
+            const blockBadge = isBlocked ? '<span class="text-white bg-gray-900 px-2 py-0.5 rounded font-bold text-[10px]">BLOCKED</span>' : '<span class="text-green-600 bg-green-50 px-2 py-0.5 rounded font-bold text-[10px]">Active</span>';
 
             container.innerHTML += `
                 <div class="bg-amber-50/30 border border-gray-100 p-3 rounded-xl flex flex-col space-y-2 text-xs">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="font-bold text-gray-800">${u.name || 'User'} ${subBadge}</p>
+                            <p class="font-bold text-gray-800">${u.name || 'User'} ${blockBadge}</p>
                             <p class="text-[10px] text-gray-400 font-mono">Mobile: ${u.id}</p>
+                            <p class="text-[10px] text-blue-700 font-black mt-0.5 font-mono">💰 Wallet Balance: ₹${walletBal}</p>
                             <p class="text-[9px] text-blue-600 font-bold mt-0.5">📅 Joined: ${joinedStr}</p>
                             <p class="text-[9px] text-gray-500 mt-0.5">👁️ Last Seen: ${lastSeenStr}</p>
-                            ${remainingText}
                         </div>
                         <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold">Delete</button>
                     </div>
-                    <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-gray-200/50 items-center">
-                        <select id="duration-${u.id}" class="bg-white border border-gray-200 text-[11px] rounded p-1 font-semibold focus:outline-none">
-                            <option value="1">1 Day</option>
-                            <option value="5">5 Days</option>
-                            <option value="7">7 Days</option>
-                            <option value="30">30 Days</option>
-                        </select>
-                        <button onclick="modifyMembershipDuration('${u.id}', ${isActive})" class="${isActive ? 'bg-blue-600' : 'bg-emerald-600'} text-white py-1 rounded text-[10px] font-bold uppercase tracking-wider">
-                            ${isActive ? 'Deactivate' : 'Activate'}
-                        </button>
+                    <div class="grid grid-cols-2 gap-2 pt-1 border-t border-gray-200/50 items-center">
+                        <div class="flex space-x-1">
+                            <input type="number" id="add-amt-${u.id}" placeholder="Amount" class="w-20 bg-white border border-gray-200 rounded p-1 text-[11px] font-mono focus:outline-none">
+                            <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
+                        </div>
                         <button onclick="toggleUserBlockStatus('${u.id}', ${isBlocked})" class="${isBlocked ? 'bg-gray-600' : 'bg-gray-950'} text-white py-1 rounded text-[10px] font-bold uppercase tracking-wider">
-                            ${isBlocked ? 'Unblock' : 'Block'}
+                            ${isBlocked ? 'Unblock User' : 'Block User'}
                         </button>
                     </div>
                 </div>`;
         });
+    }
+
+    window.manualAddBalanceToUser = async function(userId) {
+        const inputElem = document.getElementById(`add-amt-${userId}`);
+        const addAmount = Number(inputElem.value) || 0;
+        if(addAmount <= 0) return alert("Please enter a valid amount to add.");
+
+        try {
+            const userRef = doc(db, "users", userId);
+            const userSnap = await getDoc(userRef);
+            let currentWallet = 0;
+            if(userSnap.exists()) {
+                currentWallet = Number(userSnap.data().walletBalance) || 0;
+            }
+            const newTotal = currentWallet + addAmount;
+            await updateDoc(userRef, { walletBalance: newTotal });
+            inputElem.value = '';
+            alert("Successfully added ₹" + addAmount + " to user wallet!");
+        } catch(e) {
+            alert("Failed to add balance: " + e.message);
+        }
     }
 
     window.populateMarketForm = function(id) {
@@ -616,6 +640,7 @@
         document.getElementById('mkt-name').value = id;
         document.getElementById('mkt-serial').value = m.serialNo || '';
         document.getElementById('mkt-date').value = m.gameDate || '';
+        document.getElementById('mkt-price').value = m.price || 100;
         document.getElementById('mkt-otc').value = m.otcValue || '';
         document.getElementById('mkt-jodi').value = m.jodiValue || '';
         document.getElementById('mkt-panel').value = m.panelValue || '';
@@ -644,9 +669,12 @@
 
     window.addOrUpdateMarket = async function() {
         const name = document.getElementById('mkt-name').value.trim().toUpperCase(); if(!name) return alert("Enter Game Name.");
+        const priceVal = Number(document.getElementById('mkt-price').value) || 100;
+        
         await setDoc(doc(db, "markets", name), {
             serialNo: Number(document.getElementById('mkt-serial').value) || 0,
             gameDate: document.getElementById('mkt-date').value.trim(),
+            price: priceVal,
             otcValue: document.getElementById('mkt-otc').value.trim(),
             jodiValue: document.getElementById('mkt-jodi').value.trim(),
             panelValue: document.getElementById('mkt-panel').value.trim()
@@ -654,23 +682,12 @@
         alert("Game details published.");
     }
 
-    window.modifyMembershipDuration = async function(userId, currentlyActive) {
-        if(currentlyActive) {
-            await updateDoc(doc(db, "users", userId), { subscription: "inactive", expiresAt: null });
-        } else {
-            const selectElem = document.getElementById(`duration-${userId}`);
-            const selectDays = parseInt(selectElem.value) || 1;
-            const computedExpiry = Date.now() + (selectDays * 24 * 60 * 60 * 1000);
-            await updateDoc(doc(db, "users", userId), { subscription: "active", expiresAt: computedExpiry });
-        }
-    }
-
     window.toggleUserBlockStatus = async function(userId, currentlyBlocked) {
         if(currentlyBlocked) {
             await updateDoc(doc(db, "users", userId), { status: "allowed" });
             alert("User unblocked.");
         } else {
-            await updateDoc(doc(db, "users", userId), { status: "blocked", subscription: "inactive", expiresAt: null });
+            await updateDoc(doc(db, "users", userId), { status: "blocked" });
             alert("User blocked.");
         }
     }
