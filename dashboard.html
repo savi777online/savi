@@ -13,7 +13,8 @@
         
         .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
         .slider-wrapper::-webkit-scrollbar { display: none; }
-        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; }
+        /* object-fit set to contain so image never crops */
+        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #f8fafc; }
     </style>
 </head>
 <body>
@@ -76,8 +77,8 @@
             <div id="voice-elements-container" class="space-y-2.5"></div>
         </div>
 
-        <!-- IMAGE BANNER SLIDER -->
-        <div class="relative w-full h-36 bg-white rounded-2xl overflow-hidden shadow-sm border border-blue-100">
+        <!-- IMAGE BANNER SLIDER (Height increased slightly & no crop enabled) -->
+        <div class="relative w-full h-44 bg-white rounded-2xl overflow-hidden shadow-sm border border-blue-100">
             <div id="slider-container" class="slider-wrapper">
                 <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Placeholder">
             </div>
@@ -92,7 +93,7 @@
             <p id="notice-text" class="text-xs text-blue-900 leading-relaxed font-semibold">Welcome to Mahalakshmi App.</p>
         </div>
 
-        <!-- MARKETS CONTAINER (Market text header removed) -->
+        <!-- MARKETS CONTAINER -->
         <div id="games-container" class="space-y-3"></div>
 
         <!-- MANDATORY LEGAL DISCLAIMER BOARD PANEL -->
@@ -256,7 +257,6 @@
         }
     }
 
-    // Trigger confirmation popup before unlocking
     window.handleGetGameClick = function(marketName, gamePrice) {
         pendingMarketName = marketName;
         pendingGamePrice = Number(gamePrice) || 0;
@@ -269,7 +269,6 @@
         }
     }
 
-    // Execute game unlock after confirmation
     document.getElementById('btn-execute-unlock').onclick = async function() {
         closeConfirmModal();
         if (currentUserWallet >= pendingGamePrice) {
@@ -333,13 +332,10 @@
 
             htmlBuffer += `
                 <div class="bg-blue-600 text-white rounded-2xl p-3.5 shadow-sm border border-blue-400/20 flex flex-col space-y-2.5">
-                    <!-- TOP CENTERED MARKET NAME & DATE (Compact Height) -->
                     <div class="flex flex-col items-center justify-center text-center z-10 space-y-0.5">
                         <h3 class="font-black text-base uppercase tracking-wider text-white">${marketName}</h3>
                         <p class="text-[11px] font-mono font-semibold text-blue-200">${m.gameDate || '--'}</p>
                     </div>
-                    
-                    <!-- VALUES OR GET GAME BUTTON -->
                     ${innerContent}
                 </div>`;
         });
