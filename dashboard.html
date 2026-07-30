@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #ffffff; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .app-container::-webkit-scrollbar { display: none; }
+        @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
+        
+        .watermark-container { position: relative; overflow: hidden; }
+        .watermark-overlay { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 30px; padding: 15px; pointer-events: none; user-select: none; z-index: 0; transform: rotate(-15deg) scale(1.1); }
+        .watermark-item { font-size: 1.2rem; font-weight: 900; letter-spacing: 1px; color: rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+        
+        .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .slider-wrapper::-webkit-scrollbar { display: none; }
+        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- HEADLINE APPBAR -->
+    <div class="bg-blue-600 text-white px-4 py-3.5 flex items-center justify-between shadow-md sticky top-0 z-40">
+        <div class="flex items-center space-x-3">
+            <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-9 h-9 object-contain">
+            <h1 class="font-black tracking-wider text-xl uppercase">MAHALAKSHMI</h1>
+        </div>
+        <button onclick="handleLogout()" class="bg-blue-800 hover:bg-blue-900 px-3 py-1.5 text-xs font-bold rounded-lg shadow transition-colors">LOGOUT</button>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div class="flex-1 bg-amber-50/30 p-4 space-y-4 pb-8">
+
+        <!-- USER PROFILE CARD -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 flex flex-col space-y-2">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">Subscriber Profile</p>
+                    <p id="profile-name" class="text-gray-900 font-black text-base mt-0.5">Ganesh</p>
+                    <p id="profile-phone" class="text-gray-500 font-semibold text-xs font-mono">Mobile: --</p>
+                </div>
+                <div id="membership-badge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gray-200 text-gray-600">Checking...</div>
+            </div>
+            
+            <div id="subscription-countdown-box" class="hidden text-xs bg-blue-50 text-blue-800 p-2.5 rounded-xl border border-blue-200 font-bold text-center">
+                Your premium subscription ends in: <span id="days-remaining-counter" class="font-black text-blue-700">--</span>
+            </div>
+        </div>
+
+        <!-- LIVE ANTICHEAT SERVER TIMESTAMPS WATCHCLOCK -->
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 shadow-md text-center border border-blue-500/20 relative overflow-hidden">
+            <div class="absolute -top-6 -right-6 w-20 h-20 bg-white/5 rounded-full blur-xl"></div>
+            <div id="live-calendar-text" class="text-[10px] text-blue-200 font-bold uppercase tracking-widest mb-1 font-mono">SYNCING SERVER TIME...</div>
+            <div id="live-clock" class="text-3xl font-black text-white tracking-widest font-mono drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)]">--:--:--</div>
+        </div>
+
+        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
+        <div id="app-links-section" class="hidden bg-white rounded-2xl p-4 shadow-sm border border-blue-100 space-y-3">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-0.5 flex items-center space-x-1">
+                <span>🔗 Quick Resources & Video Links</span>
+            </h3>
+            <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
+        <div id="voice-notes-section" class="hidden bg-white rounded-2xl p-4 shadow-sm border border-blue-100 space-y-3">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-0.5 flex items-center space-x-1">
+                <span>🎙️ Admin Voice Announcements</span>
+            </h3>
+            <div id="voice-elements-container" class="space-y-3"></div>
+        </div>
+
+        <!-- IMAGE BANNER SLIDER -->
+        <div class="relative w-full h-42 bg-white rounded-2xl overflow-hidden shadow-sm border border-blue-100">
+            <div id="slider-container" class="slider-wrapper">
+                <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Placeholder">
+            </div>
+        </div>
+
+        <!-- RECRUITMENT BANNER -->
+        <div id="membership-banner" class="hidden">
+            <button onclick="openPlanModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-center py-3.5 rounded-2xl block shadow-md text-sm tracking-wider uppercase">
+                👑 Get Membership Access
+            </button>
+        </div>
+
+        <!-- NOTICE BOARD -->
+        <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4 shadow-sm">
+            <div class="flex items-center space-x-2 text-blue-800 mb-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <h3 class="font-extrabold text-xs uppercase tracking-wider">Notice Board</h3>
+            </div>
+            <p id="notice-text" class="text-xs text-blue-900 leading-relaxed font-semibold">Welcome to Mahalakshmi App.</p>
+        </div>
+
+        <!-- GAME CARDS CONTAINER -->
+        <div class="space-y-3">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Game Section</h2>
+            <div id="games-container" class="space-y-4"></div>
+        </div>
+
+        <!-- MANDATORY LEGAL DISCLAIMER BOARD PANEL -->
+        <div class="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm text-center">
+            <h4 class="text-blue-600 font-black text-xs uppercase tracking-widest border-b border-blue-50 pb-2 mb-2">-: DISCLAIMER :-</h4>
+            <p class="text-[10px] text-gray-500 font-semibold leading-relaxed text-justify">
+                Visiting this site and browsing it is strictly recommended at your own risk. Every information available here is only according to informational purpose.
+            </p>
+        </div>
+
+        <!-- SUPPORT SYSTEM DESK -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 space-y-3">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Customer Support Desk</h4>
+            <a id="support-whatsapp" href="https://wa.me/919113224019" target="_blank" class="flex items-center justify-center bg-blue-600 text-white py-3.5 rounded-xl text-xs font-black shadow-sm uppercase tracking-wider">WhatsApp Support Chat</a>
+        </div>
+    </div>
+
+    <!-- PLAN SELECTOR MODAL -->
+    <div id="plan-modal" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
+        <div class="bg-white rounded-t-3xl p-6 w-full max-w-[450px] space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="text-gray-800 font-black text-base uppercase">Select Plan</h3>
+                <button onclick="closePlanModal()" class="text-gray-400 text-sm font-bold">Close</button>
+            </div>
+            <div class="space-y-3">
+                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-blue-500">
+                    <div class="flex items-center space-x-3">
+                        <input type="radio" name="membership-plan" value="day" checked class="text-blue-600 focus:ring-0">
+                        <span class="text-gray-800 font-bold text-sm">1 Day Premium Access</span>
+                    </div>
+                    <span id="label-price-day" class="text-blue-600 font-black text-sm">₹1100</span>
+                </label>
+                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-blue-500">
+                    <div class="flex items-center space-x-3">
+                        <input type="radio" name="membership-plan" value="week" class="text-blue-600 focus:ring-0">
+                        <span class="text-gray-800 font-bold text-sm">1 Week Unlimited Pass</span>
+                    </div>
+                    <span id="label-price-week" class="text-blue-600 font-black text-sm">₹5100</span>
+                </label>
+            </div>
+            <button onclick="redirectToDedicatedPaymentPage()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider">Continue to Payment Page</button>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
+        authDomain: "mahalakshmi-91935.firebaseapp.com",
+        projectId: "mahalakshmi-91935",
+        storageBucket: "mahalakshmi-91935.firebasestorage.app",
+        messagingSenderId: "665618845136",
+        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
+        measurementId: "G-3E2BC4BN3B"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let activeSliderTimer = null;
+    let userSubscriptionStatus = "inactive";
+    let priceDay = "1100";
+    let priceWeek = "5100";
+    let watermarkNumber = "9113224019"; 
+    let cachedMarkets = [];
+    let serverTimeOffset = 0; 
+
+    window.addEventListener('DOMContentLoaded', beginLiveEngine);
+
+    window.processAndRedirectSecureLink = function(event, targetUrl) {
+        if(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        if(!targetUrl) return false;
+        
+        let urlString = targetUrl.trim();
+        
+        if (urlString.includes("tg:resolve") || urlString.includes("tg://")) {
+            const indexQuery = urlString.indexOf('?');
+            if(indexQuery !== -1) {
+                const queryParameters = new URLSearchParams(urlString.substring(indexQuery));
+                const channelUsername = queryParameters.get("domain");
+                if(channelUsername) urlString = "https://t.me/" + channelUsername;
+            }
+        }
+        
+        if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp")) {
+            window.location.href = urlString;
+            return false;
+        }
+        
+        let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
+        let browserIntentURI = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
+        
+        window.location.href = browserIntentURI;
+        return false;
+    }
+
+    async function beginLiveEngine() {
+        const savedMobile = localStorage.getItem('app_user_mobile');
+        if (!savedMobile) { window.location.href = 'index.html'; return; }
+
+        document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
+
+        try {
+            const startTest = Date.now();
+            const response = await fetch(window.location.href, { method: 'HEAD' });
+            const serverDateHeader = response.headers.get('Date');
+            if(serverDateHeader) {
+                const serverMs = Date.parse(serverDateHeader) + (Date.now() - startTest) / 2;
+                serverTimeOffset = serverMs - Date.now();
+            }
+        } catch(e) { console.log("Baseline time calculated via system context"); }
+
+        setInterval(() => {
+            const secureCorrectedMs = Date.now() + serverTimeOffset;
+            const now = new Date(secureCorrectedMs);
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+            document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+        }, 1000);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') { updateLastSeenSyncPing(savedMobile); }
+        });
+        window.addEventListener('pagehide', () => updateLastSeenSyncPing(savedMobile));
+        
+        updateLastSeenSyncPing(savedMobile);
+        setInterval(() => updateLastSeenSyncPing(savedMobile), 15000);
+
+        onSnapshot(collection(db, "app_links"), (snapshot) => {
+            const linkSec = document.getElementById('app-links-section');
+            const linkTarget = document.getElementById('links-elements-container');
+            linkTarget.innerHTML = '';
+            
+            if (snapshot.empty) { linkSec.classList.add('hidden'); return; }
+            linkSec.classList.remove('hidden');
+            
+            snapshot.forEach((lDoc) => {
+                const linkData = lDoc.data();
+                linkTarget.innerHTML += `
+                    <button onclick="processAndRedirectSecureLink(event, '${linkData.url}')" class="w-full text-left flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black px-4 py-3.5 rounded-xl text-xs uppercase shadow-sm tracking-wide transition-transform active:scale-[0.99]">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-base">▶</span>
+                            <span>${linkData.headline || 'Open External Resource'}</span>
+                        </div>
+                        <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">LAUNCH →</span>
+                    </button>`;
+            });
+        });
+
+        onSnapshot(collection(db, "voicenotes"), (snapshot) => {
+            const sec = document.getElementById('voice-notes-section');
+            const target = document.getElementById('voice-elements-container');
+            target.innerHTML = '';
+            
+            if (snapshot.empty) { sec.classList.add('hidden'); return; }
+            sec.classList.remove('hidden');
+            snapshot.forEach((vDoc) => {
+                const data = vDoc.data();
+                target.innerHTML += `
+                    <div class="bg-gray-50 border border-gray-200/60 p-3 rounded-xl space-y-2">
+                        <p class="text-xs text-gray-800 font-black flex items-center space-x-1">
+                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span>
+                            <span>${data.title || 'Important Voice Update'}</span>
+                        </p>
+                        <audio src="${data.url}" controls class="w-full h-8 text-xs focus:outline-none"></audio>
+                    </div>`;
+            });
+        });
+
+        onSnapshot(doc(db, "users", savedMobile), async (snapshot) => {
+            if (!snapshot.exists()) { handleLogout(); return; }
+            const uData = snapshot.data();
+            
+            if (uData.status === "blocked") {
+                alert("❌ Your account profile has been suspended.");
+                handleLogout();
+                return;
+            }
+
+            userSubscriptionStatus = uData.subscription || "inactive";
+            const currentSecureTime = Date.now() + serverTimeOffset;
+
+            if (userSubscriptionStatus === "active" && uData.expiresAt) {
+                if (uData.expiresAt - currentSecureTime <= 0) {
+                    userSubscriptionStatus = "inactive";
+                    await updateDoc(doc(db, "users", savedMobile), { subscription: "inactive", expiresAt: null });
+                }
+            }
+
+            document.getElementById('profile-name').innerText = uData.name || "Ganesh";
+            
+            const badge = document.getElementById('membership-badge');
+            const banner = document.getElementById('membership-banner');
+            const countdownBox = document.getElementById('subscription-countdown-box');
+            const remainingLabel = document.getElementById('days-remaining-counter');
+            
+            badge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ";
+            
+            if (userSubscriptionStatus === "active") {
+                badge.innerText = "Active"; badge.classList.add('bg-blue-100', 'text-blue-700');
+                banner.classList.add('hidden');
+                
+                if(uData.expiresAt) {
+                    const diffTime = uData.expiresAt - currentSecureTime;
+                    if(diffTime > 0) {
+                        const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
+                        const d = Math.floor(totalHours / 24);
+                        const h = totalHours % 24;
+                        remainingLabel.innerText = `${d} Day(s) ${h} Hour(s)`;
+                        countdownBox.classList.remove('hidden');
+                    } else { countdownBox.classList.add('hidden'); }
+                } else { countdownBox.classList.add('hidden'); }
+            } else {
+                badge.innerText = "Inactive"; badge.classList.add('bg-amber-100', 'text-amber-800');
+                banner.classList.remove('hidden');
+                countdownBox.classList.add('hidden');
+            }
+            renderGameCards();
+        });
+
+        onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
+                if (data.support_phone) { document.getElementById('support-whatsapp').href = `https://wa.me/${data.support_phone}`; }
+                priceDay = data.price_day || "1100"; priceWeek = data.price_week || "5100";
+                if(data.watermark_phone) watermarkNumber = data.watermark_phone;
+                
+                document.getElementById('label-price-day').innerText = "₹" + priceDay;
+                document.getElementById('label-price-week').innerText = "₹" + priceWeek;
+
+                if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
+                renderGameCards();
+            }
+        });
+
+        onSnapshot(collection(db, "markets"), (querySnapshot) => {
+            cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
+            renderGameCards();
+        });
+    }
+
+    async function updateLastSeenSyncPing(phone) {
+        try { await updateDoc(doc(db, "users", phone), { lastSeen: Date.now() }); } catch(e) {}
+    }
+
+    function renderGameCards() {
+        const container = document.getElementById('games-container'); if(!container) return;
+        let htmlBuffer = ""; const isPremiumUser = (userSubscriptionStatus === "active");
+
+        cachedMarkets.forEach((doc) => {
+            const m = doc.data();
+            const otcText = isPremiumUser ? (m.otcValue || "••") : "only for members";
+            const jodiText = isPremiumUser ? (m.jodiValue || "•• ••") : "only for members";
+            const panelText = isPremiumUser ? (m.panelValue || "••• •••") : "only for members";
+            const dataStyle = isPremiumUser ? "font-sans font-extrabold text-base tracking-wide" : "font-semibold italic text-xs tracking-normal text-blue-200";
+
+            const watermarkOverlayHtml = watermarkNumber ? `
+                <div class="watermark-overlay"><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div></div>` : "";
+
+            htmlBuffer += `
+                <div class="watermark-container bg-blue-600 text-white rounded-3xl p-5 shadow-md border border-blue-400/20 flex flex-col space-y-4">
+                    ${watermarkOverlayHtml}
+                    <div class="flex items-center justify-between z-10">
+                        <div class="flex items-center space-x-2"><div class="w-1.5 h-6 bg-amber-400 rounded-full"></div><h3 class="font-black text-xl uppercase tracking-wider">${doc.id}</h3></div>
+                        <div class="bg-blue-800 text-[11px] font-bold px-3 py-1 rounded-full font-mono">${m.gameDate || '--'}</div>
+                        <div class="bg-indigo-700 text-[10px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center space-x-1.5"><span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span><span>LIVE</span></div>
+                    </div>
+                    <div class="space-y-2 z-10">
+                        <div class="bg-white/10 border border-white/5 rounded-2xl px-4 py-2.5 flex items-center"><span class="text-xs font-bold text-blue-100 w-24 shrink-0">🎲 OTC : &rarr;</span><span class="${dataStyle}">${otcText}</span></div>
+                        <div class="bg-white/10 border border-white/5 rounded-2xl px-4 py-2.5 flex items-center"><span class="text-xs font-bold text-blue-100 w-24 shrink-0">🔗 Jodi : &rarr;</span><span class="${dataStyle}">${jodiText}</span></div>
+                        <div class="bg-white/10 border border-white/5 rounded-2xl px-4 py-2.5 flex items-center"><span class="text-xs font-bold text-blue-100 w-24 shrink-0">📊 Panel : &rarr;</span><span class="${dataStyle}">${panelText}</span></div>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = htmlBuffer;
+    }
+
+    function setupAutoImageSlider(images) {
+        const slider = document.getElementById('slider-container'); if (!slider) return;
+        clearInterval(activeSliderTimer);
+        const cleanImages = images.filter(url => url && url.trim() !== "" && url.startsWith('http'));
+        if (cleanImages.length === 0) {
+            slider.innerHTML = `<img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0">`; return;
+        }
+        slider.innerHTML = '';
+        cleanImages.forEach(url => { 
+            let formattedUrl = url;
+            if(url.includes("firebasestorage.googleapis.com") && !url.includes("%2F")) {
+                formattedUrl = url.replace("/o/slider_banners", "/o/slider_banners%2F");
+            }
+            slider.innerHTML += `<img src="${formattedUrl}" class="slide-frame shrink-0" onerror="this.src='https://i.imgur.com/pCFtcKd.png'">`; 
+        });
+        let index = 0;
+        if (cleanImages.length > 1) {
+            activeSliderTimer = setInterval(() => {
+                index++; if (index >= cleanImages.length) index = 0;
+                slider.scrollTo({ left: index * slider.clientWidth, behavior: 'smooth' });
+            }, 4000);
+        }
+    }
+
+    window.openPlanModal = () => document.getElementById('plan-modal').classList.remove('hidden');
+    window.closePlanModal = () => document.getElementById('plan-modal').classList.add('hidden');
+
+    window.redirectToDedicatedPaymentPage = function() {
+        const plan = document.querySelector('input[name="membership-plan"]:checked').value;
+        localStorage.setItem('selected_pay_plan', plan);
+        window.location.href = 'payment.html';
+    }
+
+    window.handleLogout = function() { localStorage.removeItem('app_user_mobile'); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>
