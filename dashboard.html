@@ -11,10 +11,6 @@
         .app-container::-webkit-scrollbar { display: none; }
         @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
         
-        .watermark-container { position: relative; overflow: hidden; }
-        .watermark-overlay { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 30px; padding: 15px; pointer-events: none; user-select: none; z-index: 0; transform: rotate(-15deg) scale(1.1); }
-        .watermark-item { font-size: 1.2rem; font-weight: 900; letter-spacing: 1px; color: rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: center; white-space: nowrap; }
-        
         .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
         .slider-wrapper::-webkit-scrollbar { display: none; }
         .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; }
@@ -36,20 +32,23 @@
     <!-- MAIN DASHBOARD CONTENT -->
     <div class="flex-1 bg-amber-50/30 p-4 space-y-4 pb-8">
 
-        <!-- USER PROFILE CARD -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 flex flex-col space-y-2">
+        <!-- USER PROFILE & WALLET CARD -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 flex flex-col space-y-3">
             <div class="flex justify-between items-center">
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">Subscriber Profile</p>
                     <p id="profile-name" class="text-gray-900 font-black text-base mt-0.5">Ganesh</p>
                     <p id="profile-phone" class="text-gray-500 font-semibold text-xs font-mono">Mobile: --</p>
                 </div>
-                <div id="membership-badge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gray-200 text-gray-600">Checking...</div>
+                <!-- WALLET BALANCE BOX -->
+                <div class="bg-blue-50 border border-blue-200 px-3 py-2 rounded-xl text-right">
+                    <p class="text-[9px] text-gray-400 font-bold uppercase">Wallet Balance</p>
+                    <p id="wallet-balance-text" class="text-blue-700 font-black text-sm font-mono">₹0</p>
+                </div>
             </div>
-            
-            <div id="subscription-countdown-box" class="hidden text-xs bg-blue-50 text-blue-800 p-2.5 rounded-xl border border-blue-200 font-bold text-center">
-                Your premium subscription ends in: <span id="days-remaining-counter" class="font-black text-blue-700">--</span>
-            </div>
+            <button onclick="openDepositModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow">
+                + Add Money / Deposit
+            </button>
         </div>
 
         <!-- LIVE ANTICHEAT SERVER TIMESTAMPS WATCHCLOCK -->
@@ -82,13 +81,6 @@
             </div>
         </div>
 
-        <!-- RECRUITMENT BANNER -->
-        <div id="membership-banner" class="hidden">
-            <button onclick="openPlanModal()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-center py-3.5 rounded-2xl block shadow-md text-sm tracking-wider uppercase">
-                👑 Get Membership Access
-            </button>
-        </div>
-
         <!-- NOTICE BOARD -->
         <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4 shadow-sm">
             <div class="flex items-center space-x-2 text-blue-800 mb-1.5">
@@ -98,9 +90,9 @@
             <p id="notice-text" class="text-xs text-blue-900 leading-relaxed font-semibold">Welcome to Mahalakshmi App.</p>
         </div>
 
-        <!-- GAME CARDS CONTAINER -->
+        <!-- INDIVIDUAL MARKETS CONTAINER -->
         <div class="space-y-3">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Game Section</h2>
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Markets Section</h2>
             <div id="games-container" class="space-y-4"></div>
         </div>
 
@@ -119,30 +111,16 @@
         </div>
     </div>
 
-    <!-- PLAN SELECTOR MODAL -->
-    <div id="plan-modal" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
-        <div class="bg-white rounded-t-3xl p-6 w-full max-w-[450px] space-y-5">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-                <h3 class="text-gray-800 font-black text-base uppercase">Select Plan</h3>
-                <button onclick="closePlanModal()" class="text-gray-400 text-sm font-bold">Close</button>
+    <!-- DEPOSIT / ADD MONEY MODAL -->
+    <div id="deposit-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-[350px] space-y-4 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
+            <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money or proceed to payment page.</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-xs uppercase">Cancel</button>
+                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow">Deposit Now</button>
             </div>
-            <div class="space-y-3">
-                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-blue-500">
-                    <div class="flex items-center space-x-3">
-                        <input type="radio" name="membership-plan" value="day" checked class="text-blue-600 focus:ring-0">
-                        <span class="text-gray-800 font-bold text-sm">1 Day Premium Access</span>
-                    </div>
-                    <span id="label-price-day" class="text-blue-600 font-black text-sm">₹1100</span>
-                </label>
-                <label class="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-blue-500">
-                    <div class="flex items-center space-x-3">
-                        <input type="radio" name="membership-plan" value="week" class="text-blue-600 focus:ring-0">
-                        <span class="text-gray-800 font-bold text-sm">1 Week Unlimited Pass</span>
-                    </div>
-                    <span id="label-price-week" class="text-blue-600 font-black text-sm">₹5100</span>
-                </label>
-            </div>
-            <button onclick="redirectToDedicatedPaymentPage()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3.5 rounded-xl uppercase text-xs tracking-wider">Continue to Payment Page</button>
         </div>
     </div>
 
@@ -150,7 +128,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
@@ -166,50 +144,38 @@
     const db = getFirestore(app);
 
     let activeSliderTimer = null;
-    let userSubscriptionStatus = "inactive";
-    let priceDay = "1100";
-    let priceWeek = "5100";
-    let watermarkNumber = "9113224019"; 
+    let currentUserWallet = 0;
     let cachedMarkets = [];
-    let serverTimeOffset = 0; 
+    let unlockedGames = {}; // stores unlock timestamps per market
+    let serverTimeOffset = 0;
+    let savedMobile = "";
 
     window.addEventListener('DOMContentLoaded', beginLiveEngine);
 
     window.processAndRedirectSecureLink = function(event, targetUrl) {
-        if(event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
+        if(event) { event.preventDefault(); event.stopPropagation(); }
         if(!targetUrl) return false;
-        
         let urlString = targetUrl.trim();
-        
-        if (urlString.includes("tg:resolve") || urlString.includes("tg://")) {
-            const indexQuery = urlString.indexOf('?');
-            if(indexQuery !== -1) {
-                const queryParameters = new URLSearchParams(urlString.substring(indexQuery));
-                const channelUsername = queryParameters.get("domain");
-                if(channelUsername) urlString = "https://t.me/" + channelUsername;
-            }
-        }
-        
         if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp")) {
             window.location.href = urlString;
             return false;
         }
-        
         let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
-        let browserIntentURI = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
-        
-        window.location.href = browserIntentURI;
+        window.location.href = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
         return false;
     }
 
     async function beginLiveEngine() {
-        const savedMobile = localStorage.getItem('app_user_mobile');
+        savedMobile = localStorage.getItem('app_user_mobile');
         if (!savedMobile) { window.location.href = 'index.html'; return; }
 
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
+
+        // Load unlocked games from localStorage
+        const storedUnlocks = localStorage.getItem('unlocked_games_' + savedMobile);
+        if(storedUnlocks) {
+            try { unlockedGames = JSON.parse(storedUnlocks); } catch(e) {}
+        }
 
         try {
             const startTest = Date.now();
@@ -219,63 +185,17 @@
                 const serverMs = Date.parse(serverDateHeader) + (Date.now() - startTest) / 2;
                 serverTimeOffset = serverMs - Date.now();
             }
-        } catch(e) { console.log("Baseline time calculated via system context"); }
+        } catch(e) {}
 
         setInterval(() => {
             const secureCorrectedMs = Date.now() + serverTimeOffset;
             const now = new Date(secureCorrectedMs);
             document.getElementById('live-clock').innerText = now.toLocaleTimeString();
             document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+            
+            // Check 3-hour expiry loop
+            checkGameExpiries(secureCorrectedMs);
         }, 1000);
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') { updateLastSeenSyncPing(savedMobile); }
-        });
-        window.addEventListener('pagehide', () => updateLastSeenSyncPing(savedMobile));
-        
-        updateLastSeenSyncPing(savedMobile);
-        setInterval(() => updateLastSeenSyncPing(savedMobile), 15000);
-
-        onSnapshot(collection(db, "app_links"), (snapshot) => {
-            const linkSec = document.getElementById('app-links-section');
-            const linkTarget = document.getElementById('links-elements-container');
-            linkTarget.innerHTML = '';
-            
-            if (snapshot.empty) { linkSec.classList.add('hidden'); return; }
-            linkSec.classList.remove('hidden');
-            
-            snapshot.forEach((lDoc) => {
-                const linkData = lDoc.data();
-                linkTarget.innerHTML += `
-                    <button onclick="processAndRedirectSecureLink(event, '${linkData.url}')" class="w-full text-left flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black px-4 py-3.5 rounded-xl text-xs uppercase shadow-sm tracking-wide transition-transform active:scale-[0.99]">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-base">▶</span>
-                            <span>${linkData.headline || 'Open External Resource'}</span>
-                        </div>
-                        <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">LAUNCH →</span>
-                    </button>`;
-            });
-        });
-
-        onSnapshot(collection(db, "voicenotes"), (snapshot) => {
-            const sec = document.getElementById('voice-notes-section');
-            const target = document.getElementById('voice-elements-container');
-            target.innerHTML = '';
-            
-            if (snapshot.empty) { sec.classList.add('hidden'); return; }
-            sec.classList.remove('hidden');
-            snapshot.forEach((vDoc) => {
-                const data = vDoc.data();
-                target.innerHTML += `
-                    <div class="bg-gray-50 border border-gray-200/60 p-3 rounded-xl space-y-2">
-                        <p class="text-xs text-gray-800 font-black flex items-center space-x-1">
-                            <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span>
-                            <span>${data.title || 'Important Voice Update'}</span>
-                        </p>
-                        <audio src="${data.url}" controls class="w-full h-8 text-xs focus:outline-none"></audio>
-                    </div>`;
-            });
-        });
 
         onSnapshot(doc(db, "users", savedMobile), async (snapshot) => {
             if (!snapshot.exists()) { handleLogout(); return; }
@@ -287,44 +207,14 @@
                 return;
             }
 
-            userSubscriptionStatus = uData.subscription || "inactive";
-            const currentSecureTime = Date.now() + serverTimeOffset;
-
-            if (userSubscriptionStatus === "active" && uData.expiresAt) {
-                if (uData.expiresAt - currentSecureTime <= 0) {
-                    userSubscriptionStatus = "inactive";
-                    await updateDoc(doc(db, "users", savedMobile), { subscription: "inactive", expiresAt: null });
-                }
-            }
-
             document.getElementById('profile-name').innerText = uData.name || "Ganesh";
-            
-            const badge = document.getElementById('membership-badge');
-            const banner = document.getElementById('membership-banner');
-            const countdownBox = document.getElementById('subscription-countdown-box');
-            const remainingLabel = document.getElementById('days-remaining-counter');
-            
-            badge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ";
-            
-            if (userSubscriptionStatus === "active") {
-                badge.innerText = "Active"; badge.classList.add('bg-blue-100', 'text-blue-700');
-                banner.classList.add('hidden');
-                
-                if(uData.expiresAt) {
-                    const diffTime = uData.expiresAt - currentSecureTime;
-                    if(diffTime > 0) {
-                        const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
-                        const d = Math.floor(totalHours / 24);
-                        const h = totalHours % 24;
-                        remainingLabel.innerText = `${d} Day(s) ${h} Hour(s)`;
-                        countdownBox.classList.remove('hidden');
-                    } else { countdownBox.classList.add('hidden'); }
-                } else { countdownBox.classList.add('hidden'); }
-            } else {
-                badge.innerText = "Inactive"; badge.classList.add('bg-amber-100', 'text-amber-800');
-                banner.classList.remove('hidden');
-                countdownBox.classList.add('hidden');
-            }
+            currentUserWallet = Number(uData.walletBalance) || 0;
+            document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "markets"), (querySnapshot) => {
+            cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
             renderGameCards();
         });
 
@@ -333,39 +223,69 @@
                 const data = snapshot.data();
                 if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
                 if (data.support_phone) { document.getElementById('support-whatsapp').href = `https://wa.me/${data.support_phone}`; }
-                priceDay = data.price_day || "1100"; priceWeek = data.price_week || "5100";
-                if(data.watermark_phone) watermarkNumber = data.watermark_phone;
-                
-                document.getElementById('label-price-day').innerText = "₹" + priceDay;
-                document.getElementById('label-price-week').innerText = "₹" + priceWeek;
-
                 if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
-                renderGameCards();
             }
-        });
-
-        onSnapshot(collection(db, "markets"), (querySnapshot) => {
-            cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
-            renderGameCards();
         });
     }
 
-    async function updateLastSeenSyncPing(phone) {
-        try { await updateDoc(doc(db, "users", phone), { lastSeen: Date.now() }); } catch(e) {}
+    function checkGameExpiries(currentTimeMs) {
+        let changed = false;
+        for (let marketName in unlockedGames) {
+            const unlockTime = unlockedGames[marketName];
+            const threeHoursMs = 3 * 60 * 60 * 1000;
+            if (currentTimeMs - unlockTime >= threeHoursMs) {
+                delete unlockedGames[marketName];
+                changed = true;
+            }
+        }
+        if (changed) {
+            localStorage.setItem('unlocked_games_' + savedMobile, JSON.stringify(unlockedGames));
+            renderGameCards();
+        }
+    }
+
+    window.handleGetGameClick = async function(marketName, gamePrice) {
+        const price = Number(gamePrice) || 0;
+        
+        if (currentUserWallet >= price) {
+            // Deduct balance
+            const newBalance = currentUserWallet - price;
+            try {
+                await updateDoc(doc(db, "users", savedMobile), { walletBalance: newBalance });
+                currentUserWallet = newBalance;
+                document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
+                
+                // Unlock for 3 hours
+                unlockedGames[marketName] = Date.now() + serverTimeOffset;
+                localStorage.setItem('unlocked_games_' + savedMobile, JSON.stringify(unlockedGames));
+                
+                renderGameCards();
+            } catch(e) {
+                alert("Transaction failed. Please try again.");
+            }
+        } else {
+            // Open deposit pop up
+            openDepositModal();
+        }
     }
 
     function renderGameCards() {
         const container = document.getElementById('games-container'); if(!container) return;
-        let htmlBuffer = ""; const isPremiumUser = (userSubscriptionStatus === "active");
+        let htmlBuffer = "";
+        const currentTimeMs = Date.now() + serverTimeOffset;
 
         cachedMarkets.forEach((docSnap) => {
             const m = docSnap.data();
-            const watermarkOverlayHtml = watermarkNumber ? `
-                <div class="watermark-overlay"><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div><div class="watermark-item">${watermarkNumber}</div></div>` : "";
+            const marketName = docSnap.id;
+            const gamePrice = Number(m.price) || 100; // default price if not set
+            
+            // Check if unlocked and within 3 hours
+            const unlockTime = unlockedGames[marketName];
+            const isUnlocked = unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000);
 
             let innerContent = "";
 
-            if (isPremiumUser) {
+            if (isUnlocked) {
                 innerContent = `
                     <div class="space-y-3 z-10 text-center">
                         <div class="bg-white/10 border border-white/5 rounded-2xl p-3">
@@ -383,23 +303,18 @@
                     </div>`;
             } else {
                 innerContent = `
-                    <div class="z-10 py-6 text-center">
-                        <button onclick="openPlanModal()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-sm py-4 px-6 rounded-2xl shadow-lg uppercase tracking-wider transition-transform transform active:scale-95">
-                            🔥 GET GAME
+                    <div class="z-10 py-4 text-center space-y-2">
+                        <button onclick="handleGetGameClick('${marketName}', ${gamePrice})" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-sm py-4 px-6 rounded-2xl shadow-lg uppercase tracking-wider transition-transform transform active:scale-95">
+                            🔥 GET GAME (₹${gamePrice})
                         </button>
                     </div>`;
             }
 
             htmlBuffer += `
-                <div class="watermark-container bg-blue-600 text-white rounded-3xl p-5 shadow-md border border-blue-400/20 flex flex-col space-y-4">
-                    ${watermarkOverlayHtml}
+                <div class="bg-blue-600 text-white rounded-3xl p-5 shadow-md border border-blue-400/20 flex flex-col space-y-4">
                     <!-- TOP CENTERED MARKET NAME & DATE -->
                     <div class="flex flex-col items-center justify-center text-center z-10 space-y-1">
-                        <div class="flex items-center space-x-1.5 bg-indigo-700/80 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase mb-1">
-                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
-                            <span>LIVE</span>
-                        </div>
-                        <h3 class="font-black text-xl uppercase tracking-wider text-white">${docSnap.id}</h3>
+                        <h3 class="font-black text-xl uppercase tracking-wider text-white">${marketName}</h3>
                         <p class="text-xs font-mono font-bold text-blue-200">${m.gameDate || '--'}</p>
                     </div>
                     
@@ -434,12 +349,11 @@
         }
     }
 
-    window.openPlanModal = () => document.getElementById('plan-modal').classList.remove('hidden');
-    window.closePlanModal = () => document.getElementById('plan-modal').classList.add('hidden');
+    window.openDepositModal = () => document.getElementById('deposit-modal').classList.remove('hidden');
+    window.closeDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden');
 
-    window.redirectToDedicatedPaymentPage = function() {
-        const plan = document.querySelector('input[name="membership-plan"]:checked').value;
-        localStorage.setItem('selected_pay_plan', plan);
+    window.redirectToPayment = function() {
+        localStorage.setItem('selected_pay_plan', 'day');
         window.location.href = 'payment.html';
     }
 
