@@ -154,8 +154,9 @@
                     <div>
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">Market Global Status</label>
                         <select id="mkt-status" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs font-bold text-gray-800">
-                            <option value="active">Active (Open)</option>
+                            <option value="active">Active (Normal)</option>
                             <option value="locked">Locked (Closed)</option>
+                            <option value="force_show">Force Show to Everyone (Override)</option>
                         </select>
                     </div>
                 </div>
@@ -466,14 +467,18 @@
             sorted.forEach(doc => {
                 const m = doc.data();
                 globalMarketsCache[doc.id] = m;
-                const isLocked = m.marketStatus === "locked";
+                const status = m.marketStatus || 'active';
+                let statusBadge = '<span class="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold ml-1">Active</span>';
+                if(status === 'locked') statusBadge = '<span class="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold ml-1">Locked</span>';
+                if(status === 'force_show') statusBadge = '<span class="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold ml-1">Force Show</span>';
+
                 list.innerHTML += `
                     <div class="bg-white p-3 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer" onclick="populateMarketForm('${doc.id}')">
                         <div>
                             <span class="text-xs font-black text-blue-600 font-mono mr-1">[${m.serialNo}]</span>
                             <span class="font-bold text-gray-800 text-xs uppercase mr-2">${doc.id}</span>
                             <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">₹${m.price || 100}</span>
-                            <span class="text-[9px] ${isLocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'} px-1.5 py-0.5 rounded font-bold ml-1">${isLocked ? 'Locked' : 'Active'}</span>
+                            ${statusBadge}
                         </div>
                         <button onclick="event.stopPropagation(); deleteMarket('${doc.id}')" class="text-red-500 text-xs font-bold">Delete</button>
                     </div>`;
