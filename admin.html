@@ -48,17 +48,7 @@
         <!-- SETTINGS TAB -->
         <div id="tab-system" class="space-y-4">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 space-y-3">
-                <h3 class="font-black text-xs text-blue-600 uppercase tracking-wider">System Control & Pricing</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">1 Day Price (₹)</label>
-                        <input type="number" id="cfg-p-day" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs text-gray-800 font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">1 Week Price (₹)</label>
-                        <input type="number" id="cfg-p-week" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs text-gray-800 font-bold">
-                    </div>
-                </div>
+                <h3 class="font-black text-xs text-blue-600 uppercase tracking-wider">System Control & Gateways</h3>
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Receiver UPI ID Address</label>
                     <input type="text" id="cfg-upi" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs text-gray-800 font-mono">
@@ -66,10 +56,6 @@
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Customer Support Phone Number (WhatsApp / Forgot PIN)</label>
                     <input type="text" id="cfg-support-phone" placeholder="e.g. 919113224019" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs text-gray-800 font-bold">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Card Background Watermark Number</label>
-                    <input type="text" id="cfg-watermark" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2 text-xs text-gray-800 font-bold">
                 </div>
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Notice Text Broadcast</label>
@@ -416,12 +402,9 @@
             if(snap.exists()) {
                 const s = snap.data();
                 document.getElementById('cfg-notice').value = s.notice_text || '';
-                document.getElementById('cfg-p-day').value = s.price_day || "1100";
-                document.getElementById('cfg-p-week').value = s.price_week || "5100";
                 document.getElementById('cfg-upi').value = s.upi_address || "mahalakshmi@upi";
                 document.getElementById('cfg-support-phone').value = s.support_phone || '';
                 document.getElementById('cfg-pin').value = s.admin_pin || '9999';
-                document.getElementById('cfg-watermark').value = s.watermark_phone || '';
                 
                 const imgs = s.slider_images || [];
                 for(let i=1; i<=6; i++) { 
@@ -545,7 +528,6 @@
             }
             const updatedWallet = currentWallet + depositAmount;
 
-            // Update user wallet balance and deposit status
             await updateDoc(userRef, { walletBalance: updatedWallet });
             await updateDoc(doc(db, "deposits", docId), { status: "approved" });
             alert("Deposit approved successfully! ₹" + depositAmount + " added to user wallet.");
@@ -601,12 +583,17 @@
                         </div>
                         <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold">Delete</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 pt-1 border-t border-gray-200/50 items-center">
-                        <div class="flex space-x-1">
+                    <div class="grid grid-cols-3 gap-1.5 pt-1 border-t border-gray-200/50 items-center">
+                        <div class="flex space-x-1 col-span-2">
                             <input type="number" id="add-amt-${u.id}" placeholder="Amount" class="w-20 bg-white border border-gray-200 rounded p-1 text-[11px] font-mono focus:outline-none">
-                            <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
+                            <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
                         </div>
-                        <button onclick="toggleUserBlockStatus('${u.id}', ${isBlocked})" class="${isBlocked ? 'bg-gray-600' : 'bg-gray-950'} text-white py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                        <button onclick="resetUserGames('${u.id}')" class="bg-amber-500 hover:bg-amber-600 text-white py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow">
+                            Reset / Lock
+                        </button>
+                    </div>
+                    <div class="pt-1">
+                        <button onclick="toggleUserBlockStatus('${u.id}', ${isBlocked})" class="w-full ${isBlocked ? 'bg-gray-600' : 'bg-gray-950'} text-white py-1.5 rounded text-[10px] font-bold uppercase tracking-wider">
                             ${isBlocked ? 'Unblock User' : 'Block User'}
                         </button>
                     </div>
@@ -635,6 +622,18 @@
         }
     }
 
+    // Function to reset/lock games for a specific user from admin panel
+    window.resetUserGames = async function(userId) {
+        if(confirm("Do you want to reset/lock all unlocked games for this user? They will need to get game again.")) {
+            try {
+                await updateDoc(doc(db, "users", userId), { gameResetToken: Date.now() });
+                alert("User games successfully locked/reset!");
+            } catch(e) {
+                alert("Failed to reset games: " + e.message);
+            }
+        }
+    }
+
     window.populateMarketForm = function(id) {
         const m = globalMarketsCache[id]; if(!m) return;
         document.getElementById('mkt-name').value = id;
@@ -655,12 +654,9 @@
 
             await setDoc(doc(db, "system_config", "settings"), {
                 notice_text: document.getElementById('cfg-notice').value.trim(),
-                price_day: document.getElementById('cfg-p-day').value.trim(),
-                price_week: document.getElementById('cfg-p-week').value.trim(),
                 upi_address: document.getElementById('cfg-upi').value.trim(),
                 support_phone: document.getElementById('cfg-support-phone').value.trim(),
                 admin_pin: pinVal,
-                watermark_phone: document.getElementById('cfg-watermark').value.trim(), 
                 slider_images: slider_images
             }, { merge: true });
             alert("Parameters successfully saved!");
