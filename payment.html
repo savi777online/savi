@@ -21,30 +21,32 @@
     </div>
 
     <!-- MAIN APP SCREEN WRAPPER -->
-    <div id="main-payment-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6 bg-amber-50/30">
-        <div>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Amount Due Safely</p>
-            <p id="pay-amount" class="text-4xl font-black text-gray-800 mt-1">₹0.00</p>
+    <div id="main-payment-screen" class="flex-1 flex flex-col items-center justify-center p-5 text-center space-y-4 bg-amber-50/30">
+        
+        <!-- MANUAL AMOUNT INPUT BOX -->
+        <div class="w-full max-w-sm space-y-1">
+            <label class="block text-[11px] text-gray-500 font-bold uppercase tracking-wider">Enter Amount to Add (₹)</label>
+            <input type="number" id="input-custom-amount" value="500" oninput="updateDynamicQR()" placeholder="Enter amount" class="w-full bg-white border-2 border-blue-200 rounded-2xl p-3 text-2xl font-black text-blue-700 text-center font-mono focus:outline-none focus:border-blue-600 shadow-inner">
         </div>
 
-        <!-- STATIC DISPLAY IMAGE CONTAINER -->
-        <div class="bg-white p-5 border-2 border-dashed border-blue-200 rounded-3xl shadow-inner">
-            <img id="payment-qr" src="" class="w-56 h-56 object-contain mx-auto" alt="Merchant QR">
-            <p class="text-[10px] text-gray-500 font-extrabold uppercase mt-2">Scan QR code using PhonePe / GPay</p>
+        <!-- STATIC DISPLAY QR IMAGE CONTAINER -->
+        <div class="bg-white p-4 border-2 border-dashed border-blue-200 rounded-3xl shadow-inner">
+            <img id="payment-qr" src="" class="w-48 h-48 object-contain mx-auto" alt="Merchant QR">
+            <p class="text-[10px] text-gray-500 font-extrabold uppercase mt-1.5">Scan QR code using PhonePe / GPay</p>
         </div>
 
-        <!-- TRANSACTION NOTE PREVIEW PANEL -->
-        <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl w-full max-w-sm text-left space-y-1.5">
-            <p class="text-[11px] text-blue-900 font-bold uppercase tracking-wider">🔒 Auto-Filled Message Note:</p>
-            <p id="pay-note-preview" class="text-sm font-mono bg-white p-2.5 rounded-lg border border-blue-200/60 text-gray-900 font-black tracking-widest text-center"></p>
-            <p class="text-[9px] text-gray-400 font-medium text-center leading-normal">Scanning this QR code will automatically add your phone number into your UPI application message/remark box for verification.</p>
+        <!-- UTR NUMBER INPUT SECTION -->
+        <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-2xl w-full max-w-sm text-left space-y-1.5 shadow-sm">
+            <label class="block text-[11px] text-blue-900 font-bold uppercase tracking-wider">📝 Enter UTR / Reference Number:</label>
+            <input type="text" id="input-utr-number" placeholder="Enter 12-digit UTR number here" class="w-full bg-white border border-blue-200 p-2.5 rounded-xl text-xs font-mono font-black text-gray-900 tracking-wider focus:outline-none focus:border-blue-600">
+            <p class="text-[9px] text-gray-500 font-medium text-center leading-normal">Please enter your UPI transaction UTR reference number after successful payment.</p>
         </div>
 
-        <div class="w-full max-w-xs space-y-3">
-            <button id="btn-submit-paid" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-4 rounded-xl shadow-md uppercase text-xs tracking-widest">
+        <div class="w-full max-w-xs space-y-2.5 pt-1">
+            <button id="btn-submit-paid" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-xl shadow-md uppercase text-xs tracking-widest transition-transform active:scale-95">
                 ✅ I Have Paid Successfully
             </button>
-            <button id="btn-bottom-back" class="w-full bg-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider">Go Back</button>
+            <button id="btn-bottom-back" class="w-full bg-gray-200 text-gray-600 font-bold py-2 rounded-xl text-xs uppercase tracking-wider">Go Back</button>
         </div>
     </div>
 
@@ -66,7 +68,7 @@
         <div class="bg-white p-6 rounded-3xl w-full max-w-[320px] text-center space-y-4 shadow-2xl">
             <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto text-3xl">⚠️</div>
             <h3 class="font-black text-gray-800 text-lg">Are you sure?</h3>
-            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Are you absolutely sure the payment went through successfully?</p>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Are you absolutely sure the payment went through successfully and UTR is correct?</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button id="btn-confirm2-no" class="bg-gray-100 text-gray-600 font-bold py-3 rounded-xl text-xs uppercase">No, Go Back</button>
                 <button id="btn-confirm2-yes" class="bg-blue-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md">Yes, Confirm</button>
@@ -88,7 +90,7 @@
     <div id="lockdown-modal" class="absolute inset-0 bg-gray-950 z-50 flex flex-col items-center justify-center p-6 text-center hidden">
         <div class="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
         <h2 class="text-xl font-black text-white uppercase tracking-wide">Verifying Your Payment</h2>
-        <p class="text-xs text-gray-400 max-w-xs mt-2">Checking your phone number note inside our bank system statements.</p>
+        <p class="text-xs text-gray-400 max-w-xs mt-2">Checking your UTR reference number inside our bank system statements.</p>
         
         <div class="mt-6 bg-white/5 border border-white/10 rounded-2xl px-6 py-2.5 font-mono text-3xl font-bold text-blue-400 tracking-widest shadow-inner">
             <span id="lockdown-timer">03:00</span>
@@ -117,41 +119,51 @@
     const db = getFirestore(app);
 
     const savedMobile = localStorage.getItem('app_user_mobile');
-    const selectedPlan = localStorage.getItem('selected_pay_plan');
+    let merchantUpi = "mahalakshmi@upi";
 
     let countdownInterval = null;
     let requestUnsubscribe = null;
     let fallbackLoopInterval = null;
 
-    if(!savedMobile || !selectedPlan) { window.location.href = 'dashboard.html'; }
+    if(!savedMobile) { window.location.href = 'dashboard.html'; }
 
     window.addEventListener('DOMContentLoaded', initializePaymentPage);
 
     async function initializePaymentPage() {
         const settingsSnap = await getDoc(doc(db, "system_config", "settings"));
-        let upi = "mahalakshmi@upi";
-        let amt = "1100";
-
         if(settingsSnap.exists()) {
             const data = settingsSnap.data();
-            upi = data.upi_address || "mahalakshmi@upi";
-            amt = (selectedPlan === 'day') ? (data.price_day || "1100") : (data.price_week || "5100");
+            merchantUpi = data.upi_address || "mahalakshmi@upi";
         }
+        updateDynamicQR();
+    }
 
+    window.updateDynamicQR = function() {
+        const amtInput = document.getElementById('input-custom-amount').value.trim();
+        const amt = Number(amtInput) || 0;
         const txNote = savedMobile; 
-        document.getElementById('pay-amount').innerText = `₹${amt}`;
-        document.getElementById('pay-note-preview').innerText = txNote;
 
-        const rawUpiUrl = `upi://pay?pa=${upi}&pn=Mahalakshmi%20Console&am=${amt}&tn=${encodeURIComponent(txNote)}&cu=INR`;
+        const rawUpiUrl = `upi://pay?pa=${merchantUpi}&pn=Mahalakshmi%20Console&am=${amt}&tn=${encodeURIComponent(txNote)}&cu=INR`;
         document.getElementById('payment-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(rawUpiUrl)}`;
         
         localStorage.setItem('computed_pay_amt', amt);
     }
 
     window.executeFinalPaymentSubmit = async function() {
+        const utrNumber = document.getElementById('input-utr-number').value.trim();
+        if(!utrNumber) {
+            window.showCustomAlert("⚠️ UTR Required", "Please enter your UTR reference number before proceeding.", "error", null);
+            return;
+        }
+
         document.getElementById('custom-confirm-2').classList.add('hidden');
 
-        const amt = localStorage.getItem('computed_pay_amt') || "0";
+        const amt = Number(localStorage.getItem('computed_pay_amt')) || 0;
+        if(amt <= 0) {
+            window.showCustomAlert("⚠️ Invalid Amount", "Please enter a valid amount greater than zero.", "error", null);
+            return;
+        }
+
         const userSnap = await getDoc(doc(db, "users", savedMobile));
         let profileName = "Ganesh";
         if(userSnap.exists()) { profileName = userSnap.data().name || "Ganesh"; }
@@ -160,7 +172,7 @@
             userMobile: savedMobile,
             userName: profileName,
             amount: amt,
-            note: savedMobile,
+            note: "UTR: " + utrNumber,
             status: "pending",
             timestamp: Date.now()
         });
@@ -202,19 +214,17 @@
                 if (manualSnap.exists()) {
                     processIncomingStatusUpdate(manualSnap.data().status);
                 }
-            } catch(e) { console.log("Fallback loop context check active"); }
+            } catch(e) {}
         }, 3000);
     }
 
     async function processIncomingStatusUpdate(status) {
         if (status === "approved") {
             stopAllActiveWatcherLoops();
-            
             try { await deleteDoc(doc(db, "deposits", savedMobile)); } catch(e) {}
-            
             document.getElementById('lockdown-modal').classList.add('hidden');
             
-            window.showCustomAlert("✅ Approved!", "Your payment was verified successfully! Opening your premium panel dashboard now.", "success", () => {
+            window.showCustomAlert("✅ Approved!", "Your payment was verified successfully! Opening your dashboard now.", "success", () => {
                 window.location.replace('dashboard.html');
             });
         } 
@@ -237,11 +247,11 @@
         document.getElementById('lockdown-modal').classList.add('hidden');
         
         if(reason === "rejected") {
-            window.showCustomAlert("❌ Request Rejected", "Your payment verification statement was rejected by the admin. Please verify data parameters or double check your transfer statement.", "error", () => {
+            window.showCustomAlert("❌ Request Rejected", "Your payment verification statement was rejected by the admin. Please verify UTR details or check with support.", "error", () => {
                 window.location.replace('dashboard.html');
             });
         } else {
-            window.showCustomAlert("⏱️ Session Timed Out", "Verification clock timed out. Please link up directly with customer support desk on WhatsApp.", "error", () => {
+            window.showCustomAlert("⏱️ Session Timed Out", "Verification clock timed out. Please contact customer support desk on WhatsApp.", "error", () => {
                 window.location.replace('dashboard.html');
             });
         }
@@ -253,7 +263,19 @@
     (function() {
         var postAlertAction = null;
 
-        window.showCustomConfirm1 = function() { document.getElementById('custom-confirm-1').classList.remove('hidden'); };
+        window.showCustomConfirm1 = function() {
+            const utrNumber = document.getElementById('input-utr-number').value.trim();
+            const amt = Number(document.getElementById('input-custom-amount').value) || 0;
+            if(amt <= 0) {
+                window.showCustomAlert("⚠️ Invalid Amount", "Please enter a valid amount.", "error", null);
+                return;
+            }
+            if(!utrNumber) {
+                window.showCustomAlert("⚠️ UTR Required", "Please enter your UTR reference number.", "error", null);
+                return;
+            }
+            document.getElementById('custom-confirm-1').classList.remove('hidden'); 
+        };
         window.hideCustomConfirm1 = function() { document.getElementById('custom-confirm-1').classList.add('hidden'); };
         
         window.showCustomConfirm2 = function() {
