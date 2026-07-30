@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi - Secure Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #eff6ff 0%, #fdfbf7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 850px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-radius: 24px;
+        }
+        
+        .slider-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+        .slider-wrapper::-webkit-scrollbar { display: none; }
+        .slide-frame {
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+            object-fit: contain;
+            background-color: #f9fafb;
+        }
+
+        #loading-screen {
+            position: absolute;
+            inset: 0;
+            background-color: #ffffff;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+        }
+        .loader-bar-container {
+            width: 160px;
+            height: 4px;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 20px;
+            position: relative;
+        }
+        .loader-bar-progress {
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(to right, #2563eb, #1e40af);
+            border-radius: 9999px;
+            position: absolute;
+            animation: modern-loading 1.6s infinite ease-in-out;
+        }
+        @keyframes modern-loading {
+            0% { left: -40%; width: 40%; }
+            50% { width: 60%; }
+            100% { left: 100%; width: 40%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- OVERLAY LOADER -->
+    <div id="loading-screen">
+        <div class="flex flex-col items-center">
+            <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-24 h-24 object-contain animate-bounce">
+            <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent tracking-widest uppercase mt-4">MAHALAKSHMI</h2>
+            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Establishing Private Sync Network</p>
+            <div class="loader-bar-container">
+                <div class="loader-bar-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN INTERFACE -->
+    <div class="flex-1 bg-amber-50/30 flex flex-col justify-between overflow-y-auto">
+        
+        <div class="p-4 space-y-4">
+            
+            <!-- BRAND LOGO HEADER -->
+            <div class="flex flex-col items-center justify-center pt-4 pb-1 text-center">
+                <div class="p-3 bg-gradient-to-br from-blue-50 to-amber-50/50 rounded-full shadow-inner mb-2">
+                    <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-20 h-20 object-contain drop-shadow-md">
+                </div>
+                <h1 class="text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 bg-clip-text text-transparent tracking-widest uppercase">MAHALAKSHMI</h1>
+                <div class="flex items-center space-x-2 mt-1">
+                    <span class="h-[1px] w-6 bg-blue-300"></span>
+                    <p class="text-[10px] text-blue-700 font-extrabold tracking-widest uppercase bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/50">Founded in 2018</p>
+                    <span class="h-[1px] w-6 bg-blue-300"></span>
+                </div>
+            </div>
+
+            <!-- RESPONSIVE AUTO BANNER SLIDER SHOW -->
+            <div class="relative w-full h-40 bg-white rounded-2xl overflow-hidden shadow-inner border border-blue-100">
+                <div id="index-slider-container" class="slider-wrapper">
+                    <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Slider">
+                </div>
+            </div>
+
+            <!-- INTERACTIVE FORM SWITCH PANEL -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-blue-100/60 space-y-4">
+                
+                <!-- TAB SWITCH BUTTONS -->
+                <div class="grid grid-cols-2 p-1 bg-blue-50 rounded-xl font-bold text-xs text-center">
+                    <button onclick="toggleFormAuthMode('login')" id="btn-tab-login" class="py-2.5 rounded-lg transition-all bg-white text-blue-600 shadow-sm">LOG IN</button>
+                    <button onclick="toggleFormAuthMode('register')" id="btn-tab-register" class="py-2.5 rounded-lg transition-all text-gray-500">CREATE ACCOUNT</button>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- FULL NAME INPUT (Hidden on pure login mode) -->
+                    <div id="field-name-block" class="hidden">
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Full Name</label>
+                        <input type="text" id="user-name" placeholder="Enter your full name" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-3 text-xs text-gray-800 font-bold focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <!-- MOBILE NUMBER INPUT -->
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Mobile Phone Number</label>
+                        <input type="tel" id="user-mobile" inputmode="numeric" maxlength="10" placeholder="10-Digit Mobile Number" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-3 text-xs text-gray-800 font-mono font-bold tracking-widest focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <!-- SECURE 4-DIGIT PIN -->
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Secure Account Access PIN</label>
+                        <input type="password" id="user-pin" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-3 text-center text-lg text-gray-800 font-mono font-bold tracking-widest focus:outline-none focus:border-blue-600">
+                    </div>
+                </div>
+
+                <!-- FORGOT PIN LINK PANEL -->
+                <div id="forgot-pin-block" class="text-right px-1">
+                    <a id="link-forgot-pin" href="#" target="_blank" class="text-[11px] text-blue-600 font-extrabold tracking-wide uppercase hover:underline">Forgot PIN?</a>
+                </div>
+
+                <!-- SUBMIT ACTION TRIGGER -->
+                <button onclick="handleUserAuthentication()" id="btn-auth-submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-2xl tracking-wider text-xs uppercase shadow-md transition-all transform active:scale-[0.99] mt-1">
+                    🔓 Verify credentials & Enter
+                </button>
+            </div>
+        </div>
+
+        <!-- FOOTER BRAND TRADEMARK TAG -->
+        <div class="p-4 text-center">
+            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">© 2018 Mahalakshmi Analytics Console. All rights reserved.</p>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
+        authDomain: "mahalakshmi-91935.firebaseapp.com",
+        projectId: "mahalakshmi-91935",
+        storageBucket: "mahalakshmi-91935.firebasestorage.app",
+        messagingSenderId: "665618845136",
+        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
+        measurementId: "G-3E2BC4BN3B"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let activeSliderTimer = null;
+    let currentAuthMode = "login";
+
+    window.addEventListener('DOMContentLoaded', initializeLandingPage);
+
+    window.toggleFormAuthMode = function(mode) {
+        currentAuthMode = mode;
+        const btnLogin = document.getElementById('btn-tab-login');
+        const btnRegister = document.getElementById('btn-tab-register');
+        const nameBlock = document.getElementById('field-name-block');
+        const btnSubmit = document.getElementById('btn-auth-submit');
+        const forgotBlock = document.getElementById('forgot-pin-block');
+
+        if(mode === 'login') {
+            btnLogin.className = "py-2.5 rounded-lg transition-all bg-white text-blue-600 shadow-sm";
+            btnRegister.className = "py-2.5 rounded-lg transition-all text-gray-500";
+            nameBlock.classList.add('hidden');
+            forgotBlock.classList.remove('hidden');
+            btnSubmit.innerText = "🔓 Verify Credentials & Enter";
+        } else {
+            btnRegister.className = "py-2.5 rounded-lg transition-all bg-white text-blue-700 shadow-sm";
+            btnLogin.className = "py-2.5 rounded-lg transition-all text-gray-500";
+            nameBlock.classList.remove('hidden');
+            forgotBlock.classList.add('hidden');
+            btnSubmit.innerText = "✨ Register Profile & Enter";
+        }
+    }
+
+    function initializeLandingPage() {
+        if (localStorage.getItem('app_user_mobile')) {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        setTimeout(() => {
+            const overlay = document.getElementById('loading-screen');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.visibility = 'hidden';
+            }
+        }, 1200);
+
+        onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                if (data.slider_images && Array.isArray(data.slider_images)) {
+                    setupIndexImageSlider(data.slider_images);
+                }
+                
+                const directSupportNum = data.support_phone || "919113224019";
+                document.getElementById('link-forgot-pin').href = `https://wa.me/${directSupportNum}?text=Reset%20my%20pin`;
+            }
+        });
+    }
+
+    function setupIndexImageSlider(images) {
+        const slider = document.getElementById('index-slider-container');
+        if (!slider) return;
+        clearInterval(activeSliderTimer);
+        
+        const cleanImages = images.filter(url => url && url.trim() !== "" && url.startsWith('http'));
+        if (cleanImages.length === 0) {
+            slider.innerHTML = `<img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0">`;
+            return;
+        }
+
+        slider.innerHTML = '';
+        cleanImages.forEach(url => {
+            let finalUrl = url;
+            if (url.includes("firebasestorage.googleapis.com") && !url.includes("%2F")) {
+                finalUrl = url.replace("/o/slider_banners", "/o/slider_banners%2F");
+            }
+            slider.innerHTML += `<img src="${finalUrl}" class="slide-frame shrink-0" onerror="this.src='https://i.imgur.com/pCFtcKd.png'">`;
+        });
+
+        let index = 0;
+        if (cleanImages.length > 1) {
+            activeSliderTimer = setInterval(() => {
+                index++;
+                if (index >= cleanImages.length) index = 0;
+                slider.scrollTo({ left: index * slider.clientWidth, behavior: 'smooth' });
+            }, 4000);
+        }
+    }
+
+    window.handleUserAuthentication = async function() {
+        const nameInput = document.getElementById('user-name').value.trim();
+        const mobileInput = document.getElementById('user-mobile').value.trim();
+        const pinInput = document.getElementById('user-pin').value.trim();
+
+        if (currentAuthMode === "register" && !nameInput) return alert("Please enter your Full Name to sign up.");
+        if (mobileInput.length !== 10 || isNaN(mobileInput)) return alert("Please enter a valid 10-Digit Mobile Number.");
+        if (pinInput.length !== 4 || isNaN(pinInput)) return alert("Please enter your 4-Digit Security PIN.");
+
+        document.getElementById('loading-screen').style.visibility = 'visible';
+        document.getElementById('loading-screen').style.opacity = '1';
+
+        try {
+            const blockRef = doc(db, "system_config", "blocked_users");
+            const blockSnap = await getDoc(blockRef);
+            if (blockSnap.exists()) {
+                const blockedList = blockSnap.data().numbers || [];
+                if (blockedList.includes(mobileInput)) {
+                    throw new Error("This mobile number has been permanently banned from the network.");
+                }
+            }
+
+            const userRef = doc(db, "users", mobileInput);
+            const userSnap = await getDoc(userRef);
+
+            if (currentAuthMode === "login") {
+                if (!userSnap.exists()) {
+                    throw new Error("No account found with this mobile number. Please click 'Create Account' first.");
+                }
+                const userData = userSnap.data();
+                if (userData.pin && userData.pin !== pinInput) {
+                    throw new Error("Incorrect 4-Digit Security PIN. Please try again.");
+                }
+                await updateDoc(userRef, { lastSeen: Date.now() });
+            } else {
+                if (userSnap.exists()) {
+                    throw new Error("This mobile number is already registered. Please click 'Log In' instead.");
+                }
+                await setDoc(userRef, {
+                    name: nameInput,
+                    mobile: mobileInput,
+                    pin: pinInput,
+                    subscription: "inactive",
+                    subscriptionExpiresAt: 0,
+                    joinedAt: Date.now(),
+                    lastSeen: Date.now()
+                });
+            }
+
+            localStorage.setItem('app_user_mobile', mobileInput);
+            window.location.href = 'dashboard.html';
+
+        } catch(e) {
+            document.getElementById('loading-screen').style.opacity = '0';
+            document.getElementById('loading-screen').style.visibility = 'hidden';
+            alert(e.message || "Network error. Please try again.");
+        }
+    }
+</script>
+</body>
+</html>
