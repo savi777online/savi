@@ -621,9 +621,10 @@
                         </div>
                         <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2 py-1 rounded-lg text-[10px] font-bold">Delete</button>
                     </div>
-                    <div class="flex space-x-1 pt-1 border-t border-gray-200/50">
+                    <div class="flex space-x-1 pt-1 border-t border-gray-200/50 items-center">
                         <input type="number" id="add-amt-${u.id}" placeholder="Amount" class="w-24 bg-white border border-gray-200 rounded p-1 text-[11px] font-mono focus:outline-none">
-                        <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
+                        <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Add Bal</button>
+                        <button onclick="manualRemoveBalanceFromUser('${u.id}')" class="bg-rose-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Remove Bal</button>
                     </div>
                     <div class="pt-1">
                         <p class="text-[10px] font-bold text-gray-500 uppercase">Active Unlocks Management:</p>
@@ -656,6 +657,27 @@
             alert("Successfully added ₹" + addAmount + " to user wallet!");
         } catch(e) {
             alert("Failed to add balance: " + e.message);
+        }
+    }
+
+    window.manualRemoveBalanceFromUser = async function(userId) {
+        const inputElem = document.getElementById(`add-amt-${userId}`);
+        const removeAmount = Number(inputElem.value) || 0;
+        if(removeAmount <= 0) return alert("Please enter a valid amount to remove.");
+
+        try {
+            const userRef = doc(db, "users", userId);
+            const userSnap = await getDoc(userRef);
+            let currentWallet = 0;
+            if(userSnap.exists()) {
+                currentWallet = Number(userSnap.data().walletBalance) || 0;
+            }
+            const newTotal = Math.max(0, currentWallet - removeAmount);
+            await updateDoc(userRef, { walletBalance: newTotal });
+            inputElem.value = '';
+            alert("Successfully removed ₹" + removeAmount + " from user wallet!");
+        } catch(e) {
+            alert("Failed to remove balance: " + e.message);
         }
     }
 
