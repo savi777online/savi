@@ -386,37 +386,38 @@
             } else if (isUnlocked) {
                 const otcRaw = m.otcValue || '3* / 8*';
                 
+                // Jodi numbers in Blue
                 const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
                 let jodiHtml = '';
                 jodiList.forEach(val => {
                     jodiHtml += `<div class="bg-blue-50 text-blue-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-blue-100/50">${val}</div>`;
                 });
 
+                // Panel numbers in Green (with clear space/margin separated from jodi)
                 const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
                 let panelHtml = '';
                 panelList.forEach(val => {
-                    panelHtml += `<div class="bg-blue-50 text-blue-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-blue-100/50">${val}</div>`;
+                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-emerald-100/50">${val}</div>`;
                 });
 
-                // OTC, Jodi और Panel के हेडलाइन टेक्स्ट और आइकॉन हटा दिए गए हैं, लेकिन नंबर्स शो हो रहे हैं
                 innerContent = `
-                    <div class="space-y-3 pt-1">
-                        <!-- OTC NUMBERS ONLY -->
+                    <div class="space-y-4 pt-1">
+                        <!-- OTC NUMBERS -->
                         <div>
                             <div class="bg-blue-50 border border-blue-100/60 rounded-2xl py-3 text-center text-2xl font-black text-blue-900 tracking-wider shadow-inner">
                                 ${otcRaw}
                             </div>
                         </div>
 
-                        <!-- JODI NUMBERS ONLY -->
+                        <!-- JODI NUMBERS (Blue Color) -->
                         <div>
                             <div class="grid grid-cols-4 gap-2">
                                 ${jodiHtml}
                             </div>
                         </div>
 
-                        <!-- PANEL NUMBERS ONLY -->
-                        <div>
+                        <!-- PANEL NUMBERS (Green Color with proper separation) -->
+                        <div class="pt-2">
                             <div class="grid grid-cols-4 gap-2">
                                 ${panelHtml}
                             </div>
