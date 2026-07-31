@@ -567,11 +567,11 @@
 
         if (query === "online") {
             filtered = filtered.filter(u => {
-                return u.lastSeen && (Date.now() - Number(u.lastSeen) < 60 * 1000);
+                return u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000);
             });
         } else if (query === "offline") {
             filtered = filtered.filter(u => {
-                return !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 60 * 1000);
+                return !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 15 * 1000);
             });
         } else if (query === "high") {
             filtered.sort((a, b) => (Number(b.walletBalance) || 0) - (Number(a.walletBalance) || 0));
@@ -607,16 +607,16 @@
             let lastSeenStr = "Never";
             if(u.lastSeen) {
                 const diff = Date.now() - Number(u.lastSeen);
-                if (diff < 60 * 1000) {
+                if (diff < 15 * 1000) {
                     isOnline = true;
                 }
-                const dateObj = new Date(u.lastSeen);
+                const dateObj = new Date(Number(u.lastSeen));
                 lastSeenStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
 
             let joinedStr = "Unknown";
             if(u.joinedAt) {
-                const joinedObj = new Date(u.joinedAt);
+                const joinedObj = new Date(Number(u.joinedAt));
                 joinedStr = joinedObj.toLocaleDateString() + ' ' + joinedObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
 
