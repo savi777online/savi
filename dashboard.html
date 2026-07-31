@@ -32,13 +32,12 @@
     <!-- MAIN DASHBOARD CONTENT -->
     <div class="flex-1 bg-amber-50/20 p-3.5 space-y-3.5 pb-8">
 
-        <!-- BEAUTIFUL SUBSCRIBER PROFILE & WALLET CARD -->
+        <!-- USER PROFILE & WALLET CARD -->
         <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 rounded-2xl p-4 shadow-lg text-white space-y-3 relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
             
             <div class="flex justify-between items-center z-10 relative">
                 <div class="space-y-0.5">
-                    <span class="bg-white/20 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-widest">Subscriber</span>
                     <p id="profile-name" class="font-black text-lg tracking-wide mt-1">Ganesh</p>
                     <p id="profile-phone" class="text-blue-100 font-medium text-[11px] font-mono">Mobile: --</p>
                 </div>
@@ -49,7 +48,7 @@
                 </div>
             </div>
 
-            <button onclick="openDepositModal()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow transition-transform active:scale-[0.99] z-10 relative">
+            <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow transition-transform active:scale-[0.99] z-10 relative">
                 + Add Money / Deposit
             </button>
         </div>
@@ -113,9 +112,9 @@
     <!-- DEPOSIT / INSUFFICIENT BALANCE MODAL -->
     <div id="deposit-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
-            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
-            <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
-            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money to proceed.</p>
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">💳</div>
+            <h3 class="text-gray-800 font-black text-lg">Add Money / Deposit</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Add funds to your wallet to unlock games instantly.</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
                 <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Deposit Now</button>
@@ -140,7 +139,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, collection, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, collection, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
@@ -163,8 +162,37 @@
     let savedMobile = "";
     let pendingMarketName = "";
     let pendingGamePrice = 0;
+    let heartbeatInterval = null;
 
     window.addEventListener('DOMContentLoaded', beginLiveEngine);
+
+    // Heartbeat ping to update user online status and last seen
+    async function updateOnlineStatus(isOnlineFlag) {
+        if (!savedMobile) return;
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            const payload = isOnlineFlag ? { lastSeen: Date.now() } : { lastSeen: Date.now() - 30000 };
+            await setDoc(userRef, payload, { merge: true });
+        } catch(e) {}
+    }
+
+    window.addEventListener('focus', () => { updateOnlineStatus(true); });
+    window.addEventListener('blur', () => { updateOnlineStatus(false); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateOnlineStatus(true);
+        } else {
+            updateOnlineStatus(false);
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (savedMobile) {
+            // Synchronously or fast fire store update
+            const userRef = doc(db, "users", savedMobile);
+            setDoc(userRef, { lastSeen: Date.now() - 30000 }, { merge: true }).catch(() => {});
+        }
+    });
 
     window.processAndRedirectSecureLink = function(event, targetUrl) {
         if(event) { event.preventDefault(); event.stopPropagation(); }
@@ -184,6 +212,12 @@
         if (!savedMobile) { window.location.href = 'index.html'; return; }
 
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
+        updateOnlineStatus(true);
+
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            updateOnlineStatus(true);
+        }, 8000);
 
         try {
             const startTest = Date.now();
@@ -337,7 +371,7 @@
             const m = docSnap.data();
             const marketName = docSnap.id;
             const gamePrice = Number(m.price) || 100; 
-            const marketStatus = m.marketStatus || 'active'; // 'active', 'locked', 'force_show'
+            const marketStatus = m.marketStatus || 'active';
             
             const unlockTime = unlockedGames[marketName];
             const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000));
@@ -412,9 +446,8 @@
         }
     }
 
-    window.openDepositModal = () => document.getElementById('deposit-modal').classList.remove('hidden');
+    window.openDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden'); // direct redirect handled below
     window.closeDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden');
-
     window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
 
     window.redirectToPayment = function() {
@@ -422,7 +455,11 @@
         window.location.href = 'payment.html';
     }
 
-    window.handleLogout = function() { localStorage.removeItem('app_user_mobile'); window.location.href = 'index.html'; }
+    window.handleLogout = function() { 
+        updateOnlineStatus(false);
+        localStorage.removeItem('app_user_mobile'); 
+        window.location.href = 'index.html'; 
+    }
 </script>
 </body>
 </html>
