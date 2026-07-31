@@ -186,7 +186,16 @@
         <!-- USERS TAB -->
         <div id="tab-users" class="space-y-4 hidden">
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-blue-100 flex flex-col space-y-2">
-                <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search name, phone, 'online', 'offline', 'high', 'low'..." class="w-full bg-amber-50/30 border border-gray-200 rounded-xl p-2.5 text-xs text-gray-800 font-semibold focus:outline-none focus:border-blue-500">
+                <div class="flex space-x-2">
+                    <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search name or phone number..." class="flex-1 bg-amber-50/30 border border-gray-200 rounded-xl p-2.5 text-xs text-gray-800 font-semibold focus:outline-none focus:border-blue-500">
+                    <select id="user-filter-dropdown" onchange="triggerUserFilterDisplay()" class="bg-blue-50 border border-blue-200 rounded-xl px-2.5 text-xs font-bold text-blue-900 focus:outline-none">
+                        <option value="all">⚡ Filter Options</option>
+                        <option value="high">💰 High Balance</option>
+                        <option value="low">📉 Low Balance</option>
+                        <option value="online">🟢 Online Users</option>
+                        <option value="offline">⚪ Offline Users</option>
+                    </select>
+                </div>
                 <div class="bg-blue-50 rounded-lg px-2.5 py-1.5 flex justify-between items-center text-[11px] font-bold text-blue-800 border border-blue-200">
                     <span>Total Registered Users Matrix:</span>
                     <span id="label-total-users" class="bg-blue-600 text-white px-2 py-0.5 rounded font-black font-mono">0</span>
@@ -227,6 +236,7 @@
     let masterAdminPin = "9999";
     let globalMarketsCache = {};
     let cachedUsersList = [];
+    let openedUserCards = new Set();
 
     let mediaRecorderEngine = null;
     let registeredAudioChunks = [];
@@ -563,24 +573,25 @@
 
     window.triggerUserFilterDisplay = function() {
         const query = document.getElementById('user-search-bar').value.toLowerCase().trim();
+        const filterVal = document.getElementById('user-filter-dropdown').value;
         let filtered = [...cachedUsersList];
 
-        if (query === "online") {
-            filtered = filtered.filter(u => {
-                return u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000);
-            });
-        } else if (query === "offline") {
-            filtered = filtered.filter(u => {
-                return !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 15 * 1000);
-            });
-        } else if (query === "high") {
-            filtered.sort((a, b) => (Number(b.walletBalance) || 0) - (Number(a.walletBalance) || 0));
-        } else if (query === "low") {
-            filtered.sort((a, b) => (Number(a.walletBalance) || 0) - (Number(b.walletBalance) || 0));
-        } else if (query) {
+        // 1. Text Search (Name or Mobile)
+        if (query) {
             filtered = filtered.filter(u => 
                 (u.name && u.name.toLowerCase().includes(query)) || (u.id && u.id.includes(query))
             );
+        }
+
+        // 2. Dropdown Filter / Sorting
+        if (filterVal === "high") {
+            filtered.sort((a, b) => (Number(b.walletBalance) || 0) - (Number(a.walletBalance) || 0));
+        } else if (filterVal === "low") {
+            filtered.sort((a, b) => (Number(a.walletBalance) || 0) - (Number(b.walletBalance) || 0));
+        } else if (filterVal === "online") {
+            filtered = filtered.filter(u => u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000));
+        } else if (filterVal === "offline") {
+            filtered = filtered.filter(u => !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 15 * 1000));
         }
 
         renderUserDirectoryItems(filtered);
@@ -590,8 +601,10 @@
         const detailsDiv = document.getElementById(`user-details-${userId}`);
         if (detailsDiv.classList.contains('hidden')) {
             detailsDiv.classList.remove('hidden');
+            openedUserCards.add(userId);
         } else {
             detailsDiv.classList.add('hidden');
+            openedUserCards.delete(userId);
         }
     }
 
@@ -642,6 +655,9 @@
                 unlockedMarketsHtml = `<p class="text-[9px] text-gray-400 italic mt-1">No active game unlocks for this user.</p>`;
             }
 
+            const isCardOpen = openedUserCards.has(u.id);
+            const hiddenClass = isCardOpen ? '' : 'hidden';
+
             container.innerHTML += `
                 <div class="bg-amber-50/30 border border-gray-100 p-3 rounded-xl flex flex-col space-y-2 text-xs cursor-pointer" onclick="toggleUserCard('${u.id}')">
                     <div class="flex justify-between items-center">
@@ -655,7 +671,7 @@
                           </div>
                     </div>
 
-                  <div id="user-details-${u.id}" class="hidden space-y-2 pt-2 border-t border-gray-200/50" onclick="event.stopPropagation()">
+                  <div id="user-details-${u.id}" class="${hiddenClass} space-y-2 pt-2 border-t border-gray-200/50" onclick="event.stopPropagation()">
                       <div class="flex justify-between items-start">
                           <div>
                               <p class="text-[11px] text-blue-700 font-black font-mono">💰 Wallet Balance: ₹${walletBal}</p>
