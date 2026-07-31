@@ -49,7 +49,7 @@
             </div>
 
             <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow transition-transform active:scale-[0.99] z-10 relative">
-                + Add Money / Deposit
+                + Add Money
             </button>
         </div>
 
@@ -109,15 +109,15 @@
         </div>
     </div>
 
-    <!-- DEPOSIT / INSUFFICIENT BALANCE MODAL -->
+    <!-- INSUFFICIENT BALANCE MODAL -->
     <div id="deposit-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
-            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">💳</div>
-            <h3 class="text-gray-800 font-black text-lg">Add Money / Deposit</h3>
-            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Add funds to your wallet to unlock games instantly.</p>
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
+            <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money to proceed.</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
-                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Deposit Now</button>
+                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Money</button>
             </div>
         </div>
     </div>
@@ -129,7 +129,7 @@
             <h3 class="text-gray-800 font-black text-lg">Confirm Game Unlock</h3>
             <p id="confirm-modal-text" class="text-xs text-gray-500 font-semibold leading-relaxed">Do you want to spend <span id="confirm-price-span" class="font-black text-blue-600">₹0</span> to unlock this game for 3 hours?</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="closeConfirmModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">No, Cancel</button>
+                <button onclick="closeConfirmModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">No</button>
                 <button id="btn-execute-unlock" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Yes, Unlock</button>
             </div>
         </div>
@@ -166,7 +166,6 @@
 
     window.addEventListener('DOMContentLoaded', beginLiveEngine);
 
-    // Heartbeat ping to update user online status and last seen
     async function updateOnlineStatus(isOnlineFlag) {
         if (!savedMobile) return;
         try {
@@ -188,7 +187,6 @@
 
     window.addEventListener('beforeunload', () => {
         if (savedMobile) {
-            // Synchronously or fast fire store update
             const userRef = doc(db, "users", savedMobile);
             setDoc(userRef, { lastSeen: Date.now() - 30000 }, { merge: true }).catch(() => {});
         }
@@ -335,7 +333,7 @@
             document.getElementById('confirm-price-span').innerText = "₹" + pendingGamePrice;
             document.getElementById('confirm-game-modal').classList.remove('hidden');
         } else {
-            openDepositModal();
+            document.getElementById('deposit-modal').classList.remove('hidden');
         }
     }
 
@@ -358,7 +356,7 @@
                 alert("Transaction failed. Please try again.");
             }
         } else {
-            openDepositModal();
+            document.getElementById('deposit-modal').classList.remove('hidden');
         }
     }
 
@@ -446,7 +444,6 @@
         }
     }
 
-    window.openDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden'); // direct redirect handled below
     window.closeDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden');
     window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
 
