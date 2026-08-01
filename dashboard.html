@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #ffffff; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .app-container::-webkit-scrollbar { display: none; }
+        @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
+        
+        .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .slider-wrapper::-webkit-scrollbar { display: none; }
+        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- HEADLINE APPBAR -->
+    <div class="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
+        <div class="flex items-center space-x-2.5">
+            <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain">
+            <h1 class="font-black tracking-wider text-lg uppercase">MAHALAKSHMI</h1>
+        </div>
+        <button onclick="handleLogout()" class="bg-blue-800 hover:bg-blue-900 px-2.5 py-1 text-[11px] font-bold rounded-lg shadow transition-colors">LOGOUT</button>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div class="flex-1 bg-gray-100 p-4 space-y-4 pb-12">
+
+        <!-- USER PROFILE & WALLET CARD -->
+        <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 rounded-2xl p-4 shadow-lg text-white space-y-3 relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+            
+            <div class="flex justify-between items-center z-10 relative">
+                <div class="space-y-0.5">
+                    <p id="profile-name" class="font-black text-lg tracking-wide mt-1">Ganesh</p>
+                    <p id="profile-phone" class="text-blue-100 font-medium text-[11px] font-mono">Mobile: --</p>
+                </div>
+                <!-- WALLET BALANCE BOX -->
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-right shadow-inner">
+                    <p class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Wallet Balance</p>
+                    <p id="wallet-balance-text" class="text-amber-300 font-black text-base font-mono mt-0.5">₹0</p>
+                </div>
+            </div>
+
+            <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow transition-transform active:scale-[0.99] z-10 relative">
+                + Add Money
+            </button>
+        </div>
+
+        <!-- COMPACT LIVE SERVER TIME SYNC CLOCK -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-2.5 shadow-sm text-center border border-blue-500/20 flex items-center justify-between px-4">
+            <div id="live-calendar-text" class="text-[10px] text-blue-100 font-bold uppercase tracking-wider font-mono">SYNCING...</div>
+            <div id="live-clock" class="text-lg font-black text-white tracking-widest font-mono">--:--:--</div>
+        </div>
+
+        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
+        <div id="app-links-section" class="hidden bg-white rounded-2xl p-3.5 shadow-sm border border-blue-100 space-y-2.5">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-0.5 flex items-center space-x-1">
+                <span>🔗 Quick Resources & Video Links</span>
+            </h3>
+            <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
+        <div id="voice-notes-section" class="hidden bg-white rounded-2xl p-3.5 shadow-sm border border-blue-100 space-y-2.5">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-0.5 flex items-center space-x-1">
+                <span>🎙️ Admin Voice Announcements</span>
+            </h3>
+            <div id="voice-elements-container" class="space-y-2.5"></div>
+        </div>
+
+        <!-- IMAGE BANNER SLIDER -->
+        <div class="relative w-full h-44 bg-white rounded-2xl overflow-hidden shadow-sm border border-blue-100">
+            <div id="slider-container" class="slider-wrapper">
+                <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Placeholder">
+            </div>
+        </div>
+
+        <!-- NOTICE BOARD -->
+        <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-3.5 shadow-sm">
+            <div class="flex items-center space-x-2 text-blue-800 mb-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <h3 class="font-extrabold text-xs uppercase tracking-wider">Notice Board</h3>
+            </div>
+            <p id="notice-text" class="text-xs text-blue-900 leading-relaxed font-semibold">Welcome to Mahalakshmi App.</p>
+        </div>
+
+        <!-- MARKETS CONTAINER (Separated Cards with Distinct Spacing) -->
+        <div id="games-container" class="space-y-5"></div>
+
+        <!-- MANDATORY LEGAL DISCLAIMER BOARD PANEL -->
+        <div class="bg-white border border-blue-100 rounded-2xl p-3.5 shadow-sm text-center">
+            <h4 class="text-blue-600 font-black text-xs uppercase tracking-widest border-b border-blue-50 pb-1.5 mb-1.5">-: DISCLAIMER :-</h4>
+            <p class="text-[10px] text-gray-500 font-semibold leading-relaxed text-justify">
+                Visiting this site and browsing it is strictly recommended at your own risk. Every information available here is only according to informational purpose.
+            </p>
+        </div>
+    </div>
+
+    <!-- INSUFFICIENT BALANCE MODAL -->
+    <div id="deposit-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
+            <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money to proceed.</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
+                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Money</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GET GAME CONFIRMATION MODAL -->
+    <div id="confirm-game-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">🎯</div>
+            <h3 class="text-gray-800 font-black text-lg">Confirm Game Unlock</h3>
+            <p id="confirm-modal-text" class="text-xs text-gray-500 font-semibold leading-relaxed">Do you want to spend <span id="confirm-price-span" class="font-black text-blue-600">₹0</span> to unlock this game for 3 hours?</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeConfirmModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">No</button>
+                <button id="btn-execute-unlock" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Yes, Unlock</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, collection, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
+        authDomain: "mahalakshmi-91935.firebaseapp.com",
+        projectId: "mahalakshmi-91935",
+        storageBucket: "mahalakshmi-91935.firebasestorage.app",
+        messagingSenderId: "665618845136",
+        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
+        measurementId: "G-3E2BC4BN3B"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let activeSliderTimer = null;
+    let currentUserWallet = 0;
+    let cachedMarkets = [];
+    let unlockedGames = {}; 
+    let serverTimeOffset = 0;
+    let savedMobile = "";
+    let pendingMarketName = "";
+    let pendingGamePrice = 0;
+    let heartbeatInterval = null;
+
+    window.addEventListener('DOMContentLoaded', beginLiveEngine);
+
+    async function updateOnlineStatus(isOnlineFlag) {
+        if (!savedMobile) return;
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            const payload = isOnlineFlag ? { lastSeen: Date.now() } : { lastSeen: Date.now() - 30000 };
+            await setDoc(userRef, payload, { merge: true });
+        } catch(e) {}
+    }
+
+    window.addEventListener('focus', () => { updateOnlineStatus(true); });
+    window.addEventListener('blur', () => { updateOnlineStatus(false); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateOnlineStatus(true);
+        } else {
+            updateOnlineStatus(false);
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (savedMobile) {
+            const userRef = doc(db, "users", savedMobile);
+            setDoc(userRef, { lastSeen: Date.now() - 30000 }, { merge: true }).catch(() => {});
+        }
+    });
+
+    window.processAndRedirectSecureLink = function(event, targetUrl) {
+        if(event) { event.preventDefault(); event.stopPropagation(); }
+        if(!targetUrl) return false;
+        let urlString = targetUrl.trim();
+        if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp")) {
+            window.location.href = urlString;
+            return false;
+        }
+        let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
+        window.location.href = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
+        return false;
+    }
+
+    async function beginLiveEngine() {
+        savedMobile = localStorage.getItem('app_user_mobile');
+        if (!savedMobile) { window.location.href = 'index.html'; return; }
+
+        document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
+        updateOnlineStatus(true);
+
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            updateOnlineStatus(true);
+        }, 8000);
+
+        try {
+            const startTest = Date.now();
+            const response = await fetch(window.location.href, { method: 'HEAD' });
+            const serverDateHeader = response.headers.get('Date');
+            if(serverDateHeader) {
+                const serverMs = Date.parse(serverDateHeader) + (Date.now() - startTest) / 2;
+                serverTimeOffset = serverMs - Date.now();
+            }
+        } catch(e) {}
+
+        setInterval(() => {
+            const secureCorrectedMs = Date.now() + serverTimeOffset;
+            const now = new Date(secureCorrectedMs);
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+            document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            checkGameExpiries(secureCorrectedMs);
+        }, 1000);
+
+        onSnapshot(doc(db, "users", savedMobile), async (snapshot) => {
+            if (!snapshot.exists()) { handleLogout(); return; }
+            const uData = snapshot.data();
+            
+            if (uData.status === "blocked") {
+                alert("❌ Your account profile has been suspended.");
+                handleLogout();
+                return;
+            }
+
+            document.getElementById('profile-name').innerText = uData.name || "Ganesh";
+            currentUserWallet = Number(uData.walletBalance) || 0;
+            document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
+
+            unlockedGames = uData.unlockedGames || {};
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "markets"), (querySnapshot) => {
+            cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "app_links"), (querySnapshot) => {
+            const section = document.getElementById('app-links-section');
+            const container = document.getElementById('links-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((lDoc) => {
+                    const l = lDoc.data();
+                    container.innerHTML += `
+                        <a href="${l.url}" onclick="return processAndRedirectSecureLink(event, '${l.url}')" class="flex items-center justify-between bg-blue-50 hover:bg-blue-100 border border-blue-200 p-2.5 rounded-xl text-blue-900 font-bold text-xs shadow-sm transition-colors">
+                            <span class="truncate pr-2">${l.headline || 'Quick Link'}</span>
+                            <span class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px] shrink-0 uppercase">Open</span>
+                        </a>`;
+                });
+            }
+        });
+
+        onSnapshot(collection(db, "voicenotes"), (querySnapshot) => {
+            const section = document.getElementById('voice-notes-section');
+            const container = document.getElementById('voice-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((vDoc) => {
+                    const v = vDoc.data();
+                    container.innerHTML += `
+                        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl space-y-1.5 shadow-sm">
+                            <p class="font-bold text-blue-900 text-xs">${v.title || 'Voice Note'}</p>
+                            <audio controls class="w-full h-8"><source src="${v.url}" type="audio/webm"><source src="${v.url}" type="audio/mp4">Your browser does not support audio playback.</audio>
+                        </div>`;
+                });
+            }
+        });
+
+        onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
+                if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
+            }
+        });
+    }
+
+    async function checkGameExpiries(currentTimeMs) {
+        let changed = false;
+        for (let marketName in unlockedGames) {
+            const unlockTime = unlockedGames[marketName];
+            const threeHoursMs = 3 * 60 * 60 * 1000;
+            if (currentTimeMs - unlockTime >= threeHoursMs) {
+                delete unlockedGames[marketName];
+                changed = true;
+            }
+        }
+        if (changed) {
+            try {
+                await updateDoc(doc(db, "users", savedMobile), { unlockedGames: unlockedGames });
+            } catch(e) {}
+            renderGameCards();
+        }
+    }
+
+    window.handleGetGameClick = function(marketName, gamePrice) {
+        pendingMarketName = marketName;
+        pendingGamePrice = Number(gamePrice) || 0;
+
+        if (currentUserWallet >= pendingGamePrice) {
+            document.getElementById('confirm-price-span').innerText = "₹" + pendingGamePrice;
+            document.getElementById('confirm-game-modal').classList.remove('hidden');
+        } else {
+            document.getElementById('deposit-modal').classList.remove('hidden');
+        }
+    }
+
+    document.getElementById('btn-execute-unlock').onclick = async function() {
+        closeConfirmModal();
+        if (currentUserWallet >= pendingGamePrice) {
+            const newBalance = currentUserWallet - pendingGamePrice;
+            try {
+                unlockedGames[pendingMarketName] = Date.now() + serverTimeOffset;
+                
+                await updateDoc(doc(db, "users", savedMobile), { 
+                    walletBalance: newBalance,
+                    unlockedGames: unlockedGames
+                });
+                
+                currentUserWallet = newBalance;
+                document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
+                renderGameCards();
+            } catch(e) {
+                alert("Transaction failed. Please try again.");
+            }
+        } else {
+            document.getElementById('deposit-modal').classList.remove('hidden');
+        }
+    }
+
+    function renderGameCards() {
+        const container = document.getElementById('games-container'); if(!container) return;
+        let htmlBuffer = "";
+        const currentTimeMs = Date.now() + serverTimeOffset;
+
+        cachedMarkets.forEach((docSnap) => {
+            const m = docSnap.data();
+            const marketName = docSnap.id;
+            const gamePrice = Number(m.price) || 100; 
+            const marketStatus = m.marketStatus || 'active';
+            
+            const unlockTime = unlockedGames[marketName];
+            const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000));
+
+            let innerContent = "";
+
+            if (marketStatus === 'locked') {
+                innerContent = `
+                    <div class="pt-2 text-center">
+                        <div class="w-full bg-gray-100 text-gray-500 font-bold text-xs py-2.5 px-4 rounded-xl uppercase tracking-wider border border-gray-200">
+                            🔒 MARKET CLOSED
+                        </div>
+                    </div>`;
+            } else if (isUnlocked) {
+                const otcRaw = m.otcValue || '3* / 8*';
+                
+                // Jodi numbers in Blue
+                const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
+                let jodiHtml = '';
+                jodiList.forEach(val => {
+                    jodiHtml += `<div class="bg-blue-50 text-blue-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-blue-100/50">${val}</div>`;
+                });
+
+                // Panel numbers in Green (with clear space/margin separated from jodi)
+                const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
+                let panelHtml = '';
+                panelList.forEach(val => {
+                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-emerald-100/50">${val}</div>`;
+                });
+
+                innerContent = `
+                    <div class="space-y-4 pt-1">
+                        <!-- OTC NUMBERS -->
+                        <div>
+                            <div class="bg-blue-50 border border-blue-100/60 rounded-2xl py-3 text-center text-2xl font-black text-blue-900 tracking-wider shadow-inner">
+                                ${otcRaw}
+                            </div>
+                        </div>
+
+                        <!-- JODI NUMBERS (Blue Color) -->
+                        <div>
+                            <div class="grid grid-cols-4 gap-2">
+                                ${jodiHtml}
+                            </div>
+                        </div>
+
+                        <!-- PANEL NUMBERS (Green Color with proper separation) -->
+                        <div class="pt-2">
+                            <div class="grid grid-cols-4 gap-2">
+                                ${panelHtml}
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                innerContent = `
+                    <div class="pt-2 text-center">
+                        <button onclick="handleGetGameClick('${marketName}', ${gamePrice})" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-xs py-3 px-4 rounded-xl shadow uppercase tracking-wider transition-transform transform active:scale-95">
+                            🔥 GET GAME (₹${gamePrice})
+                        </button>
+                    </div>`;
+            }
+
+            htmlBuffer += `
+                <div class="bg-white rounded-3xl p-4 shadow-md border border-blue-100/80 flex flex-col space-y-3 mb-6 last:mb-0">
+                    <!-- TOP HEADER BLOCK -->
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-4 flex items-center justify-between shadow-sm relative overflow-hidden">
+                        <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-lg pointer-events-none"></div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-lg font-bold shadow-inner">⭐</div>
+                            <div>
+                                <h3 class="font-black text-lg tracking-wider uppercase">${marketName}</h3>
+                                <span class="inline-block bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse mt-0.5">● LIVE</span>
+                            </div>
+                        </div>
+                        <div class="bg-white/15 backdrop-blur-md border border-white/20 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
+                            ✓ RESULT
+                        </div>
+                    </div>
+
+                    <!-- TIMESTAMP BAR -->
+                    <div class="bg-blue-50/70 border border-blue-100/80 rounded-xl px-3 py-2 flex items-center space-x-2 text-blue-900">
+                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-xs font-mono font-bold">${m.gameDate || '31/07/2026 • 10:30 AM'}</span>
+                    </div>
+
+                    ${innerContent}
+                </div>`;
+        });
+        container.innerHTML = htmlBuffer;
+    }
+
+    function setupAutoImageSlider(images) {
+        const slider = document.getElementById('slider-container'); if (!slider) return;
+        clearInterval(activeSliderTimer);
+        const cleanImages = images.filter(url => url && url.trim() !== "" && url.startsWith('http'));
+        if (cleanImages.length === 0) {
+            slider.innerHTML = `<img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0">`; return;
+        }
+        slider.innerHTML = '';
+        cleanImages.forEach(url => { 
+            let formattedUrl = url;
+            if(url.includes("firebasestorage.googleapis.com") && !url.includes("%2F")) {
+                formattedUrl = url.replace("/o/slider_banners", "/o/slider_banners%2F");
+            }
+            slider.innerHTML += `<img src="${formattedUrl}" class="slide-frame shrink-0" onerror="this.src='https://i.imgur.com/pCFtcKd.png'">`; 
+        });
+        let index = 0;
+        if (cleanImages.length > 1) {
+            activeSliderTimer = setInterval(() => {
+                index++; if (index >= cleanImages.length) index = 0;
+                slider.scrollTo({ left: index * slider.clientWidth, behavior: 'smooth' });
+            }, 4000);
+        }
+    }
+
+    window.closeDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden');
+    window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
+
+    window.redirectToPayment = function() {
+        localStorage.setItem('selected_pay_plan', 'day');
+        window.location.href = 'payment.html';
+    }
+
+    window.handleLogout = function() { 
+        updateOnlineStatus(false);
+        localStorage.removeItem('app_user_mobile'); 
+        window.location.href = 'index.html'; 
+    }
+</script>
+</body>
+</html>
