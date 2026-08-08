@@ -483,7 +483,12 @@
 
     window.redirectToPayment = function() {
         localStorage.setItem('selected_pay_plan', 'day');
-        window.location.href = 'payment.html';
+        
+        // आपका लाइव Payment पेज का लिंक
+        const paymentUrl = "https://savi777.online/payment.html";
+        
+        // यह कोड यूज़र का मोबाइल नंबर लिंक के साथ जोड़ देगा
+        window.location.href = paymentUrl + "?userid=" + savedMobile;
     }
 
     window.handleLogout = function() { 
