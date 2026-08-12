@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #cbd5e1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding: 24px; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding: 24px; }
         .app-container::-webkit-scrollbar { display: none; }
         @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
     </style>
@@ -16,15 +16,14 @@
 
 <div class="app-container">
 
-    <!-- TOP LOGO & SPLASH HEADER -->
-    <div class="flex flex-col items-center justify-center pt-8 space-y-3">
-        <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-20 h-20 object-contain drop-shadow-md">
+    <!-- TOP LOGO & SPLASH HEADER (Logo made larger & shifted up) -->
+    <div class="flex flex-col items-center justify-center pt-6 pb-4 space-y-2">
+        <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-28 h-28 object-contain drop-shadow-md">
         <h1 class="font-black tracking-widest text-xl uppercase text-blue-950">MAHALAKSHMI</h1>
-        <p class="text-xs text-slate-600 font-semibold">Secure Phone Verification Portal</p>
     </div>
 
     <!-- MAIN LOGIN / OTP CARD -->
-    <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200 space-y-4 my-auto">
+    <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200 space-y-4 mt-2">
         
         <!-- STEP 1: MOBILE NUMBER INPUT -->
         <div id="step-mobile" class="space-y-3">
@@ -58,7 +57,7 @@
         <div id="step-name" class="space-y-3 hidden">
             <div>
                 <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Your Full Name</label>
-                <input type="text" id="input-name" placeholder="e.g. Ganesh Kumar" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
+                <input type="text" id="input-name" placeholder="Enter your name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
             </div>
             <button onclick="completeNewUserRegistration()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
                 Continue to Dashboard
@@ -69,11 +68,6 @@
 
     <!-- HIDDEN RECAPTCHA CONTAINER REQUIRED BY FIREBASE -->
     <div id="recaptcha-container"></div>
-
-    <!-- FOOTER VERSION -->
-    <div class="text-center text-[10px] text-slate-500 font-medium">
-        Mahalakshmi Secure System v2.0
-    </div>
 
 </div>
 
@@ -100,25 +94,19 @@
     let currentMobile = "";
 
     window.addEventListener('DOMContentLoaded', () => {
-        // Auto-login check
         const savedMobile = localStorage.getItem('app_user_mobile');
         if (savedMobile) {
             window.location.href = 'dashboard.html';
         }
 
-        // Initialize Firebase Invisible reCAPTCHA
         window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
             'size': 'invisible',
-            'callback': (response) => {
-                // reCAPTCHA solved
-            }
+            'callback': (response) => {}
         });
     });
 
     window.sendRealOtp = async function() {
         let mobileInput = document.getElementById('input-mobile').value.trim();
-        
-        // Clean up mobile number if user accidentally pasted +91 or country codes
         mobileInput = mobileInput.replace(/^\+91/, '').replace(/^91/, '').replace(/\D/g, '');
 
         if (mobileInput.length !== 10) {
@@ -170,16 +158,13 @@
             const result = await window.confirmationResult.confirm(otpCode);
             const user = result.user;
 
-            // Check if user already exists in Firestore database
             const userRef = doc(db, "users", currentMobile);
             const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
-                // Already registered -> Direct login
                 localStorage.setItem('app_user_mobile', currentMobile);
                 window.location.href = 'dashboard.html';
             } else {
-                // New user -> Ask for Name
                 document.getElementById('step-otp').classList.add('hidden');
                 document.getElementById('step-name').classList.remove('hidden');
             }
