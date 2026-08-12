@@ -56,8 +56,8 @@
         <!-- STEP 3: NEW USER NAME SETUP -->
         <div id="step-name" class="space-y-3 hidden">
             <div>
-                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Your Full Name</label>
-                <input type="text" id="input-name" placeholder="Enter your name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Your Full Name <span class="text-red-500">*</span></label>
+                <input type="text" id="input-name" placeholder="Enter your name (Required)" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
             </div>
             <button onclick="completeNewUserRegistration()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
                 Continue to Dashboard
@@ -107,11 +107,8 @@
 
     window.sendRealOtp = async function() {
         let rawInput = document.getElementById('input-mobile').value.trim();
-        
-        // Clean input: remove spaces, plus signs, and non-digit characters
         let cleaned = rawInput.replace(/\D/g, '');
 
-        // If user entered/autofilled with 91 at the beginning (e.g., 919876543210 -> 12 digits), strip '91'
         if (cleaned.length === 12 && cleaned.startsWith('91')) {
             cleaned = cleaned.substring(2);
         } else if (cleaned.length === 13 && cleaned.startsWith('091')) {
@@ -186,8 +183,8 @@
 
     window.completeNewUserRegistration = async function() {
         const name = document.getElementById('input-name').value.trim();
-        if (!name) {
-            alert("Please enter your name to proceed.");
+        if (!name || name === "") {
+            alert("❌ Name is mandatory! Please enter your name to proceed.");
             return;
         }
 
