@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #f8fafc; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 70px; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #f8fafc; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 90px; }
         .app-container::-webkit-scrollbar { display: none; }
         @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
         
@@ -60,7 +60,7 @@
             <div id="live-clock" class="text-base font-black tracking-widest font-mono">--:--:--</div>
         </div>
 
-        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE (Redesigned Style) -->
+        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
         <div id="app-links-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
             <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
                 <span>🔗 Quick Resources & Links</span>
@@ -68,7 +68,7 @@
             <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
         </div>
 
-        <!-- VOICE NOTES STREAM INTERFACE SECTION (Redesigned Style) -->
+        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
         <div id="voice-notes-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
             <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
                 <span>🎙️ Admin Voice Announcements</span>
@@ -97,12 +97,14 @@
 
     </div>
 
-    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH BUTTON -->
-    <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 shadow-lg z-50 flex items-center justify-center">
-        <button onclick="window.location.reload();" class="w-full max-w-[280px] bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-6 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span>Refresh</span>
-        </button>
+    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH BUTTON (Fixed to screen bottom properly) -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div class="w-full max-w-[450px] bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 shadow-2xl flex items-center justify-center pointer-events-auto">
+            <button onclick="window.location.reload();" class="w-full max-w-[280px] bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-6 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <span>Refresh</span>
+            </button>
+        </div>
     </div>
 
     <!-- INSUFFICIENT BALANCE MODAL -->
