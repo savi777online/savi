@@ -6,14 +6,14 @@
     <title>Mahalakshmi Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #f8fafc; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 90px; }
+        body { background-color: #cbd5e1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 90px; }
         .app-container::-webkit-scrollbar { display: none; }
         @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
         
         .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
         .slider-wrapper::-webkit-scrollbar { display: none; }
-        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #f8fafc; }
+        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #e2e8f0; }
     </style>
 </head>
 <body>
@@ -30,9 +30,9 @@
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
-    <div class="flex-1 bg-gray-100 p-4 space-y-3.5">
+    <div class="flex-1 p-4 space-y-3.5">
 
-        <!-- 1. USER PROFILE SEPARATE BOX -->
+        <!-- 1. USER PROFILE SEPARATE BOX (Cleaned) -->
         <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg shadow-inner border border-white/20">
@@ -43,13 +43,9 @@
                     <p id="profile-phone" class="text-blue-200 font-medium text-[10px] font-mono">Mobile: --</p>
                 </div>
             </div>
-            <div class="bg-blue-800/60 px-3 py-1.5 rounded-xl border border-blue-700/50">
-                <span class="text-[9px] text-blue-200 uppercase font-bold tracking-wider">Status:</span>
-                <span class="text-[10px] text-emerald-400 font-bold ml-1">Active</span>
-            </div>
         </div>
 
-        <!-- 2. STYLISH WALLET BALANCE BOX -->
+        <!-- 2. STYLISH WALLET BALANCE BOX (Cleaned) -->
         <div class="bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-900 rounded-3xl p-4 shadow-lg text-white border border-indigo-800/40 flex items-center justify-between relative overflow-hidden">
             <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
             <div class="space-y-0.5 z-10">
@@ -59,15 +55,12 @@
                 </p>
                 <p id="wallet-balance-text" class="text-amber-400 font-black text-2xl font-mono">₹0</p>
             </div>
-            <div class="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-white/10 text-right z-10">
-                <span class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Secure Pay</span>
-            </div>
         </div>
 
-        <!-- 3. COMPACT ADD TO WALLET BUTTON -->
+        <!-- 3. COMPACT ADD BALANCE BUTTON -->
         <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center space-x-2">
             <span>➕</span>
-            <span>Add to Wallet</span>
+            <span>Add Balance</span>
         </button>
 
         <!-- LIVE SERVER TIME SYNC CLOCK (Separate Boxes for Date & Time) -->
@@ -123,7 +116,7 @@
 
     <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH BUTTON -->
     <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <div class="w-full max-w-[450px] bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 shadow-2xl flex items-center justify-center pointer-events-auto">
+        <div class="w-full max-w-[450px] bg-slate-200/95 backdrop-blur-md border-t border-slate-300 p-3 shadow-2xl flex items-center justify-center pointer-events-auto">
             <button onclick="window.location.reload();" class="w-full max-w-[280px] bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-6 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 <span>Refresh</span>
@@ -139,7 +132,7 @@
             <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money to proceed.</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
-                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Money</button>
+                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Balance</button>
             </div>
         </div>
     </div>
@@ -214,18 +207,14 @@
         }
     });
 
-    // FIXED SECURE LINK REDIRECTION FOR INSTALLED APPS (YouTube, WhatsApp, etc.)
     window.processAndRedirectSecureLink = function(event, targetUrl) {
         if(event) { event.preventDefault(); event.stopPropagation(); }
         if(!targetUrl) return false;
         let urlString = targetUrl.trim();
-        
-        // Direct open for web/app schemes
         if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp") || urlString.startsWith("http://") || urlString.startsWith("https://")) {
             window.location.href = urlString;
             return false;
         }
-        
         let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
         window.location.href = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
         return false;
@@ -428,7 +417,6 @@
                         </div>
                     </div>`;
             } else if (isUnlocked) {
-                // Open / OTC values (Centered Flex List)
                 const otcRaw = m.otcValue || '3* / 8*';
                 const otcList = otcRaw.split(/[\s*\/]+/).filter(Boolean);
                 let otcHtml = '';
@@ -436,14 +424,12 @@
                     otcHtml += `<div class="bg-blue-50 text-blue-700 font-black text-xs py-2 px-3.5 rounded-xl text-center shadow-sm border border-blue-100 min-w-[36px]">${val}</div>`;
                 });
 
-                // Jodi values (Centered Flex List/Grid)
                 const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
                 let jodiHtml = '';
                 jodiList.forEach(val => {
                     jodiHtml += `<div class="bg-indigo-50 text-indigo-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-indigo-100 min-w-[38px]">${val}</div>`;
                 });
 
-                // Panel values (Centered Flex List/Grid)
                 const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
                 let panelHtml = '';
                 panelList.forEach(val => {
@@ -452,7 +438,7 @@
 
                 innerContent = `
                     <div class="space-y-3 pt-2">
-                        <!-- OPEN ROW (Centered Numbers) -->
+                        <!-- OPEN ROW -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
                             <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16 shrink-0">Open</span>
                             <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
@@ -460,7 +446,7 @@
                             </div>
                         </div>
 
-                        <!-- JODI ROW (Centered Numbers) -->
+                        <!-- JODI ROW -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
                             <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16 shrink-0">Jodi</span>
                             <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
@@ -468,7 +454,7 @@
                             </div>
                         </div>
 
-                        <!-- PANEL ROW (Centered Numbers) -->
+                        <!-- PANEL ROW -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
                             <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16 shrink-0">Panel</span>
                             <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
