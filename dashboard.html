@@ -6,8 +6,8 @@
     <title>Mahalakshmi Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #ffffff; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #f8fafc; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 70px; }
         .app-container::-webkit-scrollbar { display: none; }
         @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
         
@@ -21,86 +21,88 @@
 <div class="app-container">
 
     <!-- HEADLINE APPBAR -->
-    <div class="bg-blue-600 text-white px-4 py-3 flex items-center justify-between shadow-md sticky top-0 z-40">
+    <div class="bg-blue-900 text-white px-4 py-3.5 flex items-center justify-between shadow-lg sticky top-0 z-40">
         <div class="flex items-center space-x-2.5">
             <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain">
             <h1 class="font-black tracking-wider text-lg uppercase">MAHALAKSHMI</h1>
         </div>
-        <button onclick="handleLogout()" class="bg-blue-800 hover:bg-blue-900 px-2.5 py-1 text-[11px] font-bold rounded-lg shadow transition-colors">LOGOUT</button>
+        <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 px-3 py-1 text-[11px] font-bold rounded-lg shadow transition-colors">LOGOUT</button>
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
-    <div class="flex-1 bg-gray-100 p-4 space-y-4 pb-12">
+    <div class="flex-1 bg-gray-100 p-4 space-y-4">
 
         <!-- USER PROFILE & WALLET CARD -->
-        <div class="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 rounded-2xl p-4 shadow-lg text-white space-y-3 relative overflow-hidden">
+        <div class="bg-gradient-to-br from-blue-800 via-blue-700 to-indigo-900 rounded-3xl p-4 shadow-xl text-white space-y-3 relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
             
             <div class="flex justify-between items-center z-10 relative">
                 <div class="space-y-0.5">
-                    <p id="profile-name" class="font-black text-lg tracking-wide mt-1">Ganesh</p>
-                    <p id="profile-phone" class="text-blue-100 font-medium text-[11px] font-mono">Mobile: --</p>
+                    <p class="text-blue-200 text-[10px] font-bold uppercase tracking-wider">Welcome,</p>
+                    <p id="profile-name" class="font-black text-lg tracking-wide">Ganesh</p>
+                    <p id="profile-phone" class="text-blue-200 font-medium text-[11px] font-mono">Mobile: --</p>
                 </div>
                 <!-- WALLET BALANCE BOX -->
-                <div class="bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-xl text-right shadow-inner">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-2xl text-right shadow-inner">
                     <p class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Wallet Balance</p>
                     <p id="wallet-balance-text" class="text-amber-300 font-black text-base font-mono mt-0.5">₹0</p>
                 </div>
             </div>
 
-            <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow transition-transform active:scale-[0.99] z-10 relative">
+            <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg transition-transform active:scale-[0.99] z-10 relative">
                 + Add Money
             </button>
         </div>
 
         <!-- COMPACT LIVE SERVER TIME SYNC CLOCK -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-2.5 shadow-sm text-center border border-blue-500/20 flex items-center justify-between px-4">
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 flex items-center justify-between px-4 text-white">
             <div id="live-calendar-text" class="text-[10px] text-blue-100 font-bold uppercase tracking-wider font-mono">SYNCING...</div>
-            <div id="live-clock" class="text-lg font-black text-white tracking-widest font-mono">--:--:--</div>
+            <div id="live-clock" class="text-base font-black tracking-widest font-mono">--:--:--</div>
         </div>
 
-        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
-        <div id="app-links-section" class="hidden bg-white rounded-2xl p-3.5 shadow-sm border border-blue-100 space-y-2.5">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-0.5 flex items-center space-x-1">
-                <span>🔗 Quick Resources & Video Links</span>
+        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE (Redesigned Style) -->
+        <div id="app-links-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
+            <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
+                <span>🔗 Quick Resources & Links</span>
             </h3>
             <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
         </div>
 
-        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
-        <div id="voice-notes-section" class="hidden bg-white rounded-2xl p-3.5 shadow-sm border border-blue-100 space-y-2.5">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider px-0.5 flex items-center space-x-1">
+        <!-- VOICE NOTES STREAM INTERFACE SECTION (Redesigned Style) -->
+        <div id="voice-notes-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
+            <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
                 <span>🎙️ Admin Voice Announcements</span>
             </h3>
             <div id="voice-elements-container" class="space-y-2.5"></div>
         </div>
 
         <!-- IMAGE BANNER SLIDER -->
-        <div class="relative w-full h-44 bg-white rounded-2xl overflow-hidden shadow-sm border border-blue-100">
+        <div class="relative w-full h-44 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200">
             <div id="slider-container" class="slider-wrapper">
                 <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Placeholder">
             </div>
         </div>
 
         <!-- NOTICE BOARD -->
-        <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-3.5 shadow-sm">
-            <div class="flex items-center space-x-2 text-blue-800 mb-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm">
+            <div class="flex items-center space-x-2 text-amber-800 mb-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 <h3 class="font-extrabold text-xs uppercase tracking-wider">Notice Board</h3>
             </div>
-            <p id="notice-text" class="text-xs text-blue-900 leading-relaxed font-semibold">Welcome to Mahalakshmi App.</p>
+            <p id="notice-text" class="text-xs text-amber-900 leading-relaxed font-semibold">Welcome to Mahalakshmi App.</p>
         </div>
 
-        <!-- MARKETS CONTAINER (Separated Cards with Distinct Spacing) -->
-        <div id="games-container" class="space-y-5"></div>
+        <!-- MARKETS CONTAINER -->
+        <div id="games-container" class="space-y-4"></div>
 
-        <!-- MANDATORY LEGAL DISCLAIMER BOARD PANEL -->
-        <div class="bg-white border border-blue-100 rounded-2xl p-3.5 shadow-sm text-center">
-            <h4 class="text-blue-600 font-black text-xs uppercase tracking-widest border-b border-blue-50 pb-1.5 mb-1.5">-: DISCLAIMER :-</h4>
-            <p class="text-[10px] text-gray-500 font-semibold leading-relaxed text-justify">
-                Visiting this site and browsing it is strictly recommended at your own risk. Every information available here is only according to informational purpose.
-            </p>
-        </div>
+    </div>
+
+    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH BUTTON -->
+    <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 shadow-lg z-50 flex items-center justify-center">
+        <button onclick="window.location.reload();" class="w-full max-w-[280px] bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-6 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span>Refresh</span>
+        </button>
     </div>
 
     <!-- INSUFFICIENT BALANCE MODAL -->
@@ -264,9 +266,9 @@
                 querySnapshot.forEach((lDoc) => {
                     const l = lDoc.data();
                     container.innerHTML += `
-                        <a href="${l.url}" onclick="return processAndRedirectSecureLink(event, '${l.url}')" class="flex items-center justify-between bg-blue-50 hover:bg-blue-100 border border-blue-200 p-2.5 rounded-xl text-blue-900 font-bold text-xs shadow-sm transition-colors">
+                        <a href="${l.url}" onclick="return processAndRedirectSecureLink(event, '${l.url}')" class="flex items-center justify-between bg-blue-50/80 hover:bg-blue-100 border border-blue-200/60 p-3 rounded-2xl text-blue-900 font-bold text-xs shadow-sm transition-colors">
                             <span class="truncate pr-2">${l.headline || 'Quick Link'}</span>
-                            <span class="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px] shrink-0 uppercase">Open</span>
+                            <span class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[10px] shrink-0 uppercase">Open</span>
                         </a>`;
                 });
             }
@@ -283,7 +285,7 @@
                 querySnapshot.forEach((vDoc) => {
                     const v = vDoc.data();
                     container.innerHTML += `
-                        <div class="bg-blue-50 border border-blue-200 p-2.5 rounded-xl space-y-1.5 shadow-sm">
+                        <div class="bg-blue-50/80 border border-blue-200/60 p-3 rounded-2xl space-y-2 shadow-sm">
                             <p class="font-bold text-blue-900 text-xs">${v.title || 'Voice Note'}</p>
                             <audio controls class="w-full h-8"><source src="${v.url}" type="audio/webm"><source src="${v.url}" type="audio/mp4">Your browser does not support audio playback.</audio>
                         </div>`;
@@ -367,26 +369,43 @@
             const unlockTime = unlockedGames[marketName];
             const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (currentTimeMs - unlockTime < 3 * 60 * 60 * 1000));
 
+            let actionButtonOrStatus = "";
+
+            if (marketStatus === 'locked') {
+                actionButtonOrStatus = `
+                    <div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">
+                        🔒 CLOSED
+                    </div>`;
+            } else if (isUnlocked) {
+                actionButtonOrStatus = `
+                    <div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider animate-pulse">
+                        ✓ UNLOCKED
+                    </div>`;
+            } else {
+                actionButtonOrStatus = `
+                    <button onclick="handleGetGameClick('${marketName}', ${gamePrice})" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-[10px] py-1.5 px-3 rounded-xl shadow uppercase tracking-wider transition-transform transform active:scale-95">
+                        🔥 GET GAME (₹${gamePrice})
+                    </button>`;
+            }
+
             let innerContent = "";
 
             if (marketStatus === 'locked') {
                 innerContent = `
                     <div class="pt-2 text-center">
-                        <div class="w-full bg-gray-100 text-gray-500 font-bold text-xs py-2.5 px-4 rounded-xl uppercase tracking-wider border border-gray-200">
-                            🔒 MARKET CLOSED
+                        <div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100">
+                            Market is currently closed
                         </div>
                     </div>`;
             } else if (isUnlocked) {
                 const otcRaw = m.otcValue || '3* / 8*';
                 
-                // Jodi numbers in Blue
                 const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
                 let jodiHtml = '';
                 jodiList.forEach(val => {
                     jodiHtml += `<div class="bg-blue-50 text-blue-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-blue-100/50">${val}</div>`;
                 });
 
-                // Panel numbers in Green (with clear space/margin separated from jodi)
                 const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
                 let panelHtml = '';
                 panelList.forEach(val => {
@@ -394,23 +413,18 @@
                 });
 
                 innerContent = `
-                    <div class="space-y-4 pt-1">
-                        <!-- OTC NUMBERS -->
+                    <div class="space-y-3 pt-1">
                         <div>
-                            <div class="bg-blue-50 border border-blue-100/60 rounded-2xl py-3 text-center text-2xl font-black text-blue-900 tracking-wider shadow-inner">
+                            <div class="bg-blue-50 border border-blue-100/60 rounded-2xl py-2.5 text-center text-xl font-black text-blue-900 tracking-wider shadow-inner">
                                 ${otcRaw}
                             </div>
                         </div>
-
-                        <!-- JODI NUMBERS (Blue Color) -->
                         <div>
                             <div class="grid grid-cols-4 gap-2">
                                 ${jodiHtml}
                             </div>
                         </div>
-
-                        <!-- PANEL NUMBERS (Green Color with proper separation) -->
-                        <div class="pt-2">
+                        <div>
                             <div class="grid grid-cols-4 gap-2">
                                 ${panelHtml}
                             </div>
@@ -418,34 +432,25 @@
                     </div>`;
             } else {
                 innerContent = `
-                    <div class="pt-2 text-center">
-                        <button onclick="handleGetGameClick('${marketName}', ${gamePrice})" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-xs py-3 px-4 rounded-xl shadow uppercase tracking-wider transition-transform transform active:scale-95">
-                            🔥 GET GAME (₹${gamePrice})
-                        </button>
+                    <div class="pt-1 text-center">
+                        <p class="text-[11px] text-gray-500 font-semibold py-2">Unlock this market to view today's numbers & OTC details.</p>
                     </div>`;
             }
 
             htmlBuffer += `
-                <div class="bg-white rounded-3xl p-4 shadow-md border border-blue-100/80 flex flex-col space-y-3 mb-6 last:mb-0">
-                    <!-- TOP HEADER BLOCK -->
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-4 flex items-center justify-between shadow-sm relative overflow-hidden">
-                        <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-lg pointer-events-none"></div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-lg font-bold shadow-inner">⭐</div>
+                <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 flex flex-col space-y-3">
+                    <!-- MARKET HEADER WITH NAME AND ACTION BUTTON SIDE BY SIDE -->
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-sm shadow-sm">⭐</div>
                             <div>
-                                <h3 class="font-black text-lg tracking-wider uppercase">${marketName}</h3>
-                                <span class="inline-block bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse mt-0.5">● LIVE</span>
+                                <h3 class="font-black text-sm tracking-wider text-gray-900 uppercase">${marketName}</h3>
+                                <span class="text-[10px] text-gray-400 font-mono font-bold">${m.gameDate || '31/07/2026'}</span>
                             </div>
                         </div>
-                        <div class="bg-white/15 backdrop-blur-md border border-white/20 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
-                            ✓ RESULT
+                        <div>
+                            ${actionButtonOrStatus}
                         </div>
-                    </div>
-
-                    <!-- TIMESTAMP BAR -->
-                    <div class="bg-blue-50/70 border border-blue-100/80 rounded-xl px-3 py-2 flex items-center space-x-2 text-blue-900">
-                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-xs font-mono font-bold">${m.gameDate || '31/07/2026 • 10:30 AM'}</span>
                     </div>
 
                     ${innerContent}
@@ -483,11 +488,7 @@
 
     window.redirectToPayment = function() {
         localStorage.setItem('selected_pay_plan', 'day');
-        
-        // आपका लाइव Payment पेज का लिंक
         const paymentUrl = "https://savi777.online/payment.html";
-        
-        // यह कोड यूज़र का मोबाइल नंबर लिंक के साथ जोड़ देगा
         window.location.href = paymentUrl + "?userid=" + savedMobile;
     }
 
