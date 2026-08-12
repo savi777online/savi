@@ -20,7 +20,7 @@
     <div class="flex flex-col items-center justify-center pt-8 space-y-3">
         <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-20 h-20 object-contain drop-shadow-md">
         <h1 class="font-black tracking-widest text-xl uppercase text-blue-950">MAHALAKSHMI</h1>
-        <p class="text-xs text-slate-600 font-semibold">Secure OTP Authentication Portal</p>
+        <p class="text-xs text-slate-600 font-semibold">Secure Phone Verification Portal</p>
     </div>
 
     <!-- MAIN LOGIN / OTP CARD -->
@@ -31,11 +31,11 @@
             <div>
                 <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Mobile Number</label>
                 <div class="flex items-center bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden focus-within:border-blue-600">
-                    <span class="bg-slate-100 px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-200">+91</span>
-                    <input type="tel" id="input-mobile" maxlength="10" placeholder="Enter 10-digit mobile number" class="w-full bg-transparent p-3 text-xs font-bold text-slate-800 focus:outline-none">
+                    <span class="bg-slate-100 px-3.5 py-3 text-xs font-bold text-slate-600 border-r border-slate-200">+91</span>
+                    <input type="tel" id="input-mobile" maxlength="10" placeholder="Enter 10-digit number" class="w-full bg-transparent p-3 text-xs font-bold text-slate-800 focus:outline-none">
                 </div>
             </div>
-            <button onclick="sendOtpCode()" id="btn-send-otp" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
+            <button onclick="sendRealOtp()" id="btn-send-otp" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
                 Send OTP
             </button>
         </div>
@@ -43,10 +43,10 @@
         <!-- STEP 2: ENTER OTP -->
         <div id="step-otp" class="space-y-3 hidden">
             <div>
-                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Verification Code</label>
-                <input type="text" id="input-otp" maxlength="6" placeholder="Enter 6-digit OTP" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center text-lg font-black tracking-widest text-slate-800 focus:outline-none focus:border-blue-600 font-mono">
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter 6-Digit SMS Code</label>
+                <input type="text" id="input-otp" maxlength="6" placeholder="------" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center text-lg font-black tracking-widest text-slate-800 focus:outline-none focus:border-blue-600 font-mono">
             </div>
-            <button onclick="verifyOtpCode()" id="btn-verify-otp" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
+            <button onclick="verifyRealOtp()" id="btn-verify-otp" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
                 Verify OTP
             </button>
             <button onclick="resetToMobileStep()" class="w-full text-center text-[11px] text-blue-700 font-bold hover:underline pt-1">
@@ -67,7 +67,10 @@
 
     </div>
 
-    <!-- FOOTER DISCLAIMER / VERSION -->
+    <!-- HIDDEN RECAPTCHA CONTAINER REQUIRED BY FIREBASE -->
+    <div id="recaptcha-container"></div>
+
+    <!-- FOOTER VERSION -->
     <div class="text-center text-[10px] text-slate-500 font-medium">
         Mahalakshmi Secure System v2.0
     </div>
@@ -78,6 +81,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
@@ -91,55 +95,87 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     let currentMobile = "";
-    let generatedOtp = "";
 
     window.addEventListener('DOMContentLoaded', () => {
-        // Auto-login check: Agar pehle se logged in hai toh direct dashboard bhejo
+        // Auto-login check
         const savedMobile = localStorage.getItem('app_user_mobile');
         if (savedMobile) {
             window.location.href = 'dashboard.html';
         }
+
+        // Initialize Firebase Invisible reCAPTCHA
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': (response) => {
+                // reCAPTCHA solved
+            }
+        });
     });
 
-    window.sendOtpCode = async function() {
-        const mobile = document.getElementById('input-mobile').value.trim();
-        if (mobile.length !== 10) {
+    window.sendRealOtp = async function() {
+        let mobileInput = document.getElementById('input-mobile').value.trim();
+        
+        // Clean up mobile number if user accidentally pasted +91 or country codes
+        mobileInput = mobileInput.replace(/^\+91/, '').replace(/^91/, '').replace(/\D/g, '');
+
+        if (mobileInput.length !== 10) {
             alert("Please enter a valid 10-digit mobile number.");
             return;
         }
-        currentMobile = mobile;
 
-        // Generate 6-digit OTP (For testing/simulated seamless OTP flow, or link with SMS gateway)
-        generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Alert simulation for easy testing (You can integrate real SMS API here if needed)
-        alert("🔐 Your verification OTP is: " + generatedOtp);
+        currentMobile = mobileInput;
+        const formattedPhoneNumber = "+91" + currentMobile;
+        const btn = document.getElementById('btn-send-otp');
+        btn.innerText = "Sending SMS...";
+        btn.disabled = true;
 
-        document.getElementById('step-mobile').classList.add('hidden');
-        document.getElementById('step-otp').classList.remove('hidden');
+        try {
+            const appVerifier = window.recaptchaVerifier;
+            const confirmationResult = await signInWithPhoneNumber(auth, formattedPhoneNumber, appVerifier);
+            window.confirmationResult = confirmationResult;
+
+            alert("✅ Real SMS OTP sent successfully to " + formattedPhoneNumber);
+            document.getElementById('step-mobile').classList.add('hidden');
+            document.getElementById('step-otp').classList.remove('hidden');
+        } catch (error) {
+            alert("❌ Failed to send OTP: " + error.message);
+            btn.innerText = "Send OTP";
+            btn.disabled = false;
+        }
     }
 
     window.resetToMobileStep = function() {
         document.getElementById('step-otp').classList.add('hidden');
         document.getElementById('step-mobile').classList.remove('hidden');
+        const btn = document.getElementById('btn-send-otp');
+        btn.innerText = "Send OTP";
+        btn.disabled = false;
     }
 
-    window.verifyOtpCode = async function() {
-        const enteredOtp = document.getElementById('input-otp').value.trim();
-        if (enteredOtp !== generatedOtp && enteredOtp !== "123456") { // "123456" master backdoor for testing
-            alert("❌ Incorrect OTP. Please try again.");
+    window.verifyRealOtp = async function() {
+        const otpCode = document.getElementById('input-otp').value.trim();
+        if (otpCode.length !== 6) {
+            alert("Please enter a valid 6-digit OTP code.");
             return;
         }
 
-        // Check if user already exists in Firestore
+        const btn = document.getElementById('btn-verify-otp');
+        btn.innerText = "Verifying...";
+        btn.disabled = true;
+
         try {
+            const result = await window.confirmationResult.confirm(otpCode);
+            const user = result.user;
+
+            // Check if user already exists in Firestore database
             const userRef = doc(db, "users", currentMobile);
             const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
-                // User already exists -> Direct login
+                // Already registered -> Direct login
                 localStorage.setItem('app_user_mobile', currentMobile);
                 window.location.href = 'dashboard.html';
             } else {
@@ -147,8 +183,10 @@
                 document.getElementById('step-otp').classList.add('hidden');
                 document.getElementById('step-name').classList.remove('hidden');
             }
-        } catch (e) {
-            alert("Database connection error. Try again.");
+        } catch (error) {
+            alert("❌ Invalid OTP code. Please try again.");
+            btn.innerText = "Verify OTP";
+            btn.disabled = false;
         }
     }
 
