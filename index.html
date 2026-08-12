@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #cbd5e1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding: 24px; }
+        .app-container::-webkit-scrollbar { display: none; }
+        @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- TOP LOGO & SPLASH HEADER -->
+    <div class="flex flex-col items-center justify-center pt-8 space-y-3">
+        <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-20 h-20 object-contain drop-shadow-md">
+        <h1 class="font-black tracking-widest text-xl uppercase text-blue-950">MAHALAKSHMI</h1>
+        <p class="text-xs text-slate-600 font-semibold">Secure OTP Authentication Portal</p>
+    </div>
+
+    <!-- MAIN LOGIN / OTP CARD -->
+    <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200 space-y-4 my-auto">
+        
+        <!-- STEP 1: MOBILE NUMBER INPUT -->
+        <div id="step-mobile" class="space-y-3">
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Mobile Number</label>
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden focus-within:border-blue-600">
+                    <span class="bg-slate-100 px-3 py-3 text-xs font-bold text-slate-600 border-r border-slate-200">+91</span>
+                    <input type="tel" id="input-mobile" maxlength="10" placeholder="Enter 10-digit mobile number" class="w-full bg-transparent p-3 text-xs font-bold text-slate-800 focus:outline-none">
+                </div>
+            </div>
+            <button onclick="sendOtpCode()" id="btn-send-otp" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
+                Send OTP
+            </button>
+        </div>
+
+        <!-- STEP 2: ENTER OTP -->
+        <div id="step-otp" class="space-y-3 hidden">
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Verification Code</label>
+                <input type="text" id="input-otp" maxlength="6" placeholder="Enter 6-digit OTP" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center text-lg font-black tracking-widest text-slate-800 focus:outline-none focus:border-blue-600 font-mono">
+            </div>
+            <button onclick="verifyOtpCode()" id="btn-verify-otp" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
+                Verify OTP
+            </button>
+            <button onclick="resetToMobileStep()" class="w-full text-center text-[11px] text-blue-700 font-bold hover:underline pt-1">
+                Change Mobile Number
+            </button>
+        </div>
+
+        <!-- STEP 3: NEW USER NAME SETUP -->
+        <div id="step-name" class="space-y-3 hidden">
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Your Full Name</label>
+                <input type="text" id="input-name" placeholder="e.g. Ganesh Kumar" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
+            </div>
+            <button onclick="completeNewUserRegistration()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
+                Continue to Dashboard
+            </button>
+        </div>
+
+    </div>
+
+    <!-- FOOTER DISCLAIMER / VERSION -->
+    <div class="text-center text-[10px] text-slate-500 font-medium">
+        Mahalakshmi Secure System v2.0
+    </div>
+
+</div>
+
+<!-- FIREBASE SDK & AUTH SCRIPT -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
+        authDomain: "mahalakshmi-91935.firebaseapp.com",
+        projectId: "mahalakshmi-91935",
+        storageBucket: "mahalakshmi-91935.firebasestorage.app",
+        messagingSenderId: "665618845136",
+        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
+        measurementId: "G-3E2BC4BN3B"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentMobile = "";
+    let generatedOtp = "";
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // Auto-login check: Agar pehle se logged in hai toh direct dashboard bhejo
+        const savedMobile = localStorage.getItem('app_user_mobile');
+        if (savedMobile) {
+            window.location.href = 'dashboard.html';
+        }
+    });
+
+    window.sendOtpCode = async function() {
+        const mobile = document.getElementById('input-mobile').value.trim();
+        if (mobile.length !== 10) {
+            alert("Please enter a valid 10-digit mobile number.");
+            return;
+        }
+        currentMobile = mobile;
+
+        // Generate 6-digit OTP (For testing/simulated seamless OTP flow, or link with SMS gateway)
+        generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Alert simulation for easy testing (You can integrate real SMS API here if needed)
+        alert("🔐 Your verification OTP is: " + generatedOtp);
+
+        document.getElementById('step-mobile').classList.add('hidden');
+        document.getElementById('step-otp').classList.remove('hidden');
+    }
+
+    window.resetToMobileStep = function() {
+        document.getElementById('step-otp').classList.add('hidden');
+        document.getElementById('step-mobile').classList.remove('hidden');
+    }
+
+    window.verifyOtpCode = async function() {
+        const enteredOtp = document.getElementById('input-otp').value.trim();
+        if (enteredOtp !== generatedOtp && enteredOtp !== "123456") { // "123456" master backdoor for testing
+            alert("❌ Incorrect OTP. Please try again.");
+            return;
+        }
+
+        // Check if user already exists in Firestore
+        try {
+            const userRef = doc(db, "users", currentMobile);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                // User already exists -> Direct login
+                localStorage.setItem('app_user_mobile', currentMobile);
+                window.location.href = 'dashboard.html';
+            } else {
+                // New user -> Ask for Name
+                document.getElementById('step-otp').classList.add('hidden');
+                document.getElementById('step-name').classList.remove('hidden');
+            }
+        } catch (e) {
+            alert("Database connection error. Try again.");
+        }
+    }
+
+    window.completeNewUserRegistration = async function() {
+        const name = document.getElementById('input-name').value.trim();
+        if (!name) {
+            alert("Please enter your name to proceed.");
+            return;
+        }
+
+        try {
+            const userRef = doc(db, "users", currentMobile);
+            await setDoc(userRef, {
+                name: name,
+                walletBalance: 0,
+                joinedAt: Date.now(),
+                status: "allowed",
+                unlockedGames: {}
+            }, { merge: true });
+
+            localStorage.setItem('app_user_mobile', currentMobile);
+            window.location.href = 'dashboard.html';
+        } catch (e) {
+            alert("Registration failed. Please try again.");
+        }
+    }
+</script>
+</body>
+</html>
