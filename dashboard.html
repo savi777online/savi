@@ -30,45 +30,46 @@
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
-    <div class="flex-1 bg-gray-100 p-4 space-y-4">
+    <div class="flex-1 bg-gray-100 p-4 space-y-3">
 
-        <!-- USER PROFILE & WALLET CARD (Redesigned with Profile Toggle Icon & Separate Wallet Box) -->
-        <div class="bg-gradient-to-br from-blue-800 via-blue-700 to-indigo-900 rounded-3xl p-4 shadow-xl text-white space-y-4 relative overflow-hidden">
-            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-            
-            <div class="flex justify-between items-center z-10 relative">
-                <!-- PROFILE ICON & TOGGLEABLE INFO -->
-                <div class="flex items-center space-x-3">
-                    <button onclick="toggleProfileInfo()" class="w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/20 transition-transform active:scale-95" title="Click to view profile">
-                        👤
-                    </button>
-                    <div>
-                        <p class="text-blue-200 text-[9px] font-bold uppercase tracking-wider">Tap icon for details</p>
-                        <div id="profile-details-box" class="hidden space-y-0.5 mt-1 animate-fadeIn">
-                            <p id="profile-name" class="font-black text-base tracking-wide text-amber-300">Ganesh</p>
-                            <p id="profile-phone" class="text-blue-100 font-medium text-[10px] font-mono">Mobile: --</p>
-                        </div>
-                    </div>
+        <!-- 1. USER PROFILE SEPARATE BOX -->
+        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg shadow-inner border border-white/20">
+                    👤
                 </div>
-
-                <!-- SEPARATE STYLISH WALLET BALANCE BOX -->
-                <div class="bg-blue-950/40 backdrop-blur-md border border-amber-400/30 px-3 py-2 rounded-2xl text-right shadow-inner">
-                    <p class="text-[8px] text-amber-300 font-bold uppercase tracking-widest">Wallet Balance</p>
-                    <p id="wallet-balance-text" class="text-amber-400 font-black text-base font-mono mt-0.5">₹0</p>
+                <div>
+                    <p id="profile-name" class="font-black text-base tracking-wide text-amber-300">Ganesh</p>
+                    <p id="profile-phone" class="text-blue-200 font-medium text-[10px] font-mono">Mobile: --</p>
                 </div>
             </div>
-
-            <!-- SEPARATE ADD MONEY BUTTON -->
-            <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-2.5 rounded-2xl text-xs uppercase tracking-wider shadow-lg transition-transform active:scale-[0.99] z-10 relative flex items-center justify-center space-x-1.5">
-                <span>➕</span>
-                <span>Add Money to Wallet</span>
-            </button>
+            <div class="bg-blue-800/60 px-3 py-1.5 rounded-xl border border-blue-700/50">
+                <span class="text-[9px] text-blue-200 uppercase font-bold tracking-wider">Status:</span>
+                <span class="text-[10px] text-emerald-400 font-bold ml-1">Active</span>
+            </div>
         </div>
 
-        <!-- COMPACT LIVE SERVER TIME SYNC CLOCK -->
-        <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 flex items-center justify-between px-4 text-white">
-            <div id="live-calendar-text" class="text-[10px] text-blue-100 font-bold uppercase tracking-wider font-mono">SYNCING...</div>
-            <div id="live-clock" class="text-base font-black tracking-widest font-mono">--:--:--</div>
+        <!-- 2. WALLET BALANCE SEPARATE BOX -->
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Available Wallet Balance</p>
+                <p id="wallet-balance-text" class="text-blue-950 font-black text-2xl font-mono mt-0.5">₹0</p>
+            </div>
+            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center font-bold text-lg shadow-inner">
+                💰
+            </div>
+        </div>
+
+        <!-- 3. ADD MONEY SEPARATE BUTTON BOX -->
+        <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center space-x-2">
+            <span>➕</span>
+            <span>Add Money to Wallet</span>
+        </button>
+
+        <!-- LIVE SERVER TIME SYNC CLOCK (Date on top, Time on bottom) -->
+        <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-3xl p-3.5 shadow-md text-center border border-blue-500/20 text-white space-y-0.5">
+            <div id="live-calendar-text" class="text-[11px] text-blue-200 font-bold uppercase tracking-widest font-mono">SYNCING DATE...</div>
+            <div id="live-clock" class="text-xl font-black tracking-widest font-mono text-amber-300">--:--:--</div>
         </div>
 
         <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
@@ -174,14 +175,6 @@
     let heartbeatInterval = null;
 
     window.addEventListener('DOMContentLoaded', beginLiveEngine);
-
-    // Profile Toggle Function
-    window.toggleProfileInfo = function() {
-        const box = document.getElementById('profile-details-box');
-        if (box) {
-            box.classList.toggle('hidden');
-        }
-    }
 
     async function updateOnlineStatus(isOnlineFlag) {
         if (!savedMobile) return;
@@ -419,34 +412,50 @@
                         </div>
                     </div>`;
             } else if (isUnlocked) {
+                // OTC / Open values
                 const otcRaw = m.otcValue || '3* / 8*';
-                
+                const otcList = otcRaw.split(/[\s*\/]+/).filter(Boolean);
+                let otcHtml = '';
+                otcList.forEach(val => {
+                    otcHtml += `<div class="bg-blue-50 text-blue-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-blue-100">${val}</div>`;
+                });
+
+                // Jodi values
                 const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
                 let jodiHtml = '';
                 jodiList.forEach(val => {
-                    jodiHtml += `<div class="bg-blue-50 text-blue-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-blue-100/50">${val}</div>`;
+                    jodiHtml += `<div class="bg-indigo-50 text-indigo-700 font-black text-xs py-2 px-2 rounded-xl text-center shadow-sm border border-indigo-100">${val}</div>`;
                 });
 
+                // Panel values
                 const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
                 let panelHtml = '';
                 panelList.forEach(val => {
-                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-sm py-2 rounded-xl text-center shadow-sm border border-emerald-100/50">${val}</div>`;
+                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-xs py-2 px-2 rounded-xl text-center shadow-sm border border-emerald-100">${val}</div>`;
                 });
 
                 innerContent = `
-                    <div class="space-y-3 pt-1">
-                        <div>
-                            <div class="bg-blue-50 border border-blue-100/60 rounded-2xl py-2.5 text-center text-xl font-black text-blue-900 tracking-wider shadow-inner">
-                                ${otcRaw}
+                    <div class="space-y-3 pt-2">
+                        <!-- OPEN ROW -->
+                        <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
+                            <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16">Open</span>
+                            <div class="flex items-center gap-1.5 overflow-x-auto">
+                                ${otcHtml}
                             </div>
                         </div>
-                        <div>
-                            <div class="grid grid-cols-4 gap-2">
+
+                        <!-- JODI ROW -->
+                        <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
+                            <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16">Jodi</span>
+                            <div class="grid grid-cols-4 gap-1.5 flex-1">
                                 ${jodiHtml}
                             </div>
                         </div>
-                        <div>
-                            <div class="grid grid-cols-4 gap-2">
+
+                        <!-- PANEL ROW -->
+                        <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
+                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16">Panel</span>
+                            <div class="grid grid-cols-4 gap-1.5 flex-1">
                                 ${panelHtml}
                             </div>
                         </div>
