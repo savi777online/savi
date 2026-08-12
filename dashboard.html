@@ -30,7 +30,7 @@
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
-    <div class="flex-1 bg-gray-100 p-4 space-y-3">
+    <div class="flex-1 bg-gray-100 p-4 space-y-3.5">
 
         <!-- 1. USER PROFILE SEPARATE BOX -->
         <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center justify-between">
@@ -49,27 +49,39 @@
             </div>
         </div>
 
-        <!-- 2. WALLET BALANCE SEPARATE BOX -->
-        <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 flex items-center justify-between">
-            <div>
-                <p class="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Available Wallet Balance</p>
-                <p id="wallet-balance-text" class="text-blue-950 font-black text-2xl font-mono mt-0.5">₹0</p>
+        <!-- 2. STYLISH WALLET BALANCE BOX -->
+        <div class="bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-900 rounded-3xl p-4 shadow-lg text-white border border-indigo-800/40 flex items-center justify-between relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+            <div class="space-y-0.5 z-10">
+                <p class="text-[10px] text-indigo-300 font-black uppercase tracking-widest flex items-center space-x-1">
+                    <span>💳</span>
+                    <span>Wallet Balance</span>
+                </p>
+                <p id="wallet-balance-text" class="text-amber-400 font-black text-2xl font-mono">₹0</p>
             </div>
-            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center font-bold text-lg shadow-inner">
-                💰
+            <div class="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-white/10 text-right z-10">
+                <span class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Secure Pay</span>
             </div>
         </div>
 
-        <!-- 3. ADD MONEY SEPARATE BUTTON BOX -->
+        <!-- 3. COMPACT ADD TO WALLET BUTTON -->
         <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center space-x-2">
             <span>➕</span>
-            <span>Add Money to Wallet</span>
+            <span>Add to Wallet</span>
         </button>
 
-        <!-- LIVE SERVER TIME SYNC CLOCK (Date on top, Time on bottom) -->
-        <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-3xl p-3.5 shadow-md text-center border border-blue-500/20 text-white space-y-0.5">
-            <div id="live-calendar-text" class="text-[11px] text-blue-200 font-bold uppercase tracking-widest font-mono">SYNCING DATE...</div>
-            <div id="live-clock" class="text-xl font-black tracking-widest font-mono text-amber-300">--:--:--</div>
+        <!-- LIVE SERVER TIME SYNC CLOCK (Separate Boxes for Date & Time) -->
+        <div class="grid grid-cols-2 gap-2">
+            <!-- Date Box -->
+            <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
+                <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Today's Date</span>
+                <div id="live-calendar-text" class="text-xs font-black tracking-wider font-mono text-white mt-0.5">--/--/----</div>
+            </div>
+            <!-- Time Box -->
+            <div class="bg-gradient-to-r from-indigo-800 to-blue-900 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
+                <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Live Time</span>
+                <div id="live-clock" class="text-sm font-black tracking-widest font-mono text-amber-300 mt-0.5">--:--:--</div>
+            </div>
         </div>
 
         <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
@@ -95,11 +107,11 @@
             </div>
         </div>
 
-        <!-- NOTICE BOARD (Centered Headline & Big Stylish Text) -->
-        <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2">
-            <div class="flex items-center justify-center space-x-2 text-amber-800">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                <h3 class="font-extrabold text-xs uppercase tracking-wider text-center">Notice Board</h3>
+        <!-- NOTICE BOARD (Boxed Headline & Centered Stylish Text) -->
+        <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2.5">
+            <div class="bg-amber-200/60 border border-amber-300 py-1.5 px-3 rounded-2xl flex items-center justify-center space-x-2 text-amber-900 w-fit mx-auto shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <h3 class="font-black text-[11px] uppercase tracking-wider">Notice Board</h3>
             </div>
             <p id="notice-text" class="text-sm text-amber-950 font-black text-center tracking-wide leading-snug px-2">Welcome to Mahalakshmi App.</p>
         </div>
@@ -202,14 +214,18 @@
         }
     });
 
+    // FIXED SECURE LINK REDIRECTION FOR INSTALLED APPS (YouTube, WhatsApp, etc.)
     window.processAndRedirectSecureLink = function(event, targetUrl) {
         if(event) { event.preventDefault(); event.stopPropagation(); }
         if(!targetUrl) return false;
         let urlString = targetUrl.trim();
-        if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp")) {
+        
+        // Direct open for web/app schemes
+        if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp") || urlString.startsWith("http://") || urlString.startsWith("https://")) {
             window.location.href = urlString;
             return false;
         }
+        
         let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
         window.location.href = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
         return false;
@@ -412,50 +428,50 @@
                         </div>
                     </div>`;
             } else if (isUnlocked) {
-                // OTC / Open values
+                // Open / OTC values (Centered Flex List)
                 const otcRaw = m.otcValue || '3* / 8*';
                 const otcList = otcRaw.split(/[\s*\/]+/).filter(Boolean);
                 let otcHtml = '';
                 otcList.forEach(val => {
-                    otcHtml += `<div class="bg-blue-50 text-blue-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-blue-100">${val}</div>`;
+                    otcHtml += `<div class="bg-blue-50 text-blue-700 font-black text-xs py-2 px-3.5 rounded-xl text-center shadow-sm border border-blue-100 min-w-[36px]">${val}</div>`;
                 });
 
-                // Jodi values
+                // Jodi values (Centered Flex List/Grid)
                 const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
                 let jodiHtml = '';
                 jodiList.forEach(val => {
-                    jodiHtml += `<div class="bg-indigo-50 text-indigo-700 font-black text-xs py-2 px-2 rounded-xl text-center shadow-sm border border-indigo-100">${val}</div>`;
+                    jodiHtml += `<div class="bg-indigo-50 text-indigo-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-indigo-100 min-w-[38px]">${val}</div>`;
                 });
 
-                // Panel values
+                // Panel values (Centered Flex List/Grid)
                 const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
                 let panelHtml = '';
                 panelList.forEach(val => {
-                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-xs py-2 px-2 rounded-xl text-center shadow-sm border border-emerald-100">${val}</div>`;
+                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-emerald-100 min-w-[44px]">${val}</div>`;
                 });
 
                 innerContent = `
                     <div class="space-y-3 pt-2">
-                        <!-- OPEN ROW -->
+                        <!-- OPEN ROW (Centered Numbers) -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
-                            <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16">Open</span>
-                            <div class="flex items-center gap-1.5 overflow-x-auto">
+                            <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16 shrink-0">Open</span>
+                            <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
                                 ${otcHtml}
                             </div>
                         </div>
 
-                        <!-- JODI ROW -->
+                        <!-- JODI ROW (Centered Numbers) -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
-                            <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16">Jodi</span>
-                            <div class="grid grid-cols-4 gap-1.5 flex-1">
+                            <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16 shrink-0">Jodi</span>
+                            <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
                                 ${jodiHtml}
                             </div>
                         </div>
 
-                        <!-- PANEL ROW -->
+                        <!-- PANEL ROW (Centered Numbers) -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
-                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16">Panel</span>
-                            <div class="grid grid-cols-4 gap-1.5 flex-1">
+                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16 shrink-0">Panel</span>
+                            <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
                                 ${panelHtml}
                             </div>
                         </div>
