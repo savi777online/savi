@@ -26,51 +26,41 @@
             <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain">
             <h1 class="font-black tracking-wider text-lg uppercase">MAHALAKSHMI</h1>
         </div>
-        <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 px-3 py-1 text-[11px] font-bold rounded-lg shadow transition-colors">LOGOUT</button>
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
     <div class="flex-1 p-4 space-y-3.5">
 
-        <!-- 1. USER PROFILE SEPARATE BOX (Cleaned) -->
-        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg shadow-inner border border-white/20">
+        <!-- 1. USER PROFILE & WALLET BALANCE SIDE BY SIDE -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg shadow-inner border border-white/20">
                     👤
                 </div>
                 <div>
-                    <p id="profile-name" class="font-black text-base tracking-wide text-amber-300">Ganesh</p>
-                    <p id="profile-phone" class="text-blue-200 font-medium text-[10px] font-mono">Mobile: --</p>
+                    <p id="profile-name" class="font-black text-sm tracking-wide text-amber-300">Loading...</p>
+                    <p id="profile-phone" class="text-blue-200 font-medium text-[9px] font-mono">Mobile: --</p>
                 </div>
             </div>
-        </div>
 
-        <!-- 2. STYLISH WALLET BALANCE BOX (Cleaned) -->
-        <div class="bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-900 rounded-3xl p-4 shadow-lg text-white border border-indigo-800/40 flex items-center justify-between relative overflow-hidden">
-            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
-            <div class="space-y-0.5 z-10">
-                <p class="text-[10px] text-indigo-300 font-black uppercase tracking-widest flex items-center space-x-1">
-                    <span>💳</span>
-                    <span>Wallet Balance</span>
-                </p>
-                <p id="wallet-balance-text" class="text-amber-400 font-black text-2xl font-mono">₹0</p>
+            <div class="bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-900 rounded-3xl p-4 shadow-lg text-white border border-indigo-800/40 flex flex-col justify-center items-center relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <p class="text-[9px] text-indigo-300 font-black uppercase tracking-widest z-10">Balance</p>
+                <p id="wallet-balance-text" class="text-amber-400 font-black text-xl font-mono z-10">₹0</p>
             </div>
         </div>
 
-        <!-- 3. COMPACT ADD BALANCE BUTTON -->
-        <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center space-x-2">
-            <span>➕</span>
-            <span>Add Balance</span>
+        <!-- 2. COMPACT ADD BALANCE BUTTON (NO ICON) -->
+        <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center">
+            Add Balance
         </button>
 
-        <!-- LIVE SERVER TIME SYNC CLOCK (Separate Boxes for Date & Time) -->
+        <!-- LIVE SERVER TIME SYNC CLOCK -->
         <div class="grid grid-cols-2 gap-2">
-            <!-- Date Box -->
             <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
                 <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Today's Date</span>
                 <div id="live-calendar-text" class="text-xs font-black tracking-wider font-mono text-white mt-0.5">--/--/----</div>
             </div>
-            <!-- Time Box -->
             <div class="bg-gradient-to-r from-indigo-800 to-blue-900 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
                 <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Live Time</span>
                 <div id="live-clock" class="text-sm font-black tracking-widest font-mono text-amber-300 mt-0.5">--:--:--</div>
@@ -100,7 +90,7 @@
             </div>
         </div>
 
-        <!-- NOTICE BOARD (Boxed Headline & Centered Stylish Text) -->
+        <!-- NOTICE BOARD -->
         <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2.5">
             <div class="bg-amber-200/60 border border-amber-300 py-1.5 px-3 rounded-2xl flex items-center justify-center space-x-2 text-amber-900 w-fit mx-auto shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
@@ -114,12 +104,15 @@
 
     </div>
 
-    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH BUTTON -->
+    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH & LOGOUT BUTTONS -->
     <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <div class="w-full max-w-[450px] bg-slate-200/95 backdrop-blur-md border-t border-slate-300 p-3 shadow-2xl flex items-center justify-center pointer-events-auto">
-            <button onclick="window.location.reload();" class="w-full max-w-[280px] bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-6 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+        <div class="w-full max-w-[450px] bg-slate-200/95 backdrop-blur-md border-t border-slate-300 p-3 shadow-2xl flex items-center gap-2 pointer-events-auto">
+            <button onclick="window.location.reload();" class="flex-1 bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 <span>Refresh</span>
+            </button>
+            <button onclick="handleLogout()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <span>Logout</span>
             </button>
         </div>
     </div>
@@ -178,6 +171,16 @@
     let pendingMarketName = "";
     let pendingGamePrice = 0;
     let heartbeatInterval = null;
+
+    // Instant clock start so it never feels slow
+    function updateInstantClock() {
+        const secureCorrectedMs = Date.now() + serverTimeOffset;
+        const now = new Date(secureCorrectedMs);
+        document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+        document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    updateInstantClock();
+    setInterval(updateInstantClock, 1000);
 
     window.addEventListener('DOMContentLoaded', () => {
         beginLiveEngine();
@@ -238,26 +241,17 @@
             updateOnlineStatus(true);
         }, 8000);
 
-        try {
-            const startTest = Date.now();
-            const response = await fetch(window.location.href, { method: 'HEAD' });
+        // Fast asynchronous server time fetch (Non-blocking)
+        fetch(window.location.href, { method: 'HEAD' }).then(response => {
             const serverDateHeader = response.headers.get('Date');
             if(serverDateHeader) {
-                const serverMs = Date.parse(serverDateHeader) + (Date.now() - startTest) / 2;
+                const serverMs = Date.parse(serverDateHeader);
                 serverTimeOffset = serverMs - Date.now();
             }
-        } catch(e) {}
+        }).catch(() => {});
 
-        setInterval(() => {
-            const secureCorrectedMs = Date.now() + serverTimeOffset;
-            const now = new Date(secureCorrectedMs);
-            document.getElementById('live-clock').innerText = now.toLocaleTimeString();
-            document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            
-            checkGameExpiries(secureCorrectedMs);
-        }, 1000);
-
-        onSnapshot(doc(db, "users", savedMobile), async (snapshot) => {
+        // Fast Firebase Listeners
+        onSnapshot(doc(db, "users", savedMobile), (snapshot) => {
             if (!snapshot.exists()) { handleLogout(); return; }
             const uData = snapshot.data();
             
@@ -267,9 +261,7 @@
                 return;
             }
 
-            document.getElementById('profile-name').innerText = uData.name || "Ganesh";
-            
-            // 🔥 FIXED: Webhook uses 'balance', fallback to 'walletBalance'
+            document.getElementById('profile-name').innerText = uData.name || "User";
             currentUserWallet = Number(uData.balance) || Number(uData.walletBalance) || 0;
             document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
 
@@ -327,24 +319,6 @@
                 if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
             }
         });
-    }
-
-    async function checkGameExpiries(currentTimeMs) {
-        let changed = false;
-        for (let marketName in unlockedGames) {
-            const unlockTime = unlockedGames[marketName];
-            const threeHoursMs = 3 * 60 * 60 * 1000;
-            if (currentTimeMs - unlockTime >= threeHoursMs) {
-                delete unlockedGames[marketName];
-                changed = true;
-            }
-        }
-        if (changed) {
-            try {
-                await updateDoc(doc(db, "users", savedMobile), { unlockedGames: unlockedGames });
-            } catch(e) {}
-            renderGameCards();
-        }
     }
 
     window.handleGetGameClick = function(marketName, gamePrice) {
@@ -447,7 +421,6 @@
 
                 innerContent = `
                     <div class="space-y-3 pt-2">
-                        <!-- OPEN ROW -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
                             <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16 shrink-0">Open</span>
                             <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
@@ -455,7 +428,6 @@
                             </div>
                         </div>
 
-                        <!-- JODI ROW -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
                             <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16 shrink-0">Jodi</span>
                             <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
@@ -463,7 +435,6 @@
                             </div>
                         </div>
 
-                        <!-- PANEL ROW -->
                         <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
                             <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16 shrink-0">Panel</span>
                             <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
@@ -480,7 +451,6 @@
 
             htmlBuffer += `
                 <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 flex flex-col space-y-3">
-                    <!-- MARKET HEADER WITH NAME AND ACTION BUTTON SIDE BY SIDE -->
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div class="flex items-center space-x-2.5">
                             <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-sm shadow-sm">⭐</div>
