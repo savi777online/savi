@@ -196,9 +196,15 @@
                         <option value="offline">⚪ Offline Users</option>
                     </select>
                 </div>
-                <div class="bg-blue-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-blue-900 border border-blue-200">
-                    <span>Total Registered Users Matrix:</span>
-                    <span id="label-total-users" class="bg-blue-900 text-white px-2.5 py-0.5 rounded-xl font-black font-mono">0</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-blue-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-blue-900 border border-blue-200">
+                        <span>Total Users:</span>
+                        <span id="label-total-users" class="bg-blue-900 text-white px-2 py-0.5 rounded-xl font-black font-mono">0</span>
+                    </div>
+                    <div class="bg-amber-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-amber-900 border border-amber-200">
+                        <span>Total Balance:</span>
+                        <span id="label-total-balance" class="bg-amber-600 text-white px-2 py-0.5 rounded-xl font-black font-mono">₹0</span>
+                    </div>
                 </div>
             </div>
 
@@ -317,7 +323,7 @@
     }
 
     window.clearAllDepositHistory = async function() {
-        if(confirm("Are you sure you want to clear all deposit transaction history?")) {
+        if(confirm("Are you sure you want to clear all transaction history?")) {
             try {
                 const querySnap = await getDocs(collection(db, "deposits"));
                 let deletePromises = [];
@@ -325,7 +331,7 @@
                     deletePromises.push(deleteDoc(doc(db, "deposits", dDoc.id)));
                 });
                 await Promise.all(deletePromises);
-                alert("Deposit history cleared successfully!");
+                alert("Transaction history cleared successfully!");
             } catch(e) {
                 alert("Failed to clear history: " + e.message);
             }
@@ -542,7 +548,12 @@
 
         onSnapshot(collection(db, "users"), (querySnapshot) => {
             cachedUsersList = [];
-            querySnapshot.forEach(uDoc => { cachedUsersList.push({ id: uDoc.id, ...uDoc.data() }); });
+            let totalSumBalance = 0;
+            querySnapshot.forEach(uDoc => { 
+                const uData = uDoc.data();
+                cachedUsersList.push({ id: uDoc.id, ...uData }); 
+                totalSumBalance += Number(uData.balance) || Number(uData.walletBalance) || 0;
+            });
             
             cachedUsersList.sort((a, b) => {
                 const aTime = Number(a.joinedAt) || 0;
@@ -551,21 +562,22 @@
             });
 
             document.getElementById('label-total-users').innerText = cachedUsersList.length;
+            document.getElementById('label-total-balance').innerText = "₹" + totalSumBalance;
             triggerUserFilterDisplay();
         });
 
-        onSnapshot(collection(db, "deposits"), (querySnapshot) => {
+        // Combined multi-collection listener to catch transactions wherever they are stored (deposits, transactions, or payments)
+        const processTransactionsSnapshots = (transDocs) => {
             const historyZone = document.getElementById('deposit-history-zone');
             historyZone.innerHTML = '';
             let count = 0;
 
             let depositsList = [];
-            querySnapshot.forEach(dDoc => {
+            transDocs.forEach(dDoc => {
                 depositsList.push({ id: dDoc.id, ...dDoc.data() });
             });
 
-            // Robust timestamp extraction and sorting
-            const getTs = x => Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || 0;
+            const getTs = x => Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || Number(x.date) || 0;
             depositsList.sort((a, b) => getTs(b) - getTs(a));
 
             depositsList.forEach(d => {
@@ -577,9 +589,8 @@
                     parsedTime = depDate.toLocaleDateString() + ' ' + depDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 }
 
-                // Fallbacks for variable naming from payment gateway webhooks
-                let amountStr = d.amount || d.txnAmount || d.price || 0;
-                let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.id || 'N/A';
+                let amountStr = d.amount || d.txnAmount || d.price || d.value || 0;
+                let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.mobile || d.id || 'N/A';
                 let nameStr = d.userName || d.name || 'User';
 
                 historyZone.innerHTML += `
@@ -598,6 +609,19 @@
             if(count === 0) {
                 historyZone.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold italic text-center py-2">No transaction history found.</p>`;
             }
+        };
+
+        // Listen to 'deposits', 'transactions', and 'payments' collections simultaneously
+        onSnapshot(collection(db, "deposits"), (snap1) => {
+            onSnapshot(collection(db, "transactions"), (snap2) => {
+                onSnapshot(collection(db, "payments"), (snap3) => {
+                    let combinedDocs = [];
+                    snap1.forEach(doc => combinedDocs.push(doc));
+                    snap2.forEach(doc => combinedDocs.push(doc));
+                    snap3.forEach(doc => combinedDocs.push(doc));
+                    processTransactionsSnapshots(combinedDocs);
+                });
+            });
         });
     }
 
@@ -612,7 +636,6 @@
             );
         }
 
-        // Use proper sync for balance filtering
         const getBal = x => Number(x.balance) || Number(x.walletBalance) || 0;
 
         if (filterVal === "high") {
@@ -644,8 +667,6 @@
         container.innerHTML = '';
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
-            
-            // Sync check for balance
             const walletBal = Number(u.balance) || Number(u.walletBalance) || 0;
             const unlockedObj = u.unlockedGames || {};
             
@@ -745,7 +766,6 @@
                 currentWallet = Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0;
             }
             const newTotal = currentWallet + addAmount;
-            // Update both fields to sync completely
             await updateDoc(userRef, { balance: newTotal, walletBalance: newTotal });
             inputElem.value = '';
             alert("Successfully added ₹" + addAmount + " to user wallet!");
@@ -767,7 +787,6 @@
                 currentWallet = Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0;
             }
             const newTotal = Math.max(0, currentWallet - removeAmount);
-            // Update both fields to sync completely
             await updateDoc(userRef, { balance: newTotal, walletBalance: newTotal });
             inputElem.value = '';
             alert("Successfully removed ₹" + removeAmount + " from user wallet!");
