@@ -564,22 +564,29 @@
                 depositsList.push({ id: dDoc.id, ...dDoc.data() });
             });
 
-            // Sort by latest timestamp
-            depositsList.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+            // Robust timestamp extraction and sorting
+            const getTs = x => Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || 0;
+            depositsList.sort((a, b) => getTs(b) - getTs(a));
 
             depositsList.forEach(d => {
                 count++;
                 let parsedTime = "--";
-                if(d.timestamp) {
-                    const depDate = new Date(d.timestamp);
+                let ts = getTs(d);
+                if(ts > 0) {
+                    const depDate = new Date(ts);
                     parsedTime = depDate.toLocaleDateString() + ' ' + depDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 }
+
+                // Fallbacks for variable naming from payment gateway webhooks
+                let amountStr = d.amount || d.txnAmount || d.price || 0;
+                let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.id || 'N/A';
+                let nameStr = d.userName || d.name || 'User';
 
                 historyZone.innerHTML += `
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
                         <div class="flex justify-between font-bold">
-                            <span class="text-slate-900">${d.userName || 'User'} (${d.userMobile || 'N/A'})</span>
-                            <span class="text-green-600 font-mono font-black">+₹${d.amount}</span>
+                            <span class="text-slate-900">${nameStr} (${mobileStr})</span>
+                            <span class="text-green-600 font-mono font-black">+₹${amountStr}</span>
                         </div>
                         <div class="flex justify-between text-[10px] text-slate-500">
                             <span>📅 ${parsedTime}</span>
@@ -605,10 +612,13 @@
             );
         }
 
+        // Use proper sync for balance filtering
+        const getBal = x => Number(x.balance) || Number(x.walletBalance) || 0;
+
         if (filterVal === "high") {
-            filtered.sort((a, b) => (Number(b.walletBalance) || 0) - (Number(a.walletBalance) || 0));
+            filtered.sort((a, b) => getBal(b) - getBal(a));
         } else if (filterVal === "low") {
-            filtered.sort((a, b) => (Number(a.walletBalance) || 0) - (Number(b.walletBalance) || 0));
+            filtered.sort((a, b) => getBal(a) - getBal(b));
         } else if (filterVal === "online") {
             filtered = filtered.filter(u => u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000));
         } else if (filterVal === "offline") {
@@ -634,7 +644,9 @@
         container.innerHTML = '';
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
-            const walletBal = Number(u.walletBalance) || 0;
+            
+            // Sync check for balance
+            const walletBal = Number(u.balance) || Number(u.walletBalance) || 0;
             const unlockedObj = u.unlockedGames || {};
             
             let isOnline = false;
@@ -730,10 +742,11 @@
             const userSnap = await getDoc(userRef);
             let currentWallet = 0;
             if(userSnap.exists()) {
-                currentWallet = Number(userSnap.data().walletBalance) || 0;
+                currentWallet = Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0;
             }
             const newTotal = currentWallet + addAmount;
-            await updateDoc(userRef, { walletBalance: newTotal });
+            // Update both fields to sync completely
+            await updateDoc(userRef, { balance: newTotal, walletBalance: newTotal });
             inputElem.value = '';
             alert("Successfully added ₹" + addAmount + " to user wallet!");
         } catch(e) {
@@ -751,10 +764,11 @@
             const userSnap = await getDoc(userRef);
             let currentWallet = 0;
             if(userSnap.exists()) {
-                currentWallet = Number(userSnap.data().walletBalance) || 0;
+                currentWallet = Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0;
             }
             const newTotal = Math.max(0, currentWallet - removeAmount);
-            await updateDoc(userRef, { walletBalance: newTotal });
+            // Update both fields to sync completely
+            await updateDoc(userRef, { balance: newTotal, walletBalance: newTotal });
             inputElem.value = '';
             alert("Successfully removed ₹" + removeAmount + " from user wallet!");
         } catch(e) {
