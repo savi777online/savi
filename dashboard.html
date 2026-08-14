@@ -179,7 +179,13 @@
     let pendingGamePrice = 0;
     let heartbeatInterval = null;
 
-    window.addEventListener('DOMContentLoaded', beginLiveEngine);
+    window.addEventListener('DOMContentLoaded', () => {
+        beginLiveEngine();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment') === 'success') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
 
     async function updateOnlineStatus(isOnlineFlag) {
         if (!savedMobile) return;
@@ -262,7 +268,9 @@
             }
 
             document.getElementById('profile-name').innerText = uData.name || "Ganesh";
-            currentUserWallet = Number(uData.walletBalance) || 0;
+            
+            // 🔥 FIXED: Webhook uses 'balance', fallback to 'walletBalance'
+            currentUserWallet = Number(uData.balance) || Number(uData.walletBalance) || 0;
             document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
 
             unlockedGames = uData.unlockedGames || {};
@@ -360,6 +368,7 @@
                 
                 await updateDoc(doc(db, "users", savedMobile), { 
                     walletBalance: newBalance,
+                    balance: newBalance,
                     unlockedGames: unlockedGames
                 });
                 
@@ -521,7 +530,7 @@
     window.redirectToPayment = function() {
         localStorage.setItem('selected_pay_plan', 'day');
         const paymentUrl = "https://savi777.online/payment.html";
-        window.location.href = paymentUrl + "?userid=" + savedMobile;
+        window.location.href = paymentUrl + "?userid=" + (savedMobile || "");
     }
 
     window.handleLogout = function() { 
