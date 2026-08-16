@@ -566,6 +566,7 @@
             triggerUserFilterDisplay();
         });
 
+        // --- FIXED TRANSACTION RENDERING ---
         const processTransactionsSnapshots = (transDocs) => {
             const historyZone = document.getElementById('deposit-history-zone');
             historyZone.innerHTML = '';
@@ -573,7 +574,11 @@
             let depositsList = [];
             transDocs.forEach(dDoc => { depositsList.push({ id: dDoc.id, ...dDoc.data() }); });
 
-            const getTs = x => Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || Number(x.date) || 0;
+            // Correctly handle timestamps: Convert seconds to milliseconds if value is small
+            const getTs = x => {
+                let t = Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || Number(x.date) || 0;
+                return (t < 10000000000) ? t * 1000 : t;
+            };
             depositsList.sort((a, b) => getTs(b) - getTs(a));
 
             depositsList.forEach(d => {
@@ -582,12 +587,14 @@
                 let parsedTime = ts > 0 ? new Date(ts).toLocaleString() : "--";
                 let amountStr = d.amount || d.txnAmount || d.price || d.value || 0;
                 let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.mobile || d.id || 'N/A';
-                let nameStr = d.userName || d.name || 'Unknown User';
+                
+                // Name retrieval: Prioritizing userName or name, defaulting to "User"
+                let nameStr = d.userName || d.name || 'User';
 
                 historyZone.innerHTML += `
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
                         <div class="flex justify-between font-bold">
-                            <span class="text-slate-900">${nameStr} (${mobileStr})</span>
+                            <span class="text-slate-900">${nameStr} <span class="text-slate-400 font-normal">(${mobileStr})</span></span>
                             <span class="text-green-600 font-mono font-black">+₹${amountStr}</span>
                         </div>
                         <div class="flex justify-between text-[10px] text-slate-500">
