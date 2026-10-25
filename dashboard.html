@@ -10,7 +10,7 @@
         .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 90px; }
         .app-container::-webkit-scrollbar { display: none; }
         @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
-        
+
         .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
         .slider-wrapper::-webkit-scrollbar { display: none; }
         .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #e2e8f0; }
@@ -235,6 +235,12 @@
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
         updateOnlineStatus(true);
 
+        // FCM / Notification Token Placeholder Hook (Ready for future Admin push notifications)
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            await setDoc(userRef, { lastActive: Date.now(), fcmStatus: "active" }, { merge: true });
+        } catch(e) {}
+
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(() => {
             updateOnlineStatus(true);
@@ -336,13 +342,13 @@
             const newBalance = currentUserWallet - pendingGamePrice;
             try {
                 unlockedGames[pendingMarketName] = Date.now() + serverTimeOffset;
-                
+
                 await updateDoc(doc(db, "users", savedMobile), { 
                     walletBalance: newBalance,
                     balance: newBalance,
                     unlockedGames: unlockedGames
                 });
-                
+
                 currentUserWallet = newBalance;
                 document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
                 renderGameCards();
@@ -350,7 +356,7 @@
                 alert("Transaction failed. Please try again.");
             }
         } else {
-            document.getElementById('deposit-modal').classList.remove('hidden');
+            document.getElementById('deposit-modal').classList.add('hidden');
         }
     }
 
@@ -364,7 +370,7 @@
             const marketName = docSnap.id;
             const gamePrice = Number(m.price) || 100; 
             const marketStatus = m.marketStatus || 'active';
-            
+
             const unlockTime = unlockedGames[marketName];
             const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (currentTimeMs - unlockTime < 12 * 60 * 60 * 1000));
 
