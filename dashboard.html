@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <!-- 2. COMPACT ADD BALANCE BUTTON (NO ICON) -->
+        <!-- 2. COMPACT ADD BALANCE BUTTON -->
         <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center">
             Add Balance
         </button>
@@ -150,13 +150,13 @@
     import { getFirestore, doc, onSnapshot, collection, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
-        authDomain: "mahalakshmi-91935.firebaseapp.com",
-        projectId: "mahalakshmi-91935",
-        storageBucket: "mahalakshmi-91935.firebasestorage.app",
-        messagingSenderId: "665618845136",
-        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
-        measurementId: "G-3E2BC4BN3B"
+        apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
+        authDomain: "mahalakshmi-1358f.firebaseapp.com",
+        projectId: "mahalakshmi-1358f",
+        storageBucket: "mahalakshmi-1358f.firebasestorage.app",
+        messagingSenderId: "26487681138",
+        appId: "1:26487681138:web:dfa4095fa2285b584212eb",
+        measurementId: "G-Y2SVGE7BVJ"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -366,7 +366,6 @@
             const marketStatus = m.marketStatus || 'active';
             
             const unlockTime = unlockedGames[marketName];
-            // 12 घंटे का लॉजिक: (12 * 60 * 60 * 1000)
             const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (currentTimeMs - unlockTime < 12 * 60 * 60 * 1000));
 
             let actionButtonOrStatus = "";
@@ -496,8 +495,7 @@
     window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
 
     window.redirectToPayment = function() {
-        localStorage.setItem('selected_pay_plan', 'day');
-        const paymentUrl = "https://savi777.online/payment.html";
+        const paymentUrl = "payment.html";
         window.location.href = paymentUrl + "?userid=" + (savedMobile || "");
     }
 
