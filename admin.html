@@ -50,7 +50,7 @@
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
                 <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">System Control & Gateways</h3>
                 <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Receiver UPI ID Address</label>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Receiver UPI ID Address (For QR Code)</label>
                     <input type="text" id="cfg-upi" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-mono">
                 </div>
                 <div>
@@ -185,6 +185,18 @@
 
         <!-- USERS TAB -->
         <div id="tab-users" class="space-y-4 hidden">
+            
+            <!-- PENDING DEPOSIT APPROVALS SECTION -->
+            <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2">
+                <div class="flex items-center space-x-2">
+                    <span class="text-base">⏳</span>
+                    <h3 class="font-black text-xs text-amber-950 uppercase tracking-wider">Pending Deposit Approvals</h3>
+                </div>
+                <div id="pending-deposits-zone" class="space-y-2 pt-1">
+                    <p class="text-[11px] text-gray-500 italic">No pending requests.</p>
+                </div>
+            </div>
+
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col space-y-2">
                 <div class="flex space-x-2">
                     <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search name or phone number..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-gray-800 font-semibold focus:outline-none focus:border-blue-500">
@@ -242,13 +254,13 @@
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyBjG-uwtWfr3sFUxLhjs2e7fkbryAo1ysU",
-        authDomain: "mahalakshmi-91935.firebaseapp.com",
-        projectId: "mahalakshmi-91935",
-        storageBucket: "mahalakshmi-91935.firebasestorage.app",
-        messagingSenderId: "665618845136",
-        appId: "1:665618845136:web:3e0edac7943465eab7fdd5",
-        measurementId: "G-3E2BC4BN3B"
+        apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
+        authDomain: "mahalakshmi-1358f.firebaseapp.com",
+        projectId: "mahalakshmi-1358f",
+        storageBucket: "mahalakshmi-1358f.firebasestorage.app",
+        messagingSenderId: "26487681138",
+        appId: "1:26487681138:web:dfa4095fa2285b584212eb",
+        measurementId: "G-Y2SVGE7BVJ"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -490,6 +502,30 @@
             }
         });
 
+        // PENDING DEPOSITS APPROVAL LISTENER
+        onSnapshot(collection(db, "pending_deposits"), (snapshot) => {
+            const zone = document.getElementById('pending-deposits-zone');
+            zone.innerHTML = '';
+            let count = 0;
+            snapshot.forEach(dDoc => {
+                count++;
+                const d = dDoc.data();
+                zone.innerHTML += `
+                    <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col space-y-2 text-xs shadow-sm">
+                        <div class="flex justify-between font-bold">
+                            <span class="text-blue-950 font-bold">${d.name || 'User'} <span class="text-slate-400">(${d.userid})</span></span>
+                            <span class="text-emerald-600 font-black text-sm">+₹${d.amount}</span>
+                        </div>
+                        <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr}</span></p>
+                        <div class="flex space-x-2 pt-1">
+                            <button onclick="approveDeposit('${d.id}', '${d.userid}', ${d.amount}, '${d.name || 'User'}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
+                            <button onclick="rejectDeposit('${d.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
+                        </div>
+                    </div>`;
+            });
+            if (count === 0) zone.innerHTML = `<p class="text-[11px] text-gray-500 italic">No pending deposit requests.</p>`;
+        });
+
         onSnapshot(collection(db, "app_links"), (querySnapshot) => {
             const container = document.getElementById('admin-links-list');
             container.innerHTML = '';
@@ -566,7 +602,6 @@
             triggerUserFilterDisplay();
         });
 
-        // --- FIXED TRANSACTION RENDERING ---
         const processTransactionsSnapshots = (transDocs) => {
             const historyZone = document.getElementById('deposit-history-zone');
             historyZone.innerHTML = '';
@@ -574,7 +609,6 @@
             let depositsList = [];
             transDocs.forEach(dDoc => { depositsList.push({ id: dDoc.id, ...dDoc.data() }); });
 
-            // Correctly handle timestamps: Convert seconds to milliseconds if value is small
             const getTs = x => {
                 let t = Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || Number(x.date) || 0;
                 return (t < 10000000000) ? t * 1000 : t;
@@ -587,8 +621,6 @@
                 let parsedTime = ts > 0 ? new Date(ts).toLocaleString() : "--";
                 let amountStr = d.amount || d.txnAmount || d.price || d.value || 0;
                 let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.mobile || d.id || 'N/A';
-                
-                // Name retrieval: Prioritizing userName or name, defaulting to "User"
                 let nameStr = d.userName || d.name || 'User';
 
                 historyZone.innerHTML += `
@@ -618,6 +650,42 @@
                 });
             });
         });
+    }
+
+    window.approveDeposit = async function(reqId, userId, amount, userName) {
+        if (!confirm(`Approve ₹${amount} for ${userName} (${userId})?`)) return;
+        try {
+            const userRef = doc(db, "users", userId);
+            const userSnap = await getDoc(userRef);
+            let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
+            const newBal = currentBal + amount;
+
+            // Update user balance
+            await updateDoc(userRef, { balance: newBal, walletBalance: newBal });
+
+            // Record in deposits history
+            await setDoc(doc(db, "deposits", reqId), {
+                userid: userId,
+                userMobile: userId,
+                name: userName,
+                amount: amount,
+                timestamp: Date.now(),
+                status: "approved"
+            });
+
+            // Remove from pending
+            await deleteDoc(doc(db, "pending_deposits", reqId));
+            alert("✅ Deposit approved & wallet updated successfully!");
+        } catch(e) {
+            alert("❌ Approval failed: " + e.message);
+        }
+    }
+
+    window.rejectDeposit = async function(reqId) {
+        if (confirm("Reject this deposit request?")) {
+            await deleteDoc(doc(db, "pending_deposits", reqId));
+            alert("Deposit request rejected.");
+        }
     }
 
     window.triggerUserFilterDisplay = function() {
