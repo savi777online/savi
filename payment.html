@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi - Manual UPI Deposit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: linear-gradient(135deg, #eff6ff 0%, #fdfbf7 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; border-radius: 24px; padding: 20px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="w-full max-w-[340px] bg-white border border-blue-100 rounded-3xl p-6 shadow-xl flex flex-col items-center space-y-4">
+        <div class="flex flex-col items-center text-center">
+            <div class="p-2.5 bg-blue-50 rounded-full w-16 h-16 flex items-center justify-center shadow-inner mb-2">
+                <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-12 h-12 object-contain">
+            </div>
+            <h1 class="text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent tracking-widest uppercase">MAHALAKSHMI</h1>
+        </div>
+
+        <div class="w-full space-y-3">
+            <div>
+                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">User Mobile ID</label>
+                <input type="text" id="userid-input" readonly class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-2.5 px-3 text-sm font-bold text-gray-800 font-mono shadow-inner mb-2">
+            </div>
+
+            <div>
+                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (₹)</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-base font-black text-blue-600">₹</span>
+                    <input type="number" id="amount-input" placeholder="100" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
+                </div>
+            </div>
+
+            <!-- QR CODE CONTAINER -->
+            <div id="qr-box" class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center space-y-2 hidden">
+                <p class="text-[11px] font-bold text-blue-900">Scan via GPay / PhonePe / Paytm</p>
+                <div class="bg-white p-2 rounded-xl inline-block shadow-sm">
+                    <img id="qr-image" src="" alt="UPI QR Code" class="w-36 h-36 object-contain mx-auto">
+                </div>
+                <p id="upi-display" class="text-xs font-mono font-bold text-blue-950 bg-white py-1 px-3 rounded-lg border border-blue-100"></p>
+            </div>
+
+            <div>
+                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter UTR / Transaction Reference Number</label>
+                <input type="text" id="utr-input" placeholder="Enter 12-digit UTR / UPI Ref ID" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 px-3 text-xs font-bold text-gray-800 focus:outline-none focus:border-blue-600 font-mono shadow-inner">
+            </div>
+
+            <button onclick="submitDepositRequest()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-xl text-xs uppercase shadow-md active:scale-[0.99] transition-transform">Submit Deposit Request</button>
+            <button onclick="window.location.href='dashboard.html'" class="w-full bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Back to Dashboard</button>
+            <div id="status-text" class="text-center text-[11px] font-bold text-blue-600 h-6"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
+        authDomain: "mahalakshmi-1358f.firebaseapp.com",
+        projectId: "mahalakshmi-1358f",
+        storageBucket: "mahalakshmi-1358f.firebasestorage.app",
+        messagingSenderId: "26487681138",
+        appId: "1:26487681138:web:dfa4095fa2285b584212eb",
+        measurementId: "G-Y2SVGE7BVJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let adminUpiId = "mahalakshmi@upi";
+    let userId = "";
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('userid') || localStorage.getItem('app_user_mobile');
+        if (!userId) {
+            alert("User not logged in!");
+            window.location.href = "index.html";
+            return;
+        }
+        document.getElementById('userid-input').value = userId;
+
+        // Fetch UPI address from system config set in admin panel
+        try {
+            const configSnap = await getDoc(doc(db, "system_config", "settings"));
+            if (configSnap.exists() && configSnap.data().upi_address) {
+                adminUpiId = configSnap.data().upi_address;
+            }
+        } catch(e) {}
+    });
+
+    window.updateQrCode = function() {
+        const amt = document.getElementById('amount-input').value.trim();
+        const qrBox = document.getElementById('qr-box');
+        if (amt && Number(amt) > 0) {
+            qrBox.classList.remove('hidden');
+            const upiLink = `upi://pay?pa=${adminUpiId}&pn=Mahalakshmi&am=${amt}&cu=INR`;
+            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
+            document.getElementById('upi-display').innerText = "UPI ID: " + adminUpiId;
+        } else {
+            qrBox.classList.add('hidden');
+        }
+    }
+
+    window.submitDepositRequest = async function() {
+        const amount = Number(document.getElementById('amount-input').value);
+        const utr = document.getElementById('utr-input').value.trim();
+
+        if (!amount || amount < 1) {
+            alert("Please enter a valid deposit amount.");
+            return;
+        }
+        if (!utr || utr.length < 6) {
+            alert("Please enter a valid UTR / Transaction Reference number.");
+            return;
+        }
+
+        document.getElementById('status-text').innerText = "Submitting request...";
+
+        try {
+            const userSnap = await getDoc(doc(db, "users", userId));
+            const userName = userSnap.exists() ? (userSnap.data().name || "User") : "User";
+            const reqId = "REQ_" + Date.now();
+
+            await setDoc(doc(db, "pending_deposits", reqId), {
+                id: reqId,
+                userid: userId,
+                userMobile: userId,
+                name: userName,
+                amount: amount,
+                utr: utr,
+                timestamp: Date.now(),
+                status: "pending"
+            });
+
+            alert("✅ Deposit request submitted successfully! Waiting for Admin approval.");
+            window.location.href = "dashboard.html";
+        } catch (e) {
+            alert("❌ Failed to submit request: " + e.message);
+            document.getElementById('status-text').innerText = "";
+        }
+    }
+</script>
+</body>
+</html>
