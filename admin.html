@@ -68,6 +68,20 @@
                 <button onclick="saveSystemConfig()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Save Parameters</button>
             </div>
 
+            <!-- PUSH NOTIFICATION BROADCAST CONSOLE -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🔔 Push Notification Broadcast</h3>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notification Title</label>
+                    <input type="text" id="notif-title" placeholder="e.g., Mahalakshmi Alert" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-semibold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notification Message Body</label>
+                    <textarea id="notif-body" rows="2" placeholder="Type broadcast message here..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 focus:outline-none"></textarea>
+                </div>
+                <button onclick="sendPushNotificationBroadcast()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">📢 Send Notification to All Users</button>
+            </div>
+
             <!-- DYNAMIC EXTERNAL LINKS / APP REDIRECTS CONSOLE PANEL -->
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
                 <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🔗 App Shortcuts / Video Links Manager</h3>
@@ -347,6 +361,33 @@
             } catch(e) {
                 alert("Failed to clear history: " + e.message);
             }
+        }
+    }
+
+    // PUSH NOTIFICATION BROADCAST HANDLER
+    window.sendPushNotificationBroadcast = async function() {
+        const title = document.getElementById('notif-title').value.trim();
+        const body = document.getElementById('notif-body').value.trim();
+
+        if (!title || !body) {
+            alert("Please enter both notification title and message body.");
+            return;
+        }
+
+        try {
+            const notifId = "broadcast_" + Date.now();
+            await setDoc(doc(db, "broadcast_notifications", notifId), {
+                id: notifId,
+                title: title,
+                body: body,
+                timestamp: Date.now()
+            });
+
+            document.getElementById('notif-title').value = '';
+            document.getElementById('notif-body').value = '';
+            alert("✅ Push notification broadcast sent to database successfully!");
+        } catch (e) {
+            alert("❌ Failed to send broadcast: " + e.message);
         }
     }
 
@@ -660,10 +701,8 @@
             let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
             const newBal = currentBal + amount;
 
-            // Update user balance
             await updateDoc(userRef, { balance: newBal, walletBalance: newBal });
 
-            // Record in deposits history
             await setDoc(doc(db, "deposits", reqId), {
                 userid: userId,
                 userMobile: userId,
@@ -673,7 +712,6 @@
                 status: "approved"
             });
 
-            // Remove from pending
             await deleteDoc(doc(db, "pending_deposits", reqId));
             alert("✅ Deposit approved & wallet updated successfully!");
         } catch(e) {
