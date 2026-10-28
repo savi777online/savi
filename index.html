@@ -53,7 +53,7 @@
             </button>
         </div>
 
-        <!-- STEP 2: NEW USER NAME SETUP (IF NOT REGISTERED) -->
+        <!-- STEP 2: NEW USER REGISTRATION (NAME + PIN + CONFIRM PIN) -->
         <div id="step-name" class="space-y-3 hidden">
             <div class="bg-blue-50 border border-blue-100 p-3 rounded-2xl text-center">
                 <p class="text-[11px] text-blue-900 font-bold">New Account Setup</p>
@@ -63,11 +63,68 @@
                 <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter Your Full Name <span class="text-red-500">*</span></label>
                 <input type="text" id="input-name" placeholder="Enter your full name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
             </div>
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter 4-Digit PIN <span class="text-red-500">*</span></label>
+                <input type="password" id="input-new-pin" maxlength="4" placeholder="••••" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 tracking-widest">
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Confirm 4-Digit PIN <span class="text-red-500">*</span></label>
+                <input type="password" id="input-confirm-pin" maxlength="4" placeholder="••••" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 tracking-widest">
+            </div>
             <button onclick="completeNewUserRegistration()" id="btn-register" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
-                Continue to Dashboard
+                Create Account
             </button>
             <button onclick="resetToMobileStep()" class="w-full text-center text-[11px] text-slate-500 font-bold hover:underline pt-1">
                 Change Mobile Number
+            </button>
+        </div>
+
+        <!-- STEP 3: OLD USER PIN LOGIN -->
+        <div id="step-pin" class="space-y-3 hidden">
+            <div class="bg-blue-50 border border-blue-100 p-3 rounded-2xl text-center">
+                <p class="text-[11px] text-blue-900 font-bold">Welcome Back, <span id="welcome-user-name">User</span>!</p>
+                <p class="text-[10px] text-blue-600 font-semibold" id="login-mobile-display"></p>
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Enter 4-Digit PIN <span class="text-red-500">*</span></label>
+                <input type="password" id="input-login-pin" maxlength="4" placeholder="••••" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 tracking-widest">
+            </div>
+            <button onclick="verifyLoginPin()" id="btn-login" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95 flex items-center justify-center">
+                Login to Dashboard
+            </button>
+            <div class="flex justify-between items-center pt-1">
+                <button onclick="resetToMobileStep()" class="text-[11px] text-slate-500 font-bold hover:underline">
+                    Change Mobile Number
+                </button>
+                <button onclick="showForgotPinStep()" class="text-[11px] text-blue-600 font-bold hover:underline">
+                    Forgot PIN?
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 4: FORGOT PIN -->
+        <div id="step-forgot" class="space-y-3 hidden">
+            <div class="bg-amber-50 border border-amber-100 p-3 rounded-2xl text-center">
+                <p class="text-[11px] text-amber-900 font-bold">Forgot PIN Recovery</p>
+                <p class="text-[10px] text-amber-600 font-semibold">Enter your registered details</p>
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Mobile Number</label>
+                <input type="tel" id="forgot-mobile" maxlength="10" placeholder="Enter 10-digit number" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Full Name</label>
+                <input type="text" id="forgot-name" placeholder="Enter your full name" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
+            </div>
+            <div id="forgot-result-box" class="hidden bg-emerald-50 border border-emerald-200 p-3 rounded-2xl text-center">
+                <p class="text-[11px] text-emerald-800 font-bold">Your 4-Digit PIN is:</p>
+                <p class="text-sm text-emerald-900 font-black tracking-widest mt-1" id="recovered-pin-display"></p>
+            </div>
+            <button onclick="recoverPin()" id="btn-forgot" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow transition-transform active:scale-95">
+                Check Four Digit PIN
+            </button>
+            <button onclick="backToLoginFromForgot()" class="w-full text-center text-[11px] text-slate-500 font-bold hover:underline pt-1">
+                Back to Login
             </button>
         </div>
 
@@ -94,6 +151,7 @@
     const db = getFirestore(app);
 
     let currentMobile = "";
+    let fetchedUserData = null;
 
     window.addEventListener('DOMContentLoaded', () => {
         // Auto-login: Agar user pehle se logged in hai toh direct dashboard par bhejo
@@ -122,19 +180,23 @@
             const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
-                // PURANA USER: Direct Login
-                const userData = userSnap.data();
-                if (userData.status === "blocked") {
+                // PURANA USER: PIN maango
+                fetchedUserData = userSnap.data();
+                if (fetchedUserData.status === "blocked") {
                     alert("❌ Your account has been suspended.");
                     btn.innerHTML = "Next";
                     btn.disabled = false;
                     return;
                 }
 
-                localStorage.setItem('app_user_mobile', currentMobile);
-                window.location.href = 'dashboard.html';
+                btn.innerHTML = "Next";
+                btn.disabled = false;
+                document.getElementById('step-mobile').classList.add('hidden');
+                document.getElementById('step-pin').classList.remove('hidden');
+                document.getElementById('login-mobile-display').innerText = "+91 " + currentMobile;
+                document.getElementById('welcome-user-name').innerText = fetchedUserData.name || "User";
             } else {
-                // NAYA USER: Naam poochho
+                // NAYA USER: Naam aur PIN maango
                 btn.innerHTML = "Next";
                 btn.disabled = false;
                 document.getElementById('step-mobile').classList.add('hidden');
@@ -148,26 +210,61 @@
         }
     }
 
+    window.verifyLoginPin = function() {
+        const pin = document.getElementById('input-login-pin').value.trim();
+        if (pin.length !== 4) {
+            alert("❌ Please enter a valid 4-digit PIN.");
+            return;
+        }
+
+        if (fetchedUserData && fetchedUserData.pin && fetchedUserData.pin !== pin) {
+            alert("❌ Incorrect 4-digit PIN! Please try again.");
+            return;
+        }
+
+        // Agar user ke purane data mein PIN nahi tha (migration case), toh bypass ya save kar sakte hain
+        localStorage.setItem('app_user_mobile', currentMobile);
+        window.location.href = 'dashboard.html';
+    }
+
     window.resetToMobileStep = function() {
         document.getElementById('step-name').classList.add('hidden');
+        document.getElementById('step-pin').classList.add('hidden');
+        document.getElementById('step-forgot').classList.add('hidden');
         document.getElementById('step-mobile').classList.remove('hidden');
+        document.getElementById('input-mobile').value = "";
+        document.getElementById('input-new-pin').value = "";
+        document.getElementById('input-confirm-pin').value = "";
+        document.getElementById('input-login-pin').value = "";
     }
 
     window.completeNewUserRegistration = async function() {
         const name = document.getElementById('input-name').value.trim();
+        const pin = document.getElementById('input-new-pin').value.trim();
+        const confirmPin = document.getElementById('input-confirm-pin').value.trim();
+
         if (!name) {
             alert("❌ Name is mandatory! Please enter your full name.");
+            return;
+        }
+        if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+            alert("❌ Please enter a valid 4-digit PIN.");
+            return;
+        }
+        if (pin !== confirmPin) {
+            alert("❌ PIN and Confirm PIN do not match!");
             return;
         }
 
         const btn = document.getElementById('btn-register');
         btn.disabled = true;
-        btn.innerText = "Setting up...";
+        btn.innerText = "Creating Account...";
 
         try {
             const userRef = doc(db, "users", currentMobile);
             await setDoc(userRef, {
                 name: name,
+                pin: pin,
                 walletBalance: 0,
                 balance: 0,
                 joinedAt: Date.now(),
@@ -180,7 +277,58 @@
         } catch (e) {
             alert("❌ Registration failed: " + e.message);
             btn.disabled = false;
-            btn.innerText = "Continue to Dashboard";
+            btn.innerText = "Create Account";
+        }
+    }
+
+    window.showForgotPinStep = function() {
+        document.getElementById('step-pin').classList.add('hidden');
+        document.getElementById('step-forgot').classList.remove('hidden');
+        document.getElementById('forgot-mobile').value = currentMobile;
+        document.getElementById('forgot-result-box').classList.add('hidden');
+    }
+
+    window.backToLoginFromForgot = function() {
+        document.getElementById('step-forgot').classList.add('hidden');
+        document.getElementById('step-pin').classList.remove('hidden');
+    }
+
+    window.recoverPin = async function() {
+        const mobileInput = document.getElementById('forgot-mobile').value.trim().replace(/\D/g, '');
+        const nameInput = document.getElementById('forgot-name').value.trim().toLowerCase();
+
+        if (mobileInput.length !== 10 || !nameInput) {
+            alert("❌ Please enter both valid mobile number and full name.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-forgot');
+        btn.disabled = true;
+        btn.innerText = "Checking...";
+
+        try {
+            const userRef = doc(db, "users", mobileInput);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                alert("❌ No account found with this mobile number.");
+                btn.disabled = false;
+                btn.innerText = "Check Four Digit PIN";
+                return;
+            }
+
+            const data = userSnap.data();
+            if (data.name && data.name.trim().toLowerCase() === nameInput) {
+                document.getElementById('recovered-pin-display').innerText = data.pin || "No PIN Set";
+                document.getElementById('forgot-result-box').classList.remove('hidden');
+            } else {
+                alert("❌ Name does not match with this mobile number.");
+            }
+        } catch (e) {
+            alert("❌ Error: " + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Check Four Digit PIN";
         }
     }
 </script>
