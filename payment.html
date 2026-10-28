@@ -28,10 +28,10 @@
             </div>
 
             <div>
-                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (₹)</label>
+                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (Min ₹500)</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-base font-black text-blue-600">₹</span>
-                    <input type="number" id="amount-input" placeholder="100" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
+                    <input type="number" id="amount-input" placeholder="500" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
                 </div>
             </div>
 
@@ -98,7 +98,7 @@
     window.updateQrCode = function() {
         const amt = document.getElementById('amount-input').value.trim();
         const qrBox = document.getElementById('qr-box');
-        if (amt && Number(amt) > 0) {
+        if (amt && Number(amt) >= 500) {
             qrBox.classList.remove('hidden');
             const upiLink = `upi://pay?pa=${adminUpiId}&pn=Mahalakshmi&am=${amt}&cu=INR`;
             document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
@@ -112,12 +112,12 @@
         const amount = Number(document.getElementById('amount-input').value);
         const utr = document.getElementById('utr-input').value.trim();
 
-        if (!amount || amount < 1) {
-            alert("Please enter a valid deposit amount.");
+        if (!amount || amount < 500) {
+            alert("❌ Minimum deposit amount is ₹500. Please enter ₹500 or more.");
             return;
         }
         if (!utr || utr.length < 6) {
-            alert("Please enter a valid UTR / Transaction Reference number.");
+            alert("❌ Please enter a valid UTR / Transaction Reference number.");
             return;
         }
 
