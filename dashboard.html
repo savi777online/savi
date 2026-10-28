@@ -55,6 +55,13 @@
             Add Balance
         </button>
 
+        <!-- 3. SLIDING TEXT (MARQUEE) -->
+        <div class="bg-blue-900 border border-blue-800 rounded-2xl py-2 px-3 shadow-sm overflow-hidden whitespace-nowrap">
+            <marquee behavior="scroll" direction="left" scrollamount="5" class="text-xs font-black text-amber-300 uppercase tracking-wider">
+                <span id="sliding-marquee-text">Welcome to mahalaxmiplay.online</span>
+            </marquee>
+        </div>
+
         <!-- LIVE SERVER TIME SYNC CLOCK -->
         <div class="grid grid-cols-2 gap-2">
             <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
@@ -235,7 +242,6 @@
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
         updateOnlineStatus(true);
 
-        // FCM / Notification Token Placeholder Hook (Ready for future Admin push notifications)
         try {
             const userRef = doc(db, "users", savedMobile);
             await setDoc(userRef, { lastActive: Date.now(), fcmStatus: "active" }, { merge: true });
@@ -319,6 +325,7 @@
             if (snapshot.exists()) {
                 const data = snapshot.data();
                 if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
+                if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
                 if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
             }
         });
