@@ -210,6 +210,7 @@
                         <option value="low">📉 Low Balance</option>
                         <option value="online">🟢 Online Users</option>
                         <option value="offline">⚪ Offline Users</option>
+                        <option value="lastseen">🕒 Last Seen</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -702,6 +703,7 @@
         }
 
         const getBal = x => Number(x.balance) || Number(x.walletBalance) || 0;
+        const getLastSeen = x => Number(x.lastSeen) || 0;
 
         if (filterVal === "high") {
             filtered.sort((a, b) => getBal(b) - getBal(a));
@@ -711,6 +713,8 @@
             filtered = filtered.filter(u => u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000));
         } else if (filterVal === "offline") {
             filtered = filtered.filter(u => !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 15 * 1000));
+        } else if (filterVal === "lastseen") {
+            filtered.sort((a, b) => getLastSeen(b) - getLastSeen(a));
         }
 
         renderUserDirectoryItems(filtered);
