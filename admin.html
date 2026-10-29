@@ -72,7 +72,7 @@
                 <button onclick="saveSystemConfig()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Save Parameters</button>
             </div>
 
-            <!-- PUSH NOTIFICATION SENDER BOX (NEWLY ADDED) -->
+            <!-- PUSH NOTIFICATION SENDER BOX (ADDED HERE) -->
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
                 <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🔔 Send Push Notification</h3>
                 <div>
@@ -340,24 +340,22 @@
         document.getElementById('nav-'+tabId).className = "py-4 border-b-2 border-blue-600 text-blue-600";
     }
 
-    // PUSH NOTIFICATION SENDER FUNCTION (NEWLY ADDED)
+    // PUSH NOTIFICATION SENDER FUNCTION (100% Matching with your NotificationService)
     window.sendPushNotificationToAll = async function() {
         const title = document.getElementById('notif-title').value.trim();
-        const body = document.getElementById('notif-body').value.trim();
+        const message = document.getElementById('notif-body').value.trim();
 
-        if (!body) {
+        if (!message) {
             alert("Please type a notification message first.");
             return;
         }
 
         try {
-            // Firestore में 'notifications' कलेक्शन में एक डॉक्यूमेंट जोड़ देंगे
-            // ऐप में इसका लिसनर लगाकर सभी यूजर्स को लाइव नोटिफिकेशन पॉप-अप दिखाया जा सकता है
             const notifId = "notif_" + Date.now();
             await setDoc(doc(db, "notifications", notifId), {
                 title: title || "Mahalakshmi Update",
-                body: body,
-                timestamp: Date.now()
+                message: message, // 'message' field matches your Flutter NotificationService perfectly
+                sentAt: serverTimestamp ? serverTimestamp() : new Date() // Triggers isGreaterThanOrEqualTo query in app
             });
 
             document.getElementById('notif-body').value = '';
@@ -532,7 +530,7 @@
                 const s = snap.data();
                 document.getElementById('cfg-notice').value = s.notice_text || '';
                 document.getElementById('cfg-sliding').value = s.sliding_text || 'Welcome to mahalaxmiplay.online';
-                document.getElementById('cfg-upi').value = s.upi_address || "mahalakshmi@upi";
+                document.getElementById('cfg-upi').value = s.upi_address || "mahalaxmi@upi";
                 document.getElementById('cfg-support-phone').value = s.support_phone || '';
                 document.getElementById('cfg-pin').value = s.admin_pin || '9999';
                 
