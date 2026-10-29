@@ -72,7 +72,7 @@
                 <button onclick="saveSystemConfig()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Save Parameters</button>
             </div>
 
-            <!-- PUSH NOTIFICATION SENDER BOX (ADDED HERE) -->
+            <!-- PUSH NOTIFICATION SENDER BOX -->
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
                 <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🔔 Send Push Notification</h3>
                 <div>
@@ -269,7 +269,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -340,7 +340,7 @@
         document.getElementById('nav-'+tabId).className = "py-4 border-b-2 border-blue-600 text-blue-600";
     }
 
-    // PUSH NOTIFICATION SENDER FUNCTION (100% Matching with your NotificationService)
+    // PUSH NOTIFICATION SENDER FUNCTION (FIXED)
     window.sendPushNotificationToAll = async function() {
         const title = document.getElementById('notif-title').value.trim();
         const message = document.getElementById('notif-body').value.trim();
@@ -354,8 +354,8 @@
             const notifId = "notif_" + Date.now();
             await setDoc(doc(db, "notifications", notifId), {
                 title: title || "Mahalakshmi Update",
-                message: message, // 'message' field matches your Flutter NotificationService perfectly
-                sentAt: serverTimestamp ? serverTimestamp() : new Date() // Triggers isGreaterThanOrEqualTo query in app
+                message: message, // Matches your Flutter NotificationService perfectly
+                sentAt: serverTimestamp() // Fixed: serverTimestamp is now properly imported
             });
 
             document.getElementById('notif-body').value = '';
@@ -530,7 +530,7 @@
                 const s = snap.data();
                 document.getElementById('cfg-notice').value = s.notice_text || '';
                 document.getElementById('cfg-sliding').value = s.sliding_text || 'Welcome to mahalaxmiplay.online';
-                document.getElementById('cfg-upi').value = s.upi_address || "mahalaxmi@upi";
+                document.getElementById('cfg-upi').value = s.upi_address || "mahalakshmi@upi";
                 document.getElementById('cfg-support-phone').value = s.support_phone || '';
                 document.getElementById('cfg-pin').value = s.admin_pin || '9999';
                 
