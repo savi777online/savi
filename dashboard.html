@@ -39,7 +39,7 @@
     <!-- MAIN DASHBOARD CONTENT -->
     <div class="flex-1 p-4 space-y-4">
 
-        <!-- 1. USER PROFILE SECTION (FULL WIDTH - NO ADD BALANCE BUTTON) -->
+        <!-- 1. USER PROFILE SECTION -->
         <div class="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 rounded-3xl p-4 shadow-xl text-white flex items-center space-x-3.5 border border-indigo-500/30 relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
             <div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center p-2 shadow-inner border border-white/20 z-10 shrink-0">
@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <!-- 2. HIGHLY HIGHLIGHTED WEEKLY VIP PASS CARD -->
+        <!-- 2. WEEKLY VIP PASS CARD -->
         <div id="weekly-sub-card" class="bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-700 rounded-3xl p-5 shadow-2xl text-white border-2 border-amber-300 relative overflow-hidden">
             <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/20 rounded-full blur-xl pointer-events-none"></div>
             <div class="flex flex-col space-y-3 relative z-10">
@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 <div id="sub-badge-container" class="w-full pt-1">
-                    <!-- Dynamic Button or Status Badge -->
+                    <!-- Dynamic Button -->
                 </div>
             </div>
         </div>
@@ -91,7 +91,7 @@
             </div>
         </div>
 
-        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
+        <!-- CLICKABLE APP SHORTCUTS -->
         <div id="app-links-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
             <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
                 <span>🔗 Quick Resources & Links</span>
@@ -99,7 +99,7 @@
             <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
         </div>
 
-        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
+        <!-- VOICE NOTES -->
         <div id="voice-notes-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
             <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
                 <span>🎙️ Admin Voice Announcements</span>
@@ -128,7 +128,7 @@
 
     </div>
 
-    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH & LOGOUT BUTTONS -->
+    <!-- FIXED BOTTOM NAVIGATION BAR -->
     <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
         <div class="w-full max-w-[450px] bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-3 shadow-2xl flex items-center gap-2 pointer-events-auto">
             <button onclick="window.location.reload();" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
@@ -364,17 +364,17 @@
 
             if (marketStatus === 'locked') {
                 actionButtonOrStatus = `
-                    <div class="bg-red-50 text-red-600 font-bold text-[10px] py-1.5 px-3.5 rounded-full uppercase tracking-wider border border-red-200 shadow-sm">
+                    <div class="bg-red-50 text-red-600 font-bold text-[10px] py-1.5 px-3 rounded-full uppercase tracking-wider border border-red-200 shadow-sm">
                         🔒 CLOSED
                     </div>`;
             } else if (isUnlocked) {
                 actionButtonOrStatus = `
-                    <div class="bg-emerald-50 text-emerald-600 font-bold text-[10px] py-1.5 px-3.5 rounded-full uppercase tracking-wider border border-emerald-200 shadow-sm animate-pulse">
+                    <div class="bg-emerald-50 text-emerald-600 font-bold text-[10px] py-1.5 px-3 rounded-full uppercase tracking-wider border border-emerald-200 shadow-sm animate-pulse">
                         ✓ UNLOCKED
                     </div>`;
             } else {
                 actionButtonOrStatus = `
-                    <div class="bg-amber-50 text-amber-700 font-bold text-[10px] py-1.5 px-3.5 rounded-full uppercase tracking-wider border border-amber-200 shadow-sm">
+                    <div class="bg-amber-50 text-amber-700 font-bold text-[10px] py-1.5 px-3 rounded-full uppercase tracking-wider border border-amber-200 shadow-sm">
                         🔒 VIP REQUIRED
                     </div>`;
             }
@@ -410,23 +410,23 @@
 
                 innerContent = `
                     <div class="space-y-3 pt-3">
-                        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
-                            <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16 shrink-0">Open</span>
-                            <div class="flex items-center justify-center flex-wrap gap-2 flex-1">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center space-y-2">
+                            <span class="text-xs font-black text-blue-900 uppercase tracking-widest">OPEN</span>
+                            <div class="flex items-center justify-center flex-wrap gap-2 w-full">
                                 ${otcHtml}
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
-                            <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16 shrink-0">Jodi</span>
-                            <div class="flex items-center justify-center flex-wrap gap-2 flex-1">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center space-y-2">
+                            <span class="text-xs font-black text-indigo-900 uppercase tracking-widest">JODI</span>
+                            <div class="flex items-center justify-center flex-wrap gap-2 w-full">
                                 ${jodiHtml}
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
-                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16 shrink-0">Panel</span>
-                            <div class="flex items-center justify-center flex-wrap gap-2 flex-1">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center space-y-2">
+                            <span class="text-xs font-black text-emerald-900 uppercase tracking-widest">PANEL</span>
+                            <div class="flex items-center justify-center flex-wrap gap-2 w-full">
                                 ${panelHtml}
                             </div>
                         </div>
@@ -441,18 +441,19 @@
             }
 
             htmlBuffer += `
-                <div class="bg-white rounded-3xl p-5 shadow-xl border border-slate-200/90 flex flex-col space-y-3 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+                <div class="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-3xl p-5 shadow-xl border border-slate-200/90 flex flex-col space-y-3 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
                     <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500"></div>
                     
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 pt-1">
-                        <!-- BIGGER LOGO IN PLACE OF STAR -->
+                    <!-- HEADER SECTION: LOGO, MARKET NAME/DATE CENTERED, STATUS RIGHT -->
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-3.5 pt-1">
+                        <!-- BIG LOGO -->
                         <div class="flex items-center space-x-3 shrink-0">
-                            <div class="w-12 h-12 bg-blue-50/80 p-2 rounded-2xl flex items-center justify-center shadow-md border border-blue-100">
+                            <div class="w-12 h-12 bg-white p-2 rounded-2xl flex items-center justify-center shadow-md border border-blue-100">
                                 <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-full h-full object-contain">
                             </div>
                         </div>
                         
-                        <!-- HIGHLY HIGHLIGHTED & ANIMATED MARKET NAME, DATE & TIME -->
+                        <!-- MARKET NAME & DATE (CENTERED) -->
                         <div class="text-center absolute left-1/2 transform -translate-x-1/2 px-2 w-48">
                             <h3 class="font-black text-base tracking-widest uppercase bg-gradient-to-r from-blue-950 via-indigo-900 to-blue-900 bg-clip-text text-transparent drop-shadow-sm animate-glow truncate">${marketName}</h3>
                             <div class="mt-1 inline-flex items-center space-x-1 bg-indigo-50 px-3 py-0.5 rounded-full border border-indigo-200 shadow-xs">
@@ -460,6 +461,7 @@
                             </div>
                         </div>
 
+                        <!-- STATUS BADGE (TOP RIGHT) -->
                         <div class="shrink-0">
                             ${actionButtonOrStatus}
                         </div>
