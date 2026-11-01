@@ -28,16 +28,16 @@
             </div>
 
             <div>
-                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (Min ₹500)</label>
+                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (Weekly VIP Pass)</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-base font-black text-blue-600">₹</span>
                     <input type="number" id="amount-input" placeholder="500" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
                 </div>
                 <!-- QUICK AMOUNT SELECTION BUTTONS -->
                 <div class="grid grid-cols-4 gap-1.5 mt-2">
+                    <button type="button" onclick="setAmount(300)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹300</button>
                     <button type="button" onclick="setAmount(500)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹500</button>
                     <button type="button" onclick="setAmount(1000)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹1000</button>
-                    <button type="button" onclick="setAmount(1500)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹1500</button>
                     <button type="button" onclick="setAmount(2000)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹2000</button>
                 </div>
             </div>
@@ -81,6 +81,7 @@
     const db = getFirestore(app);
 
     let adminUpiId = "mahalakshmi@upi";
+    let weeklyPrice = 500;
     let userId = "";
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -93,13 +94,21 @@
         }
         document.getElementById('userid-input').value = userId;
 
-        // Fetch UPI address from system config set in admin panel
+        // Fetch UPI address and weekly price set in admin panel
         try {
             const configSnap = await getDoc(doc(db, "system_config", "settings"));
-            if (configSnap.exists() && configSnap.data().upi_address) {
-                adminUpiId = configSnap.data().upi_address;
+            if (configSnap.exists()) {
+                const data = configSnap.data();
+                if (data.upi_address) adminUpiId = data.upi_address;
+                if (data.weeklyPrice) {
+                    weeklyPrice = Number(data.weeklyPrice) || 500;
+                }
             }
         } catch(e) {}
+
+        // Set default amount to weekly price and show QR
+        document.getElementById('amount-input').value = weeklyPrice;
+        updateQrCode();
     });
 
     window.setAmount = function(val) {
@@ -110,7 +119,7 @@
     window.updateQrCode = function() {
         const amt = document.getElementById('amount-input').value.trim();
         const qrBox = document.getElementById('qr-box');
-        if (amt && Number(amt) >= 500) {
+        if (amt && Number(amt) > 0) {
             qrBox.classList.remove('hidden');
             const upiLink = `upi://pay?pa=${adminUpiId}&pn=Mahalakshmi&am=${amt}&cu=INR`;
             document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
@@ -124,8 +133,8 @@
         const amount = Number(document.getElementById('amount-input').value);
         const utr = document.getElementById('utr-input').value.trim();
 
-        if (!amount || amount < 500) {
-            alert("❌ Minimum deposit amount is ₹500. Please enter ₹500 or more.");
+        if (!amount || amount <= 0) {
+            alert("❌ Please enter a valid deposit amount.");
             return;
         }
         if (!utr || utr.length < 6) {
