@@ -28,17 +28,10 @@
             </div>
 
             <div>
-                <label class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (Weekly VIP Pass)</label>
+                <label id="pass-label-title" class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (VIP Pass)</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-base font-black text-blue-600">₹</span>
                     <input type="number" id="amount-input" placeholder="500" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
-                </div>
-                <!-- QUICK AMOUNT SELECTION BUTTONS -->
-                <div class="grid grid-cols-4 gap-1.5 mt-2">
-                    <button type="button" onclick="setAmount(300)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹300</button>
-                    <button type="button" onclick="setAmount(500)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹500</button>
-                    <button type="button" onclick="setAmount(1000)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹1000</button>
-                    <button type="button" onclick="setAmount(2000)" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-black py-1.5 rounded-xl text-xs transition-colors">₹2000</button>
                 </div>
             </div>
 
@@ -56,7 +49,7 @@
                 <input type="text" id="utr-input" placeholder="Enter 12-digit UTR / UPI Ref ID" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 px-3 text-xs font-bold text-gray-800 focus:outline-none focus:border-blue-600 font-mono shadow-inner">
             </div>
 
-            <button onclick="submitDepositRequest()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-xl text-xs uppercase shadow-md active:scale-[0.99] transition-transform">Submit Deposit Request</button>
+            <button onclick="submitDepositRequest()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-xl text-xs uppercase shadow-md active:scale-[0.99] transition-transform">Submit Pass Request</button>
             <button onclick="window.location.href='dashboard.html'" class="w-full bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Back to Dashboard</button>
             <div id="status-text" class="text-center text-[11px] font-bold text-blue-600 h-6"></div>
         </div>
@@ -81,12 +74,16 @@
     const db = getFirestore(app);
 
     let adminUpiId = "mahalakshmi@upi";
+    let dailyPrice = 100;
     let weeklyPrice = 500;
     let userId = "";
+    let passType = "weekly";
 
     window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
         userId = urlParams.get('userid') || localStorage.getItem('app_user_mobile');
+        passType = urlParams.get('passtype') || 'weekly';
+
         if (!userId) {
             alert("User not logged in!");
             window.location.href = "index.html";
@@ -94,27 +91,24 @@
         }
         document.getElementById('userid-input').value = userId;
 
-        // Fetch UPI address and weekly price set in admin panel
+        // Fetch UPI address and prices set in admin panel
         try {
             const configSnap = await getDoc(doc(db, "system_config", "settings"));
             if (configSnap.exists()) {
                 const data = configSnap.data();
                 if (data.upi_address) adminUpiId = data.upi_address;
-                if (data.weeklyPrice) {
-                    weeklyPrice = Number(data.weeklyPrice) || 500;
-                }
+                if (data.dailyPrice) dailyPrice = Number(data.dailyPrice) || 100;
+                if (data.weeklyPrice) weeklyPrice = Number(data.weeklyPrice) || 500;
             }
         } catch(e) {}
 
-        // Set default amount to weekly price and show QR
-        document.getElementById('amount-input').value = weeklyPrice;
+        const targetPrice = passType === 'daily' ? dailyPrice : weeklyPrice;
+        const passTitle = passType === 'daily' ? 'Daily Pass' : 'Weekly VIP Pass';
+
+        document.getElementById('pass-label-title').innerText = `Enter Deposit Amount (${passTitle})`;
+        document.getElementById('amount-input').value = targetPrice;
         updateQrCode();
     });
-
-    window.setAmount = function(val) {
-        document.getElementById('amount-input').value = val;
-        updateQrCode();
-    }
 
     window.updateQrCode = function() {
         const amt = document.getElementById('amount-input').value.trim();
@@ -154,13 +148,14 @@
                 userid: userId,
                 userMobile: userId,
                 name: userName,
+                passType: passType,
                 amount: amount,
                 utr: utr,
                 timestamp: Date.now(),
                 status: "pending"
             });
 
-            alert("✅ Deposit request submitted successfully! Waiting for Admin approval.");
+            alert("✅ Pass request submitted successfully! Waiting for Admin approval.");
             window.location.href = "dashboard.html";
         } catch (e) {
             alert("❌ Failed to submit request: " + e.message);
