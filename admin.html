@@ -220,21 +220,15 @@
                     <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search name or phone number..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-gray-800 font-semibold focus:outline-none focus:border-blue-500">
                     <select id="user-filter-dropdown" onchange="triggerUserFilterDisplay()" class="bg-blue-50 border border-blue-200 rounded-2xl px-3 text-xs font-bold text-blue-900 focus:outline-none">
                         <option value="all">⚡ Filter Options</option>
-                        <option value="high">💰 High Balance</option>
-                        <option value="low">📉 Low Balance</option>
                         <option value="online">🟢 Online Users</option>
                         <option value="offline">⚪ Offline Users</option>
                         <option value="lastseen">🕒 Last Seen</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-blue-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-blue-900 border border-blue-200">
-                        <span>Total Users:</span>
-                        <span id="label-total-users" class="bg-blue-900 text-white px-2 py-0.5 rounded-xl font-black font-mono">0</span>
-                    </div>
-                    <div class="bg-amber-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-amber-900 border border-amber-200">
-                        <span>Total Balance:</span>
-                        <span id="label-total-balance" class="bg-amber-600 text-white px-2 py-0.5 rounded-xl font-black font-mono">₹0</span>
+                <div class="grid grid-cols-1 gap-2">
+                    <div class="bg-blue-50 rounded-2xl px-3 py-2.5 flex justify-between items-center text-xs font-bold text-blue-900 border border-blue-200">
+                        <span>Total Subscribers:</span>
+                        <span id="label-total-users" class="bg-blue-900 text-white px-2.5 py-0.5 rounded-xl font-black font-mono">0</span>
                     </div>
                 </div>
             </div>
@@ -244,7 +238,7 @@
                 <div onclick="toggleDepositHistory()" class="flex justify-between items-center cursor-pointer select-none">
                     <div class="flex items-center space-x-2">
                         <span class="text-base">📜</span>
-                        <h3 class="font-black text-xs text-blue-950 uppercase tracking-wider">Deposit & Transaction History</h3>
+                        <h3 class="font-black text-xs text-blue-950 uppercase tracking-wider">Subscription & Payment History</h3>
                     </div>
                     <span id="history-arrow" class="text-xs font-bold text-slate-400">▼</span>
                 </div>
@@ -558,11 +552,11 @@
                     <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col space-y-2 text-xs shadow-sm">
                         <div class="flex justify-between font-bold">
                             <span class="text-blue-950 font-bold">${d.name || 'User'} <span class="text-slate-400">(${d.userid})</span></span>
-                            <span class="text-emerald-600 font-black text-sm">+₹${d.amount}</span>
+                            <span class="text-emerald-600 font-black text-sm">₹${d.amount} (VIP)</span>
                         </div>
                         <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr}</span></p>
                         <div class="flex space-x-2 pt-1">
-                            <button onclick="approveDeposit('${d.id}', '${d.userid}', ${d.amount}, '${d.name || 'User'}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
+                            <button onclick="approveDeposit('${d.id}', '${d.userid}', '${d.name || 'User'}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve & Activate VIP</button>
                             <button onclick="rejectDeposit('${d.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
                         </div>
                     </div>`;
@@ -627,11 +621,9 @@
 
         onSnapshot(collection(db, "users"), (querySnapshot) => {
             cachedUsersList = [];
-            let totalSumBalance = 0;
             querySnapshot.forEach(uDoc => { 
                 const uData = uDoc.data();
                 cachedUsersList.push({ id: uDoc.id, ...uData }); 
-                totalSumBalance += Number(uData.balance) || Number(uData.walletBalance) || 0;
             });
             
             cachedUsersList.sort((a, b) => {
@@ -641,7 +633,6 @@
             });
 
             document.getElementById('label-total-users').innerText = cachedUsersList.length;
-            document.getElementById('label-total-balance').innerText = "₹" + totalSumBalance;
             triggerUserFilterDisplay();
         });
 
@@ -670,7 +661,7 @@
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
                         <div class="flex justify-between font-bold">
                             <span class="text-slate-900">${nameStr} <span class="text-slate-400 font-normal">(${mobileStr})</span></span>
-                            <span class="text-green-600 font-mono font-black">+₹${amountStr}</span>
+                            <span class="text-emerald-600 font-mono font-black">₹${amountStr} (VIP)</span>
                         </div>
                         <div class="flex justify-between text-[10px] text-slate-500">
                             <span>📅 ${parsedTime}</span>
@@ -695,27 +686,27 @@
         });
     }
 
-    window.approveDeposit = async function(reqId, userId, amount, userName) {
-        if (!confirm(`Approve ₹${amount} for ${userName} (${userId})?`)) return;
+    window.approveDeposit = async function(reqId, userId, userName) {
+        if (!confirm(`Approve payment and activate 7-day Weekly VIP Pass for ${userName} (${userId})?`)) return;
         try {
             const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
-            const newBal = currentBal + amount;
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            const newExpiry = Date.now() + sevenDaysMs;
 
-            await updateDoc(userRef, { balance: newBal, walletBalance: newBal });
+            // Activate VIP subscription for user
+            await updateDoc(userRef, { weeklySubscriptionExpiry: newExpiry });
 
             await setDoc(doc(db, "deposits", reqId), {
                 userid: userId,
                 userMobile: userId,
                 name: userName,
-                amount: amount,
+                amount: 500,
                 timestamp: Date.now(),
                 status: "approved"
             });
 
             await deleteDoc(doc(db, "pending_deposits", reqId));
-            alert("✅ Deposit approved & wallet updated successfully!");
+            alert("✅ Deposit approved & Weekly VIP Pass activated successfully!");
         } catch(e) {
             alert("❌ Approval failed: " + e.message);
         }
@@ -739,14 +730,9 @@
             );
         }
 
-        const getBal = x => Number(x.balance) || Number(x.walletBalance) || 0;
         const getLastSeen = x => Number(x.lastSeen) || 0;
 
-        if (filterVal === "high") {
-            filtered.sort((a, b) => getBal(b) - getBal(a));
-        } else if (filterVal === "low") {
-            filtered.sort((a, b) => getBal(a) - getBal(b));
-        } else if (filterVal === "online") {
+        if (filterVal === "online") {
             filtered = filtered.filter(u => u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000));
         } else if (filterVal === "offline") {
             filtered = filtered.filter(u => !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 15 * 1000));
@@ -773,7 +759,6 @@
         container.innerHTML = '';
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
-            const walletBal = Number(u.balance) || Number(u.walletBalance) || 0;
             const weeklyExpiry = Number(u.weeklySubscriptionExpiry) || 0;
             
             let isOnline = false;
@@ -795,12 +780,16 @@
             if (isWeeklyActive) {
                 const expiryDateStr = new Date(weeklyExpiry).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
                 vipStatusHtml = `
-                    <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-2 rounded-xl mt-1.5">
+                    <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl mt-1">
                         <span class="font-bold text-emerald-900 text-[10px]">👑 VIP Active (Exp: ${expiryDateStr})</span>
-                        <button onclick="event.stopPropagation(); revokeVipForUser('${u.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg text-[9px] font-bold uppercase">Revoke VIP</button>
+                        <button onclick="event.stopPropagation(); toggleSubscriptionForUser('${u.id}', false)" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase shadow">Turn OFF (Revoke)</button>
                     </div>`;
             } else {
-                vipStatusHtml = `<p class="text-[10px] text-gray-400 italic mt-1">No active Weekly VIP pass.</p>`;
+                vipStatusHtml = `
+                    <div class="flex justify-between items-center bg-gray-50 border border-gray-200 p-2.5 rounded-xl mt-1">
+                        <span class="font-bold text-gray-500 text-[10px]">🔒 VIP Inactive (Expired / Off)</span>
+                        <button onclick="event.stopPropagation(); toggleSubscriptionForUser('${u.id}', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase shadow">Turn ON (Grant 7D)</button>
+                    </div>`;
             }
 
             container.innerHTML += `
@@ -818,19 +807,13 @@
                     <div id="user-details-${u.id}" class="${openedUserCards.has(u.id) ? '' : 'hidden'} space-y-2.5 pt-3 border-t border-slate-100" onclick="event.stopPropagation()">
                         <div class="flex justify-between items-start bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                             <div>
-                                <p class="text-xs text-blue-900 font-black font-mono">💰 Wallet Balance: ₹${walletBal}</p>
-                                <p class="text-[10px] text-blue-700 font-bold mt-1">📅 Joined: ${joinedStr}</p>
+                                <p class="text-[10px] text-blue-700 font-bold">📅 Joined: ${joinedStr}</p>
                                 <p class="text-[10px] text-gray-500 mt-0.5">👁️ Last Seen: ${lastSeenStr}</p>
                             </div>
                             <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2.5 py-1.5 rounded-xl text-[10px] font-bold">Delete</button>
                         </div>
-                        <div class="flex space-x-2 pt-1 items-center">
-                            <input type="number" id="add-amt-${u.id}" placeholder="Amount" class="w-28 bg-slate-50 border border-slate-200 rounded-2xl p-2 text-xs font-mono focus:outline-none">
-                            <button onclick="manualAddBalanceToUser('${u.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow">Add Balance</button>
-                            <button onclick="manualRemoveBalanceFromUser('${u.id}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow">Remove</button>
-                        </div>
                         <div class="pt-1">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase">Subscription Status:</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Subscription Control (On/Off):</p>
                             ${vipStatusHtml}
                         </div>
                         <div class="pt-1">
@@ -843,42 +826,18 @@
         });
     }
 
-    window.manualAddBalanceToUser = async function(userId) {
-        const inputElem = document.getElementById(`add-amt-${userId}`);
-        const addAmount = Number(inputElem.value) || 0;
-        if(addAmount <= 0) return alert("Please enter a valid amount to add.");
+    window.toggleSubscriptionForUser = async function(userId, enableFlag) {
         try {
             const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            let currentWallet = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
-            const newTotal = currentWallet + addAmount;
-            await updateDoc(userRef, { balance: newTotal, walletBalance: newTotal });
-            inputElem.value = '';
-            alert("Successfully added ₹" + addAmount + " to user wallet!");
-        } catch(e) { alert("Failed to add balance: " + e.message); }
-    }
-
-    window.manualRemoveBalanceFromUser = async function(userId) {
-        const inputElem = document.getElementById(`add-amt-${userId}`);
-        const removeAmount = Number(inputElem.value) || 0;
-        if(removeAmount <= 0) return alert("Please enter a valid amount to remove.");
-        try {
-            const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            let currentWallet = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
-            const newTotal = Math.max(0, currentWallet - removeAmount);
-            await updateDoc(userRef, { balance: newTotal, walletBalance: newTotal });
-            inputElem.value = '';
-            alert("Successfully removed ₹" + removeAmount + " from user wallet!");
-        } catch(e) { alert("Failed to remove balance: " + e.message); }
-    }
-
-    window.revokeVipForUser = async function(userId) {
-        if(confirm(`Do you want to revoke the Weekly VIP Pass for this user?`)) {
-            try {
-                await updateDoc(doc(db, "users", userId), { weeklySubscriptionExpiry: 0 });
-                alert("Weekly VIP Pass successfully revoked for user!");
-            } catch(e) { alert("Failed to revoke VIP: " + e.message); }
+            let newExpiry = 0;
+            if (enableFlag) {
+                const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+                newExpiry = Date.now() + sevenDaysMs;
+            }
+            await updateDoc(userRef, { weeklySubscriptionExpiry: newExpiry });
+            alert(enableFlag ? "✅ Weekly VIP Pass turned ON (Granted for 7 Days)!" : "❌ Weekly VIP Pass turned OFF (Revoked)!");
+        } catch(e) {
+            alert("Failed to update subscription status: " + e.message);
         }
     }
 
