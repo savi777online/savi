@@ -14,6 +14,12 @@
         .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
         .slider-wrapper::-webkit-scrollbar { display: none; }
         .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #f1f5f9; }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .animate-glow { animation: pulseGlow 3s infinite ease-in-out; }
     </style>
 </head>
 <body>
@@ -33,21 +39,16 @@
     <!-- MAIN DASHBOARD CONTENT -->
     <div class="flex-1 p-4 space-y-4">
 
-        <!-- 1. USER PROFILE SECTION (FULL WIDTH) -->
-        <div class="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 rounded-3xl p-4 shadow-xl text-white flex items-center justify-between border border-indigo-500/30 relative overflow-hidden">
+        <!-- 1. USER PROFILE SECTION (FULL WIDTH - NO ADD BALANCE BUTTON) -->
+        <div class="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 rounded-3xl p-4 shadow-xl text-white flex items-center space-x-3.5 border border-indigo-500/30 relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="flex items-center space-x-3.5 z-10">
-                <div class="w-11 h-11 bg-amber-400/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-xl shadow-inner border border-amber-400/40 text-amber-300">
-                    👑
-                </div>
-                <div>
-                    <p id="profile-name" class="font-black text-sm tracking-wide text-amber-300 uppercase">Loading...</p>
-                    <p id="profile-phone" class="text-blue-200 font-medium text-[10px] font-mono mt-0.5">Mobile: --</p>
-                </div>
+            <div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center p-2 shadow-inner border border-white/20 z-10 shrink-0">
+                <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-full h-full object-contain">
             </div>
-            <button onclick="redirectToPayment()" class="z-10 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-950 font-black py-2.5 px-4 rounded-2xl text-[11px] uppercase tracking-wider shadow-lg transition-transform active:scale-95 flex items-center space-x-1 border border-amber-300">
-                <span>⚡ Add Balance</span>
-            </button>
+            <div class="z-10 overflow-hidden">
+                <p id="profile-name" class="font-black text-sm tracking-wide text-amber-300 uppercase truncate">Loading...</p>
+                <p id="profile-phone" class="text-blue-200 font-medium text-[10px] font-mono mt-0.5">Mobile: --</p>
+            </div>
         </div>
 
         <!-- 2. HIGHLY HIGHLIGHTED WEEKLY VIP PASS CARD -->
@@ -56,7 +57,9 @@
             <div class="flex flex-col space-y-3 relative z-10">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
-                        <span class="text-2xl p-2 bg-black/20 rounded-2xl border border-white/20 shadow-inner">👑</span>
+                        <div class="w-11 h-11 bg-black/20 p-2 rounded-2xl border border-white/20 shadow-inner flex items-center justify-center shrink-0">
+                            <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-full h-full object-contain">
+                        </div>
                         <div>
                             <h3 class="font-black text-sm uppercase tracking-wider text-white drop-shadow">Weekly VIP Pass</h3>
                             <p id="sub-status-desc" class="text-[11px] text-amber-100 font-semibold">Unlock all markets & numbers for 7 Days</p>
@@ -64,7 +67,7 @@
                     </div>
                 </div>
                 <div id="sub-badge-container" class="w-full pt-1">
-                    <!-- Dynamic Button or Status Badge will take full width for high visibility -->
+                    <!-- Dynamic Button or Status Badge -->
                 </div>
             </div>
         </div>
@@ -138,37 +141,11 @@
         </div>
     </div>
 
-    <!-- INSUFFICIENT BALANCE MODAL -->
-    <div id="deposit-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
-            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
-            <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
-            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to purchase the weekly subscription pass. Please add money to proceed.</p>
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
-                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Balance</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- GET WEEKLY PASS CONFIRMATION MODAL -->
-    <div id="confirm-game-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
-            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">👑</div>
-            <h3 class="text-gray-800 font-black text-lg">Confirm Weekly Pass</h3>
-            <p id="confirm-modal-text" class="text-xs text-gray-500 font-semibold leading-relaxed">Do you want to spend <span id="confirm-price-span" class="font-black text-blue-600">₹0</span> to unlock all games for 7 Days (Weekly Subscription)?</p>
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="closeConfirmModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">No</button>
-                <button id="btn-execute-unlock" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Yes, Unlock</button>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, collection, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, collection, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
@@ -184,10 +161,8 @@
     const db = getFirestore(app);
 
     let activeSliderTimer = null;
-    let currentUserWallet = 0;
     let cachedMarkets = [];
     let weeklySubscriptionExpiry = 0; 
-    let weeklySubscriptionPrice = 500; 
     let serverTimeOffset = 0;
     let savedMobile = "";
     let heartbeatInterval = null;
@@ -284,8 +259,6 @@
             }
 
             document.getElementById('profile-name').innerText = uData.name || "User";
-            currentUserWallet = Number(uData.balance) || Number(uData.walletBalance) || 0;
-
             weeklySubscriptionExpiry = Number(uData.weeklySubscriptionExpiry) || 0;
             renderWeeklyPassWidget();
             renderGameCards();
@@ -339,47 +312,15 @@
                 const data = snapshot.data();
                 if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
                 if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
-                if (data.weeklyPrice) weeklySubscriptionPrice = Number(data.weeklyPrice) || 500;
                 if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
                 renderWeeklyPassWidget();
             }
         });
     }
 
-    window.handleGetWeeklyPassClick = function() {
-        if (currentUserWallet >= weeklySubscriptionPrice) {
-            document.getElementById('confirm-price-span').innerText = "₹" + weeklySubscriptionPrice;
-            document.getElementById('confirm-game-modal').classList.remove('hidden');
-        } else {
-            document.getElementById('deposit-modal').classList.remove('hidden');
-        }
-    }
-
-    document.getElementById('btn-execute-unlock').onclick = async function() {
-        closeConfirmModal();
-        if (currentUserWallet >= weeklySubscriptionPrice) {
-            const newBalance = currentUserWallet - weeklySubscriptionPrice;
-            const currentTimeMs = Date.now() + serverTimeOffset;
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-            const newExpiry = currentTimeMs + sevenDaysMs;
-
-            try {
-                await updateDoc(doc(db, "users", savedMobile), { 
-                    walletBalance: newBalance,
-                    balance: newBalance,
-                    weeklySubscriptionExpiry: newExpiry
-                });
-
-                currentUserWallet = newBalance;
-                weeklySubscriptionExpiry = newExpiry;
-                renderWeeklyPassWidget();
-                renderGameCards();
-            } catch(e) {
-                alert("Transaction failed. Please try again.");
-            }
-        } else {
-            document.getElementById('deposit-modal').classList.add('hidden');
-        }
+    window.redirectToPayment = function() {
+        const paymentUrl = "payment.html";
+        window.location.href = paymentUrl + "?userid=" + (savedMobile || "");
     }
 
     function renderWeeklyPassWidget() {
@@ -400,8 +341,8 @@
         } else {
             descContainer.innerText = `Unlock all markets & numbers for 7 Days`;
             badgeContainer.innerHTML = `
-                <button onclick="handleGetWeeklyPassClick()" class="w-full bg-white hover:bg-amber-100 text-amber-950 font-black text-xs py-3 px-4 rounded-2xl shadow-xl uppercase tracking-widest transition-transform transform active:scale-95 border-2 border-amber-200 flex items-center justify-center space-x-2">
-                    <span>👑 GET WEEKLY VIP PASS (₹${weeklySubscriptionPrice})</span>
+                <button onclick="redirectToPayment()" class="w-full bg-white hover:bg-amber-100 text-amber-950 font-black text-xs py-3.5 px-4 rounded-2xl shadow-2xl uppercase tracking-widest transition-transform transform active:scale-95 border-2 border-amber-300 flex items-center justify-center space-x-2 animate-glow">
+                    <span>👑 ACTIVATE WEEKLY VIP PASS (PAYMENT)</span>
                 </button>`;
         }
     }
@@ -423,17 +364,17 @@
 
             if (marketStatus === 'locked') {
                 actionButtonOrStatus = `
-                    <div class="bg-red-50 text-red-600 font-bold text-[10px] py-1 px-3 rounded-full uppercase tracking-wider border border-red-200">
+                    <div class="bg-red-50 text-red-600 font-bold text-[10px] py-1.5 px-3.5 rounded-full uppercase tracking-wider border border-red-200 shadow-sm">
                         🔒 CLOSED
                     </div>`;
             } else if (isUnlocked) {
                 actionButtonOrStatus = `
-                    <div class="bg-emerald-50 text-emerald-600 font-bold text-[10px] py-1 px-3 rounded-full uppercase tracking-wider border border-emerald-200">
+                    <div class="bg-emerald-50 text-emerald-600 font-bold text-[10px] py-1.5 px-3.5 rounded-full uppercase tracking-wider border border-emerald-200 shadow-sm animate-pulse">
                         ✓ UNLOCKED
                     </div>`;
             } else {
                 actionButtonOrStatus = `
-                    <div class="bg-amber-50 text-amber-700 font-bold text-[10px] py-1 px-3 rounded-full uppercase tracking-wider border border-amber-200">
+                    <div class="bg-amber-50 text-amber-700 font-bold text-[10px] py-1.5 px-3.5 rounded-full uppercase tracking-wider border border-amber-200 shadow-sm">
                         🔒 VIP REQUIRED
                     </div>`;
             }
@@ -442,8 +383,8 @@
 
             if (marketStatus === 'locked') {
                 innerContent = `
-                    <div class="pt-2 text-center">
-                        <div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100">
+                    <div class="pt-3 text-center">
+                        <div class="w-full bg-slate-100 text-slate-500 font-bold text-xs py-3.5 px-4 rounded-2xl uppercase tracking-wider border border-slate-200">
                             Market is currently closed
                         </div>
                     </div>`;
@@ -452,38 +393,38 @@
                 const otcList = otcRaw.split(/[\s*\/]+/).filter(Boolean);
                 let otcHtml = '';
                 otcList.forEach(val => {
-                    otcHtml += `<div class="bg-blue-600 text-white font-black text-sm py-2 px-4 rounded-xl text-center shadow-md border border-blue-500 min-w-[42px]">${val}</div>`;
+                    otcHtml += `<div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-sm py-2.5 px-4 rounded-2xl text-center shadow-md border border-blue-400 min-w-[46px]">${val}</div>`;
                 });
 
                 const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
                 let jodiHtml = '';
                 jodiList.forEach(val => {
-                    jodiHtml += `<div class="bg-indigo-600 text-white font-black text-sm py-2 px-3.5 rounded-xl text-center shadow-md border border-indigo-500 min-w-[42px]">${val}</div>`;
+                    jodiHtml += `<div class="bg-gradient-to-r from-indigo-600 to-blue-700 text-white font-black text-sm py-2.5 px-4 rounded-2xl text-center shadow-md border border-indigo-400 min-w-[46px]">${val}</div>`;
                 });
 
                 const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
                 let panelHtml = '';
                 panelList.forEach(val => {
-                    panelHtml += `<div class="bg-emerald-600 text-white font-black text-xs py-2 px-3 rounded-xl text-center shadow-md border border-emerald-500 min-w-[46px]">${val}</div>`;
+                    panelHtml += `<div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs py-2.5 px-3.5 rounded-2xl text-center shadow-md border border-emerald-400 min-w-[50px]">${val}</div>`;
                 });
 
                 innerContent = `
                     <div class="space-y-3 pt-3">
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
                             <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16 shrink-0">Open</span>
                             <div class="flex items-center justify-center flex-wrap gap-2 flex-1">
                                 ${otcHtml}
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
                             <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16 shrink-0">Jodi</span>
                             <div class="flex items-center justify-center flex-wrap gap-2 flex-1">
                                 ${jodiHtml}
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                        <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
                             <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16 shrink-0">Panel</span>
                             <div class="flex items-center justify-center flex-wrap gap-2 flex-1">
                                 ${panelHtml}
@@ -492,29 +433,34 @@
                     </div>`;
             } else {
                 innerContent = `
-                    <div class="pt-2 text-center">
-                        <p class="text-[11px] text-gray-500 font-semibold py-3 bg-slate-50 rounded-2xl border border-dashed border-slate-200">Get the Weekly VIP Pass above to unlock numbers & OTC details.</p>
+                    <div class="pt-3 text-center">
+                        <button onclick="redirectToPayment()" class="w-full text-xs text-amber-900 font-bold py-3.5 px-4 bg-amber-50 hover:bg-amber-100 rounded-2xl border border-dashed border-amber-300 transition-colors shadow-sm">
+                            👑 Activate Weekly VIP Pass to view numbers & OTC details
+                        </button>
                     </div>`;
             }
 
             htmlBuffer += `
-                <div class="bg-white rounded-3xl p-5 shadow-lg border border-slate-200/80 flex flex-col space-y-3 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500"></div>
+                <div class="bg-white rounded-3xl p-5 shadow-xl border border-slate-200/90 flex flex-col space-y-3 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+                    <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500"></div>
                     
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-50 p-1.5 rounded-2xl flex items-center justify-center shadow border border-blue-100">
-                                <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-7 h-7 object-contain">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 pt-1">
+                        <!-- BIGGER LOGO IN PLACE OF STAR -->
+                        <div class="flex items-center space-x-3 shrink-0">
+                            <div class="w-12 h-12 bg-blue-50/80 p-2 rounded-2xl flex items-center justify-center shadow-md border border-blue-100">
+                                <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-full h-full object-contain">
                             </div>
                         </div>
                         
-                        <!-- MARKET NAME CENTERED AND HIGHLY HIGHLIGHTED -->
-                        <div class="text-center absolute left-1/2 transform -translate-x-1/2">
-                            <h3 class="font-black text-base tracking-widest text-blue-950 uppercase drop-shadow-sm">${marketName}</h3>
-                            <span class="inline-block mt-0.5 text-[10px] text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full font-mono font-bold border border-indigo-100">📅 ${m.gameDate || '31/07/2026'}</span>
+                        <!-- HIGHLY HIGHLIGHTED & ANIMATED MARKET NAME, DATE & TIME -->
+                        <div class="text-center absolute left-1/2 transform -translate-x-1/2 px-2 w-48">
+                            <h3 class="font-black text-base tracking-widest uppercase bg-gradient-to-r from-blue-950 via-indigo-900 to-blue-900 bg-clip-text text-transparent drop-shadow-sm animate-glow truncate">${marketName}</h3>
+                            <div class="mt-1 inline-flex items-center space-x-1 bg-indigo-50 px-3 py-0.5 rounded-full border border-indigo-200 shadow-xs">
+                                <span class="text-[10px] text-indigo-700 font-mono font-black">📅 ${m.gameDate || '31/07/2026'}</span>
+                            </div>
                         </div>
 
-                        <div>
+                        <div class="shrink-0">
                             ${actionButtonOrStatus}
                         </div>
                     </div>
@@ -547,14 +493,6 @@
                 slider.scrollTo({ left: index * slider.clientWidth, behavior: 'smooth' });
             }, 4000);
         }
-    }
-
-    window.closeDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden');
-    window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
-
-    window.redirectToPayment = function() {
-        const paymentUrl = "payment.html";
-        window.location.href = paymentUrl + "?userid=" + (savedMobile || "");
     }
 
     window.handleLogout = function() { 
