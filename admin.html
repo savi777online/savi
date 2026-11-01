@@ -57,9 +57,15 @@
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Customer Support Phone Number (WhatsApp / Forgot PIN)</label>
                     <input type="text" id="cfg-support-phone" placeholder="e.g. 919113224019" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
                 </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">👑 Weekly Subscription Pass Price (₹)</label>
-                    <input type="number" id="cfg-weekly-price" placeholder="500" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-blue-600 font-mono font-bold">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">⚡ Daily Pass Price (₹)</label>
+                        <input type="number" id="cfg-daily-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-blue-600 font-mono font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">👑 Weekly Pass Price (₹)</label>
+                        <input type="number" id="cfg-weekly-price" placeholder="500" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-blue-600 font-mono font-bold">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Notice Text Broadcast</label>
@@ -208,7 +214,7 @@
             <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2">
                 <div class="flex items-center space-x-2">
                     <span class="text-base">⏳</span>
-                    <h3 class="font-black text-xs text-amber-950 uppercase tracking-wider">Pending Deposit Approvals</h3>
+                    <h3 class="font-black text-xs text-amber-950 uppercase tracking-wider">Pending Pass Approvals</h3>
                 </div>
                 <div id="pending-deposits-zone" class="space-y-2 pt-1">
                     <p class="text-[11px] text-gray-500 italic">No pending requests.</p>
@@ -525,6 +531,7 @@
                 document.getElementById('cfg-sliding').value = s.sliding_text || 'Welcome to mahalaxmiplay.online';
                 document.getElementById('cfg-upi').value = s.upi_address || "mahalaxmi@upi";
                 document.getElementById('cfg-support-phone').value = s.support_phone || '';
+                document.getElementById('cfg-daily-price').value = s.dailyPrice || 100;
                 document.getElementById('cfg-weekly-price').value = s.weeklyPrice || 500;
                 document.getElementById('cfg-pin').value = s.admin_pin || '9999';
                 
@@ -548,20 +555,21 @@
             snapshot.forEach(dDoc => {
                 count++;
                 const d = dDoc.data();
+                const passTypeName = d.passType === 'daily' ? 'Daily Pass' : 'Weekly Pass';
                 zone.innerHTML += `
                     <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col space-y-2 text-xs shadow-sm">
                         <div class="flex justify-between font-bold">
                             <span class="text-blue-950 font-bold">${d.name || 'User'} <span class="text-slate-400">(${d.userid})</span></span>
-                            <span class="text-emerald-600 font-black text-sm">₹${d.amount} (VIP)</span>
+                            <span class="text-emerald-600 font-black text-sm">₹${d.amount} (${passTypeName})</span>
                         </div>
                         <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr}</span></p>
                         <div class="flex space-x-2 pt-1">
-                            <button onclick="approveDeposit('${d.id}', '${d.userid}', '${d.name || 'User'}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve & Activate VIP</button>
+                            <button onclick="approveDeposit('${d.id}', '${d.userid}', '${d.name || 'User'}', '${d.passType || 'weekly'}', ${d.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve & Activate</button>
                             <button onclick="rejectDeposit('${d.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
                         </div>
                     </div>`;
             });
-            if (count === 0) zone.innerHTML = `<p class="text-[11px] text-gray-500 italic">No pending deposit requests.</p>`;
+            if (count === 0) zone.innerHTML = `<p class="text-[11px] text-gray-500 italic">No pending requests.</p>`;
         });
 
         onSnapshot(collection(db, "app_links"), (querySnapshot) => {
@@ -626,12 +634,6 @@
                 cachedUsersList.push({ id: uDoc.id, ...uData }); 
             });
             
-            cachedUsersList.sort((a, b) => {
-                const aTime = Number(a.joinedAt) || 0;
-                const bTime = Number(b.joinedAt) || 0;
-                return bTime - aTime;
-            });
-
             document.getElementById('label-total-users').innerText = cachedUsersList.length;
             triggerUserFilterDisplay();
         });
@@ -653,15 +655,16 @@
                 count++;
                 let ts = getTs(d);
                 let parsedTime = ts > 0 ? new Date(ts).toLocaleString() : "--";
-                let amountStr = d.amount || d.txnAmount || d.price || d.value || 0;
-                let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.mobile || d.id || 'N/A';
-                let nameStr = d.userName || d.name || 'User';
+                let amountStr = d.amount || 0;
+                let passStr = d.passType === 'daily' ? 'Daily Pass' : 'Weekly Pass';
+                let mobileStr = d.userMobile || d.userid || 'N/A';
+                let nameStr = d.name || 'User';
 
                 historyZone.innerHTML += `
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
                         <div class="flex justify-between font-bold">
                             <span class="text-slate-900">${nameStr} <span class="text-slate-400 font-normal">(${mobileStr})</span></span>
-                            <span class="text-emerald-600 font-mono font-black">₹${amountStr} (VIP)</span>
+                            <span class="text-emerald-600 font-mono font-black">₹${amountStr} (${passStr})</span>
                         </div>
                         <div class="flex justify-between text-[10px] text-slate-500">
                             <span>📅 ${parsedTime}</span>
@@ -686,27 +689,27 @@
         });
     }
 
-    window.approveDeposit = async function(reqId, userId, userName) {
-        if (!confirm(`Approve payment and activate 7-day Weekly VIP Pass for ${userName} (${userId})?`)) return;
+    window.approveDeposit = async function(reqId, userId, userName, passType, amount) {
+        if (!confirm(`Approve payment and activate pass for ${userName} (${userId})?`)) return;
         try {
             const userRef = doc(db, "users", userId);
-            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-            const newExpiry = Date.now() + sevenDaysMs;
+            const durationMs = passType === 'daily' ? (24 * 60 * 60 * 1000) : (7 * 24 * 60 * 60 * 1000);
+            const newExpiry = Date.now() + durationMs;
 
-            // Activate VIP subscription for user
             await updateDoc(userRef, { weeklySubscriptionExpiry: newExpiry });
 
             await setDoc(doc(db, "deposits", reqId), {
                 userid: userId,
                 userMobile: userId,
                 name: userName,
-                amount: 500,
+                passType: passType,
+                amount: amount,
                 timestamp: Date.now(),
                 status: "approved"
             });
 
             await deleteDoc(doc(db, "pending_deposits", reqId));
-            alert("✅ Deposit approved & Weekly VIP Pass activated successfully!");
+            alert("✅ Deposit approved & Pass activated successfully!");
         } catch(e) {
             alert("❌ Approval failed: " + e.message);
         }
@@ -731,6 +734,15 @@
         }
 
         const getLastSeen = x => Number(x.lastSeen) || 0;
+        const getExpiry = x => Number(x.weeklySubscriptionExpiry) || 0;
+
+        // Active subscribers first sorting
+        filtered.sort((a, b) => {
+            const aActive = getExpiry(a) > Date.now() ? 1 : 0;
+            const bActive = getExpiry(b) > Date.now() ? 1 : 0;
+            if (aActive !== bActive) return bActive - aActive; // Active ones on top
+            return Number(b.joinedAt || 0) - Number(a.joinedAt || 0);
+        });
 
         if (filterVal === "online") {
             filtered = filtered.filter(u => u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000));
@@ -759,7 +771,8 @@
         container.innerHTML = '';
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
-            const weeklyExpiry = Number(u.weeklySubscriptionExpiry) || 0;
+            const expiryTime = Number(u.weeklySubscriptionExpiry) || 0;
+            const isActive = expiryTime > Date.now();
             
             let isOnline = false;
             let lastSeenStr = "Never";
@@ -775,20 +788,26 @@
                 ? '<span class="text-green-600 bg-green-50 px-2.5 py-1 rounded-xl font-bold text-[10px] inline-flex items-center gap-1 border border-green-200"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online</span>' 
                 : '<span class="text-gray-500 bg-gray-100 px-2.5 py-1 rounded-xl font-bold text-[10px]">Offline</span>';
 
+            let subscriptionBadge = isActive 
+                ? '<span class="text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full font-black text-[9px]">👑 Subscribed</span>' 
+                : '<span class="text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full font-bold text-[9px]">Inactive</span>';
+
             let vipStatusHtml = "";
-            const isWeeklyActive = weeklyExpiry && (Date.now() < weeklyExpiry);
-            if (isWeeklyActive) {
-                const expiryDateStr = new Date(weeklyExpiry).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+            if (isActive) {
+                const expiryDateStr = new Date(expiryTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
                 vipStatusHtml = `
                     <div class="flex justify-between items-center bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl mt-1">
-                        <span class="font-bold text-emerald-900 text-[10px]">👑 VIP Active (Exp: ${expiryDateStr})</span>
+                        <span class="font-bold text-emerald-900 text-[10px]">👑 Pass Active (Exp: ${expiryDateStr})</span>
                         <button onclick="event.stopPropagation(); toggleSubscriptionForUser('${u.id}', false)" class="bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase shadow">Turn OFF (Revoke)</button>
                     </div>`;
             } else {
                 vipStatusHtml = `
-                    <div class="flex justify-between items-center bg-gray-50 border border-gray-200 p-2.5 rounded-xl mt-1">
-                        <span class="font-bold text-gray-500 text-[10px]">🔒 VIP Inactive (Expired / Off)</span>
-                        <button onclick="event.stopPropagation(); toggleSubscriptionForUser('${u.id}', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase shadow">Turn ON (Grant 7D)</button>
+                    <div class="flex flex-col space-y-2 bg-gray-50 border border-gray-200 p-2.5 rounded-xl mt-1">
+                        <span class="font-bold text-gray-500 text-[10px]">🔒 Pass Inactive</span>
+                        <div class="flex space-x-2">
+                            <button onclick="event.stopPropagation(); toggleSubscriptionForUser('${u.id}', true, 'daily')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded-lg text-[9px] font-bold uppercase shadow">Grant Daily (1D)</button>
+                            <button onclick="event.stopPropagation(); toggleSubscriptionForUser('${u.id}', true, 'weekly')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-[9px] font-bold uppercase shadow">Grant Weekly (7D)</button>
+                        </div>
                     </div>`;
             }
 
@@ -796,8 +815,12 @@
                 <div class="bg-white border border-slate-200 p-3.5 rounded-2xl flex flex-col space-y-2 text-xs cursor-pointer shadow-sm" onclick="toggleUserCard('${u.id}')">
                     <div class="flex justify-between items-center">
                         <div>
-                            <p class="font-bold text-gray-900 text-sm">${u.name || 'User'} ${blockBadge}</p>
-                            <p class="text-[11px] text-gray-500 font-mono">Mobile: ${u.id}</p>
+                            <div class="flex items-center space-x-2">
+                                <p class="font-bold text-gray-900 text-sm">${u.name || 'User'}</p>
+                                ${subscriptionBadge}
+                                ${blockBadge}
+                            </div>
+                            <p class="text-[11px] text-gray-500 font-mono mt-0.5">Mobile: ${u.id}</p>
                         </div>
                         <div class="flex items-center space-x-2">
                             ${statusBadge}
@@ -813,7 +836,7 @@
                             <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2.5 py-1.5 rounded-xl text-[10px] font-bold">Delete</button>
                         </div>
                         <div class="pt-1">
-                            <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Subscription Control (On/Off):</p>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Pass Control:</p>
                             ${vipStatusHtml}
                         </div>
                         <div class="pt-1">
@@ -826,18 +849,18 @@
         });
     }
 
-    window.toggleSubscriptionForUser = async function(userId, enableFlag) {
+    window.toggleSubscriptionForUser = async function(userId, enableFlag, passType = 'weekly') {
         try {
             const userRef = doc(db, "users", userId);
             let newExpiry = 0;
             if (enableFlag) {
-                const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-                newExpiry = Date.now() + sevenDaysMs;
+                const durationMs = passType === 'daily' ? (24 * 60 * 60 * 1000) : (7 * 24 * 60 * 60 * 1000);
+                newExpiry = Date.now() + durationMs;
             }
             await updateDoc(userRef, { weeklySubscriptionExpiry: newExpiry });
-            alert(enableFlag ? "✅ Weekly VIP Pass turned ON (Granted for 7 Days)!" : "❌ Weekly VIP Pass turned OFF (Revoked)!");
+            alert(enableFlag ? `✅ ${passType === 'daily' ? 'Daily' : 'Weekly'} Pass turned ON!` : `❌ Pass turned OFF (Revoked)!`);
         } catch(e) {
-            alert("Failed to update subscription status: " + e.message);
+            alert("Failed to update status: " + e.message);
         }
     }
 
@@ -857,6 +880,7 @@
             const slider_images = [];
             for(let i=1; i<=6; i++) { const v = document.getElementById(`slide-${i}`).value.trim(); if(v) slider_images.push(v); }
             let pinVal = document.getElementById('cfg-pin').value.trim() || "9999";
+            let dailyPriceVal = Number(document.getElementById('cfg-daily-price').value) || 100;
             let weeklyPriceVal = Number(document.getElementById('cfg-weekly-price').value) || 500;
 
             await setDoc(doc(db, "system_config", "settings"), {
@@ -864,6 +888,7 @@
                 sliding_text: document.getElementById('cfg-sliding').value.trim(),
                 upi_address: document.getElementById('cfg-upi').value.trim(),
                 support_phone: document.getElementById('cfg-support-phone').value.trim(),
+                dailyPrice: dailyPriceVal,
                 weeklyPrice: weeklyPriceVal,
                 admin_pin: pinVal,
                 slider_images: slider_images
