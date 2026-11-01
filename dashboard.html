@@ -51,23 +51,23 @@
             </div>
         </div>
 
-        <!-- 2. WEEKLY VIP PASS CARD -->
+        <!-- 2. SUBSCRIPTION PASSES CARD (DAILY & WEEKLY) -->
         <div id="weekly-sub-card" class="bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-700 rounded-2xl p-4 shadow-xl text-white border-2 border-amber-300 relative overflow-hidden">
             <div class="absolute -right-8 -top-8 w-28 h-28 bg-white/20 rounded-full blur-xl pointer-events-none"></div>
-            <div class="flex flex-col space-y-2.5 relative z-10">
+            <div class="flex flex-col space-y-3 relative z-10">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
                         <div class="w-9 h-9 bg-black/20 p-1.5 rounded-xl border border-white/20 shadow-inner flex items-center justify-center shrink-0">
                             <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-full h-full object-contain">
                         </div>
                         <div>
-                            <h3 class="font-black text-xs uppercase tracking-wider text-white drop-shadow">Weekly VIP Pass</h3>
-                            <p id="sub-status-desc" class="text-[10px] text-amber-100 font-semibold">Unlock all markets & numbers for 7 Days</p>
+                            <h3 class="font-black text-xs uppercase tracking-wider text-white drop-shadow">Mahalakshmi VIP Passes</h3>
+                            <p id="sub-status-desc" class="text-[10px] text-amber-100 font-semibold">Choose Daily or Weekly pass to unlock markets</p>
                         </div>
                     </div>
                 </div>
-                <div id="sub-badge-container" class="w-full pt-0.5">
-                    <!-- Dynamic Button -->
+                <div id="sub-badge-container" class="w-full pt-0.5 space-y-2">
+                    <!-- Dynamic Buttons -->
                 </div>
             </div>
         </div>
@@ -163,7 +163,8 @@
     let activeSliderTimer = null;
     let cachedMarkets = [];
     let weeklySubscriptionExpiry = 0; 
-    let weeklySubscriptionPrice = 500;
+    let dailyPrice = 100;
+    let weeklyPrice = 500;
     let hasPendingDeposit = false;
     let serverTimeOffset = 0;
     let savedMobile = "";
@@ -266,7 +267,6 @@
             renderGameCards();
         });
 
-        // Check if user has a pending deposit request
         onSnapshot(collection(db, "pending_deposits"), (snapshot) => {
             hasPendingDeposit = false;
             snapshot.forEach(dDoc => {
@@ -326,20 +326,21 @@
                 const data = snapshot.data();
                 if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
                 if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
-                if (data.weeklyPrice) weeklySubscriptionPrice = Number(data.weeklyPrice) || 500;
+                if (data.dailyPrice) dailyPrice = Number(data.dailyPrice) || 100;
+                if (data.weeklyPrice) weeklyPrice = Number(data.weeklyPrice) || 500;
                 if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
                 renderWeeklyPassWidget();
             }
         });
     }
 
-    window.redirectToPayment = function() {
+    window.redirectToPayment = function(passType) {
         if (hasPendingDeposit) {
             alert("⏳ Your previous subscription payment request is currently pending admin verification.");
             return;
         }
         const paymentUrl = "payment.html";
-        window.location.href = paymentUrl + "?userid=" + (savedMobile || "");
+        window.location.href = `${paymentUrl}?userid=${savedMobile || ""}&passtype=${passType}`;
     }
 
     function renderWeeklyPassWidget() {
@@ -364,11 +365,18 @@
                     ⏳ VERIFICATION PENDING (WAIT)
                 </div>`;
         } else {
-            descContainer.innerText = `Unlock all markets & numbers for 7 Days`;
+            descContainer.innerText = `Choose Daily or Weekly pass to unlock markets`;
             badgeContainer.innerHTML = `
-                <button onclick="redirectToPayment()" class="w-full bg-white hover:bg-amber-100 text-amber-950 font-black text-xs py-3 px-4 rounded-xl shadow-xl uppercase tracking-widest transition-transform transform active:scale-95 border-2 border-amber-300 flex items-center justify-center space-x-2 animate-glow">
-                    <span>👑 GET WEEKLY VIP PASS (₹${weeklySubscriptionPrice})</span>
-                </button>`;
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="redirectToPayment('daily')" class="bg-white hover:bg-amber-100 text-amber-950 font-black text-xs py-3 px-2 rounded-xl shadow-lg uppercase tracking-wider transition-transform transform active:scale-95 border-2 border-amber-300 flex flex-col items-center justify-center animate-glow">
+                        <span>⚡ DAILY PASS</span>
+                        <span class="text-[10px] text-blue-900 font-extrabold mt-0.5">₹${dailyPrice}</span>
+                    </button>
+                    <button onclick="redirectToPayment('weekly')" class="bg-white hover:bg-amber-100 text-amber-950 font-black text-xs py-3 px-2 rounded-xl shadow-lg uppercase tracking-wider transition-transform transform active:scale-95 border-2 border-amber-300 flex flex-col items-center justify-center animate-glow">
+                        <span>👑 WEEKLY PASS</span>
+                        <span class="text-[10px] text-blue-900 font-extrabold mt-0.5">₹${weeklyPrice}</span>
+                    </button>
+                </div>`;
         }
     }
 
@@ -457,8 +465,8 @@
                         </div>
                     </div>`;
             } else {
-                let btnText = hasPendingDeposit ? "⏳ Verification in progress by Admin" : "👑 Activate Weekly VIP Pass to view numbers";
-                let btnAction = hasPendingDeposit ? "alert('⏳ Your subscription request is pending verification.');" : "redirectToPayment()";
+                let btnText = hasPendingDeposit ? "⏳ Verification in progress by Admin" : "👑 Activate VIP Pass to view numbers";
+                let btnAction = hasPendingDeposit ? "alert('⏳ Your subscription request is pending verification.');" : "redirectToPayment('weekly')";
                 innerContent = `
                     <div class="pt-2 text-center">
                         <button onclick="${btnAction}" class="w-full text-[11px] text-amber-900 font-bold py-2.5 px-3 bg-amber-50 hover:bg-amber-100 rounded-xl border border-dashed border-amber-300 transition-colors shadow-xs">
