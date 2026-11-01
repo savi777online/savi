@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #cbd5e1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 90px; }
+        .app-container::-webkit-scrollbar { display: none; }
+        @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
+
+        .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .slider-wrapper::-webkit-scrollbar { display: none; }
+        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- HEADLINE APPBAR -->
+    <div class="bg-blue-900 text-white px-4 py-3.5 flex items-center justify-between shadow-lg sticky top-0 z-40">
+        <div class="flex items-center space-x-2.5">
+            <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain">
+            <h1 class="font-black tracking-wider text-lg uppercase">MAHALAKSHMI</h1>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div class="flex-1 p-4 space-y-3.5">
+
+        <!-- 1. USER PROFILE & WALLET BALANCE SIDE BY SIDE -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg shadow-inner border border-white/20">
+                    👤
+                </div>
+                <div>
+                    <p id="profile-name" class="font-black text-sm tracking-wide text-amber-300">Loading...</p>
+                    <p id="profile-phone" class="text-blue-200 font-medium text-[9px] font-mono">Mobile: --</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-900 rounded-3xl p-4 shadow-lg text-white border border-indigo-800/40 flex flex-col justify-center items-center relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <p class="text-[9px] text-indigo-300 font-black uppercase tracking-widest z-10">Balance</p>
+                <p id="wallet-balance-text" class="text-amber-400 font-black text-xl font-mono z-10">₹0</p>
+            </div>
+        </div>
+
+        <!-- 2. COMPACT ADD BALANCE BUTTON -->
+        <button onclick="redirectToPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center">
+            Add Balance
+        </button>
+
+        <!-- 3. WEEKLY SUBSCRIPTION BANNER / UNLOCK CARD -->
+        <div id="weekly-sub-card" class="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 rounded-3xl p-4 shadow-md text-white border border-blue-500/30 flex flex-col space-y-2.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">👑</span>
+                    <div>
+                        <h3 class="font-black text-xs uppercase tracking-wider text-amber-300">Weekly VIP Pass</h3>
+                        <p id="sub-status-desc" class="text-[10px] text-blue-200">Unlock all markets & numbers for 7 Days</p>
+                    </div>
+                </div>
+                <div id="sub-badge-container">
+                    <!-- Dynamic Button or Status Badge -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. SLIDING TEXT (MARQUEE) -->
+        <div class="bg-blue-900 border border-blue-800 rounded-2xl py-2 px-3 shadow-sm overflow-hidden whitespace-nowrap">
+            <marquee behavior="scroll" direction="left" scrollamount="5" class="text-xs font-black text-amber-300 uppercase tracking-wider">
+                <span id="sliding-marquee-text">Welcome to mahalaxmiplay.online</span>
+            </marquee>
+        </div>
+
+        <!-- LIVE SERVER TIME SYNC CLOCK -->
+        <div class="grid grid-cols-2 gap-2">
+            <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
+                <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Today's Date</span>
+                <div id="live-calendar-text" class="text-xs font-black tracking-wider font-mono text-white mt-0.5">--/--/----</div>
+            </div>
+            <div class="bg-gradient-to-r from-indigo-800 to-blue-900 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
+                <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Live Time</span>
+                <div id="live-clock" class="text-sm font-black tracking-widest font-mono text-amber-300 mt-0.5">--:--:--</div>
+            </div>
+        </div>
+
+        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
+        <div id="app-links-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
+            <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
+                <span>🔗 Quick Resources & Links</span>
+            </h3>
+            <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
+        <div id="voice-notes-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
+            <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
+                <span>🎙️ Admin Voice Announcements</span>
+            </h3>
+            <div id="voice-elements-container" class="space-y-2.5"></div>
+        </div>
+
+        <!-- IMAGE BANNER SLIDER -->
+        <div class="relative w-full h-44 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200">
+            <div id="slider-container" class="slider-wrapper">
+                <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Placeholder">
+            </div>
+        </div>
+
+        <!-- NOTICE BOARD -->
+        <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2.5">
+            <div class="bg-amber-200/60 border border-amber-300 py-1.5 px-3 rounded-2xl flex items-center justify-center space-x-2 text-amber-900 w-fit mx-auto shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <h3 class="font-black text-[11px] uppercase tracking-wider">Notice Board</h3>
+            </div>
+            <p id="notice-text" class="text-sm text-amber-950 font-black text-center tracking-wide leading-snug px-2">Welcome to Mahalakshmi App.</p>
+        </div>
+
+        <!-- MARKETS CONTAINER -->
+        <div id="games-container" class="space-y-4"></div>
+
+    </div>
+
+    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH & LOGOUT BUTTONS -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div class="w-full max-w-[450px] bg-slate-200/95 backdrop-blur-md border-t border-slate-300 p-3 shadow-2xl flex items-center gap-2 pointer-events-auto">
+            <button onclick="window.location.reload();" class="flex-1 bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <span>Refresh</span>
+            </button>
+            <button onclick="handleLogout()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- INSUFFICIENT BALANCE MODAL -->
+    <div id="deposit-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
+            <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to purchase the weekly subscription pass. Please add money to proceed.</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
+                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Balance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GET WEEKLY PASS CONFIRMATION MODAL -->
+    <div id="confirm-game-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">👑</div>
+            <h3 class="text-gray-800 font-black text-lg">Confirm Weekly Pass</h3>
+            <p id="confirm-modal-text" class="text-xs text-gray-500 font-semibold leading-relaxed">Do you want to spend <span id="confirm-price-span" class="font-black text-blue-600">₹0</span> to unlock all games for 7 Days (Weekly Subscription)?</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="closeConfirmModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">No</button>
+                <button id="btn-execute-unlock" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Yes, Unlock</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, collection, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
+        authDomain: "mahalakshmi-1358f.firebaseapp.com",
+        projectId: "mahalakshmi-1358f",
+        storageBucket: "mahalakshmi-1358f.firebasestorage.app",
+        messagingSenderId: "26487681138",
+        appId: "1:26487681138:web:dfa4095fa2285b584212eb",
+        measurementId: "G-Y2SVGE7BVJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let activeSliderTimer = null;
+    let currentUserWallet = 0;
+    let cachedMarkets = [];
+    let weeklySubscriptionExpiry = 0; 
+    let weeklySubscriptionPrice = 500; // Default weekly price fallback
+    let serverTimeOffset = 0;
+    let savedMobile = "";
+    let heartbeatInterval = null;
+
+    function updateInstantClock() {
+        const secureCorrectedMs = Date.now() + serverTimeOffset;
+        const now = new Date(secureCorrectedMs);
+        document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+        document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    updateInstantClock();
+    setInterval(updateInstantClock, 1000);
+
+    window.addEventListener('DOMContentLoaded', () => {
+        beginLiveEngine();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment') === 'success') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
+    async function updateOnlineStatus(isOnlineFlag) {
+        if (!savedMobile) return;
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            const payload = isOnlineFlag ? { lastSeen: Date.now() } : { lastSeen: Date.now() - 30000 };
+            await setDoc(userRef, payload, { merge: true });
+        } catch(e) {}
+    }
+
+    window.addEventListener('focus', () => { updateOnlineStatus(true); });
+    window.addEventListener('blur', () => { updateOnlineStatus(false); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateOnlineStatus(true);
+        } else {
+            updateOnlineStatus(false);
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (savedMobile) {
+            const userRef = doc(db, "users", savedMobile);
+            setDoc(userRef, { lastSeen: Date.now() - 30000 }, { merge: true }).catch(() => {});
+        }
+    });
+
+    window.processAndRedirectSecureLink = function(event, targetUrl) {
+        if(event) { event.preventDefault(); event.stopPropagation(); }
+        if(!targetUrl) return false;
+        let urlString = targetUrl.trim();
+        if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp") || urlString.startsWith("http://") || urlString.startsWith("https://")) {
+            window.location.href = urlString;
+            return false;
+        }
+        let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
+        window.location.href = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
+        return false;
+    }
+
+    async function beginLiveEngine() {
+        savedMobile = localStorage.getItem('app_user_mobile');
+        if (!savedMobile) { window.location.href = 'index.html'; return; }
+
+        document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
+        updateOnlineStatus(true);
+
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            await setDoc(userRef, { lastActive: Date.now(), fcmStatus: "active" }, { merge: true });
+        } catch(e) {}
+
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            updateOnlineStatus(true);
+        }, 8000);
+
+        fetch(window.location.href, { method: 'HEAD' }).then(response => {
+            const serverDateHeader = response.headers.get('Date');
+            if(serverDateHeader) {
+                const serverMs = Date.parse(serverDateHeader);
+                serverTimeOffset = serverMs - Date.now();
+            }
+        }).catch(() => {});
+
+        onSnapshot(doc(db, "users", savedMobile), (snapshot) => {
+            if (!snapshot.exists()) { handleLogout(); return; }
+            const uData = snapshot.data();
+            
+            if (uData.status === "blocked") {
+                alert("❌ Your account profile has been suspended.");
+                handleLogout();
+                return;
+            }
+
+            document.getElementById('profile-name').innerText = uData.name || "User";
+            currentUserWallet = Number(uData.balance) || Number(uData.walletBalance) || 0;
+            document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
+
+            weeklySubscriptionExpiry = Number(uData.weeklySubscriptionExpiry) || 0;
+            renderWeeklyPassWidget();
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "markets"), (querySnapshot) => {
+            cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "app_links"), (querySnapshot) => {
+            const section = document.getElementById('app-links-section');
+            const container = document.getElementById('links-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((lDoc) => {
+                    const l = lDoc.data();
+                    container.innerHTML += `
+                        <a href="${l.url}" onclick="return processAndRedirectSecureLink(event, '${l.url}')" class="flex items-center justify-between bg-blue-50/80 hover:bg-blue-100 border border-blue-200/60 p-3 rounded-2xl text-blue-900 font-bold text-xs shadow-sm transition-colors">
+                            <span class="truncate pr-2">${l.headline || 'Quick Link'}</span>
+                            <span class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[10px] shrink-0 uppercase">Open</span>
+                        </a>`;
+                });
+            }
+        });
+
+        onSnapshot(collection(db, "voicenotes"), (querySnapshot) => {
+            const section = document.getElementById('voice-notes-section');
+            const container = document.getElementById('voice-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((vDoc) => {
+                    const v = vDoc.data();
+                    container.innerHTML += `
+                        <div class="bg-blue-50/80 border border-blue-200/60 p-3 rounded-2xl space-y-2 shadow-sm">
+                            <p class="font-bold text-blue-900 text-xs">${v.title || 'Voice Note'}</p>
+                            <audio controls class="w-full h-8"><source src="${v.url}" type="audio/webm"><source src="${v.url}" type="audio/mp4">Your browser does not support audio playback.</audio>
+                        </div>`;
+                });
+            }
+        });
+
+        onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
+                if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
+                if (data.weeklyPrice) weeklySubscriptionPrice = Number(data.weeklyPrice) || 500;
+                if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
+                renderWeeklyPassWidget();
+            }
+        });
+    }
+
+    window.handleGetWeeklyPassClick = function() {
+        if (currentUserWallet >= weeklySubscriptionPrice) {
+            document.getElementById('confirm-price-span').innerText = "₹" + weeklySubscriptionPrice;
+            document.getElementById('confirm-game-modal').classList.remove('hidden');
+        } else {
+            document.getElementById('deposit-modal').classList.remove('hidden');
+        }
+    }
+
+    document.getElementById('btn-execute-unlock').onclick = async function() {
+        closeConfirmModal();
+        if (currentUserWallet >= weeklySubscriptionPrice) {
+            const newBalance = currentUserWallet - weeklySubscriptionPrice;
+            const currentTimeMs = Date.now() + serverTimeOffset;
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            const newExpiry = currentTimeMs + sevenDaysMs;
+
+            try {
+                await updateDoc(doc(db, "users", savedMobile), { 
+                    walletBalance: newBalance,
+                    balance: newBalance,
+                    weeklySubscriptionExpiry: newExpiry
+                });
+
+                currentUserWallet = newBalance;
+                weeklySubscriptionExpiry = newExpiry;
+                document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
+                renderWeeklyPassWidget();
+                renderGameCards();
+            } catch(e) {
+                alert("Transaction failed. Please try again.");
+            }
+        } else {
+            document.getElementById('deposit-modal').classList.add('hidden');
+        }
+    }
+
+    function renderWeeklyPassWidget() {
+        const badgeContainer = document.getElementById('sub-badge-container');
+        const descContainer = document.getElementById('sub-status-desc');
+        if (!badgeContainer) return;
+
+        const currentTimeMs = Date.now() + serverTimeOffset;
+        const isWeeklyActive = weeklySubscriptionExpiry && (currentTimeMs < weeklySubscriptionExpiry);
+
+        if (isWeeklyActive) {
+            const expiryDateStr = new Date(weeklySubscriptionExpiry).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+            descContainer.innerText = `Active until: ${expiryDateStr}`;
+            badgeContainer.innerHTML = `
+                <div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider animate-pulse shadow">
+                    ✓ VIP ACTIVE
+                </div>`;
+        } else {
+            descContainer.innerText = `Unlock all markets & numbers for 7 Days`;
+            badgeContainer.innerHTML = `
+                <button onclick="handleGetWeeklyPassClick()" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-[10px] py-2 px-3.5 rounded-xl shadow uppercase tracking-wider transition-transform transform active:scale-95">
+                    👑 GET WEEKLY (₹${weeklySubscriptionPrice})
+                </button>`;
+        }
+    }
+
+    function renderGameCards() {
+        const container = document.getElementById('games-container'); if(!container) return;
+        let htmlBuffer = "";
+        const currentTimeMs = Date.now() + serverTimeOffset;
+        const isWeeklyActive = weeklySubscriptionExpiry && (currentTimeMs < weeklySubscriptionExpiry);
+
+        cachedMarkets.forEach((docSnap) => {
+            const m = docSnap.data();
+            const marketName = docSnap.id;
+            const marketStatus = m.marketStatus || 'active';
+
+            const isUnlocked = (marketStatus === 'force_show') || (marketStatus !== 'locked' && isWeeklyActive);
+
+            let actionButtonOrStatus = "";
+
+            if (marketStatus === 'locked') {
+                actionButtonOrStatus = `
+                    <div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">
+                        🔒 CLOSED
+                    </div>`;
+            } else if (isUnlocked) {
+                actionButtonOrStatus = `
+                    <div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider">
+                        ✓ UNLOCKED
+                    </div>`;
+            } else {
+                actionButtonOrStatus = `
+                    <div class="bg-amber-100 text-amber-800 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-amber-200">
+                        🔒 VIP REQUIRED
+                    </div>`;
+            }
+
+            let innerContent = "";
+
+            if (marketStatus === 'locked') {
+                innerContent = `
+                    <div class="pt-2 text-center">
+                        <div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100">
+                            Market is currently closed
+                        </div>
+                    </div>`;
+            } else if (isUnlocked) {
+                const otcRaw = m.otcValue || '3* / 8*';
+                const otcList = otcRaw.split(/[\s*\/]+/).filter(Boolean);
+                let otcHtml = '';
+                otcList.forEach(val => {
+                    otcHtml += `<div class="bg-blue-50 text-blue-700 font-black text-xs py-2 px-3.5 rounded-xl text-center shadow-sm border border-blue-100 min-w-[36px]">${val}</div>`;
+                });
+
+                const jodiList = m.jodiValue ? m.jodiValue.split(/[\s,]+/).filter(Boolean) : ['31', '36', '81', '86'];
+                let jodiHtml = '';
+                jodiList.forEach(val => {
+                    jodiHtml += `<div class="bg-indigo-50 text-indigo-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-indigo-100 min-w-[38px]">${val}</div>`;
+                });
+
+                const panelList = m.panelValue ? m.panelValue.split(/[\s,]+/).filter(Boolean) : ['580', '157', '170', '800'];
+                let panelHtml = '';
+                panelList.forEach(val => {
+                    panelHtml += `<div class="bg-emerald-50 text-emerald-700 font-black text-xs py-2 px-3 rounded-xl text-center shadow-sm border border-emerald-100 min-w-[44px]">${val}</div>`;
+                });
+
+                innerContent = `
+                    <div class="space-y-3 pt-2">
+                        <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
+                            <span class="text-xs font-black text-blue-900 uppercase tracking-wider w-16 shrink-0">Open</span>
+                            <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
+                                ${otcHtml}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
+                            <span class="text-xs font-black text-indigo-900 uppercase tracking-wider w-16 shrink-0">Jodi</span>
+                            <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
+                                ${jodiHtml}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-gray-50/80 p-2.5 rounded-2xl border border-gray-100">
+                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider w-16 shrink-0">Panel</span>
+                            <div class="flex items-center justify-center flex-wrap gap-1.5 flex-1">
+                                ${panelHtml}
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                innerContent = `
+                    <div class="pt-1 text-center">
+                        <p class="text-[11px] text-gray-500 font-semibold py-2">Get the Weekly VIP Pass above to unlock numbers & OTC details for all markets.</p>
+                    </div>`;
+            }
+
+            htmlBuffer += `
+                <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 flex flex-col space-y-3">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-sm shadow-sm">⭐</div>
+                            <div>
+                                <h3 class="font-black text-sm tracking-wider text-gray-900 uppercase">${marketName}</h3>
+                                <span class="text-[10px] text-gray-400 font-mono font-bold">${m.gameDate || '31/07/2026'}</span>
+                            </div>
+                        </div>
+                        <div>
+                            ${actionButtonOrStatus}
+                        </div>
+                    </div>
+
+                    ${innerContent}
+                </div>`;
+        });
+        container.innerHTML = htmlBuffer;
+    }
+
+    function setupAutoImageSlider(images) {
+        const slider = document.getElementById('slider-container'); if (!slider) return;
+        clearInterval(activeSliderTimer);
+        const cleanImages = images.filter(url => url && url.trim() !== "" && url.startsWith('http'));
+        if (cleanImages.length === 0) {
+            slider.innerHTML = `<img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0">`; return;
+        }
+        slider.innerHTML = '';
+        cleanImages.forEach(url => { 
+            let formattedUrl = url;
+            if(url.includes("firebasestorage.googleapis.com") && !url.includes("%2F")) {
+                formattedUrl = url.replace("/o/slider_banners", "/o/slider_banners%2F");
+            }
+            slider.innerHTML += `<img src="${formattedUrl}" class="slide-frame shrink-0" onerror="this.src='https://i.imgur.com/pCFtcKd.png'">`; 
+        });
+        let index = 0;
+        if (cleanImages.length > 1) {
+            activeSliderTimer = setInterval(() => {
+                index++; if (index >= cleanImages.length) index = 0;
+                slider.scrollTo({ left: index * slider.clientWidth, behavior: 'smooth' });
+            }, 4000);
+        }
+    }
+
+    window.closeDepositModal = () => document.getElementById('deposit-modal').classList.add('hidden');
+    window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
+
+    window.redirectToPayment = function() {
+        const paymentUrl = "payment.html";
+        window.location.href = paymentUrl + "?userid=" + (savedMobile || "");
+    }
+
+    window.handleLogout = function() { 
+        updateOnlineStatus(false);
+        localStorage.removeItem('app_user_mobile'); 
+        window.location.href = 'index.html'; 
+    }
+</script>
+</body>
+</html>
