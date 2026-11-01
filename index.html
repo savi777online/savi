@@ -154,7 +154,6 @@
     let fetchedUserData = null;
 
     window.addEventListener('DOMContentLoaded', () => {
-        // Auto-login: Agar user pehle se logged in hai toh direct dashboard par bhejo
         const savedMobile = localStorage.getItem('app_user_mobile');
         if (savedMobile) {
             window.location.href = 'dashboard.html';
@@ -180,7 +179,6 @@
             const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
-                // PURANA USER: PIN maango
                 fetchedUserData = userSnap.data();
                 if (fetchedUserData.status === "blocked") {
                     alert("❌ Your account has been suspended.");
@@ -196,7 +194,6 @@
                 document.getElementById('login-mobile-display').innerText = "+91 " + currentMobile;
                 document.getElementById('welcome-user-name').innerText = fetchedUserData.name || "User";
             } else {
-                // NAYA USER: Naam aur PIN maango
                 btn.innerHTML = "Next";
                 btn.disabled = false;
                 document.getElementById('step-mobile').classList.add('hidden');
@@ -222,7 +219,6 @@
             return;
         }
 
-        // Agar user ke purane data mein PIN nahi tha (migration case), toh bypass ya save kar sakte hain
         localStorage.setItem('app_user_mobile', currentMobile);
         window.location.href = 'dashboard.html';
     }
@@ -265,11 +261,9 @@
             await setDoc(userRef, {
                 name: name,
                 pin: pin,
-                walletBalance: 0,
-                balance: 0,
                 joinedAt: Date.now(),
                 status: "allowed",
-                unlockedGames: {}
+                weeklySubscriptionExpiry: 0
             }, { merge: true });
 
             localStorage.setItem('app_user_mobile', currentMobile);
