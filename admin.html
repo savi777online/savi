@@ -16,13 +16,16 @@
 
 <div class="app-container">
 
-    <!-- ADMIN GATE PIN SCREEN -->
+    <!-- ADMIN FIREBASE AUTH LOGIN SCREEN -->
     <div id="admin-gate" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 z-50">
-        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-700 w-full max-w-xs text-center shadow-2xl">
-            <h1 class="text-xl font-black text-blue-500 mb-2">Admin Portal</h1>
-            <p class="text-[11px] text-slate-400 mb-6 uppercase tracking-widest">Enter Security PIN</p>
-            <input type="password" id="gate-pin" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full bg-slate-950 border border-slate-700 text-white rounded-2xl p-4 text-center tracking-[1em] text-2xl focus:outline-none mb-6">
-            <button onclick="unlockAdminPanel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest transition-transform active:scale-95">Verify Session</button>
+        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-700 w-full max-w-xs text-center shadow-2xl space-y-4">
+            <h1 class="text-xl font-black text-blue-500 mb-1">Admin Portal</h1>
+            <p class="text-[11px] text-slate-400 mb-4 uppercase tracking-widest">Sign In with Firebase Credentials</p>
+            
+            <input type="email" id="admin-email" placeholder="Admin Gmail / Email" class="w-full bg-slate-950 border border-slate-700 text-white rounded-2xl p-3 text-xs focus:outline-none">
+            <input type="password" id="admin-password" placeholder="Password" class="w-full bg-slate-950 border border-slate-700 text-white rounded-2xl p-3 text-xs focus:outline-none mb-2">
+            
+            <button onclick="loginAdminFirebase()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest transition-transform active:scale-95 shadow">Login Admin</button>
         </div>
     </div>
 
@@ -57,11 +60,7 @@
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">Customer Support Phone Number (WhatsApp / Forgot PIN)</label>
                     <input type="text" id="cfg-support-phone" placeholder="e.g. 919113224019" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">⚡ Daily Pass Price (₹)</label>
-                        <input type="number" id="cfg-daily-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-blue-600 font-mono font-bold">
-                    </div>
+                <div class="grid grid-cols-1 gap-2">
                     <div>
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">👑 Weekly Pass Price (₹)</label>
                         <input type="number" id="cfg-weekly-price" placeholder="500" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-blue-600 font-mono font-bold">
@@ -74,10 +73,6 @@
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold mb-1">⚡ Sliding Marquee Text (Dashboard)</label>
                     <input type="text" id="cfg-sliding" placeholder="e.g. Welcome to mahalaxmiplay.online" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Change Admin PIN (4 Digits)</label>
-                    <input type="password" id="cfg-pin" maxlength="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-mono">
                 </div>
                 <button onclick="saveSystemConfig()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Save Parameters</button>
             </div>
@@ -270,6 +265,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -284,8 +280,9 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const storage = getStorage(app);
-    let masterAdminPin = "9999";
+
     let globalMarketsCache = {};
     let cachedUsersList = [];
     let openedUserCards = new Set();
@@ -309,27 +306,38 @@
         `;
     }
 
-    window.addEventListener('DOMContentLoaded', checkAdminPersistence);
-
-    function checkAdminPersistence() {
-        if (localStorage.getItem('admin_session_auth') === "verified") {
+    // Firebase Auth State Listener
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
             document.getElementById('admin-gate').classList.add('hidden');
             loadLiveHooks();
+        } else {
+            document.getElementById('admin-gate').classList.remove('hidden');
+        }
+    });
+
+    window.loginAdminFirebase = async function() {
+        const email = document.getElementById('admin-email').value.trim();
+        const password = document.getElementById('admin-password').value.trim();
+        
+        if(!email || !password) {
+            alert("Please enter both email and password.");
+            return;
+        }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch(e) {
+            alert("❌ Login failed: " + e.message);
         }
     }
 
-    window.unlockAdminPanel = async function() {
-        const pinInput = document.getElementById('gate-pin').value.trim();
-        const configDoc = await getDoc(doc(db, "system_config", "settings"));
-        if(configDoc.exists()) { masterAdminPin = configDoc.data().admin_pin || "9999"; }
-        if(pinInput === masterAdminPin) {
-            localStorage.setItem('admin_session_auth', 'verified');
-            document.getElementById('admin-gate').classList.add('hidden');
-            loadLiveHooks();
-        } else { alert("Incorrect PIN."); }
+    window.handleAdminLogout = async () => { 
+        try {
+            await signOut(auth);
+            window.location.reload();
+        } catch(e) {}
     }
-
-    window.handleAdminLogout = () => { localStorage.removeItem('admin_session_auth'); window.location.reload(); }
 
     window.openTab = function(tabId) {
         ['system', 'games', 'users'].forEach(t => {
@@ -531,9 +539,7 @@
                 document.getElementById('cfg-sliding').value = s.sliding_text || 'Welcome to mahalaxmiplay.online';
                 document.getElementById('cfg-upi').value = s.upi_address || "mahalaxmi@upi";
                 document.getElementById('cfg-support-phone').value = s.support_phone || '';
-                document.getElementById('cfg-daily-price').value = s.dailyPrice || 100;
                 document.getElementById('cfg-weekly-price').value = s.weeklyPrice || 500;
-                document.getElementById('cfg-pin').value = s.admin_pin || '9999';
                 
                 const imgs = s.slider_images || [];
                 for(let i=1; i<=6; i++) { 
@@ -736,11 +742,10 @@
         const getLastSeen = x => Number(x.lastSeen) || 0;
         const getExpiry = x => Number(x.weeklySubscriptionExpiry) || 0;
 
-        // Active subscribers first sorting
         filtered.sort((a, b) => {
             const aActive = getExpiry(a) > Date.now() ? 1 : 0;
             const bActive = getExpiry(b) > Date.now() ? 1 : 0;
-            if (aActive !== bActive) return bActive - aActive; // Active ones on top
+            if (aActive !== bActive) return bActive - aActive;
             return Number(b.joinedAt || 0) - Number(a.joinedAt || 0);
         });
 
@@ -879,8 +884,6 @@
         try {
             const slider_images = [];
             for(let i=1; i<=6; i++) { const v = document.getElementById(`slide-${i}`).value.trim(); if(v) slider_images.push(v); }
-            let pinVal = document.getElementById('cfg-pin').value.trim() || "9999";
-            let dailyPriceVal = Number(document.getElementById('cfg-daily-price').value) || 100;
             let weeklyPriceVal = Number(document.getElementById('cfg-weekly-price').value) || 500;
 
             await setDoc(doc(db, "system_config", "settings"), {
@@ -888,9 +891,7 @@
                 sliding_text: document.getElementById('cfg-sliding').value.trim(),
                 upi_address: document.getElementById('cfg-upi').value.trim(),
                 support_phone: document.getElementById('cfg-support-phone').value.trim(),
-                dailyPrice: dailyPriceVal,
                 weeklyPrice: weeklyPriceVal,
-                admin_pin: pinVal,
                 slider_images: slider_images
             }, { merge: true });
             alert("Parameters successfully saved!");
