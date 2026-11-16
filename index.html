@@ -132,7 +132,6 @@
 
 </div>
 
-<!-- FIREBASE SDK & SCRIPT -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -156,7 +155,14 @@
     window.addEventListener('DOMContentLoaded', () => {
         const savedMobile = localStorage.getItem('app_user_mobile');
         if (savedMobile) {
-            window.location.href = 'dashboard.html';
+            // Check if user still exists in DB before auto-redirecting
+            getDoc(doc(db, "users", savedMobile)).then(snap => {
+                if (snap.exists() && snap.data().status !== "blocked") {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    localStorage.removeItem('app_user_mobile');
+                }
+            }).catch(() => {});
         }
     });
 
@@ -263,7 +269,10 @@
                 pin: pin,
                 joinedAt: Date.now(),
                 status: "allowed",
-                weeklySubscriptionExpiry: 0
+                balance: 0,
+                walletBalance: 0,
+                weeklySubscriptionExpiry: 0,
+                unlockedGames: {}
             }, { merge: true });
 
             localStorage.setItem('app_user_mobile', currentMobile);
