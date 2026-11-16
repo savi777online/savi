@@ -84,7 +84,6 @@
         userId = urlParams.get('userid') || localStorage.getItem('app_user_mobile');
         passType = urlParams.get('passtype') || 'weekly';
         
-        // Catch passed price and market name from dashboard click
         const urlAmount = urlParams.get('amount');
         targetMarket = urlParams.get('market') || '';
 
@@ -95,17 +94,16 @@
         }
         document.getElementById('userid-input').value = userId;
 
-        // Fetch UPI address and prices set in admin panel
+        // Fetch UPI address from admin settings
         try {
             const configSnap = await getDoc(doc(db, "system_config", "settings"));
             if (configSnap.exists()) {
                 const data = configSnap.data();
                 if (data.upi_address) adminUpiId = data.upi_address;
-                if (!urlAmount && data.weeklyPrice) targetAmount = Number(data.weeklyPrice) || 500;
             }
         } catch(e) {}
 
-        // If specific amount came from dashboard get-game click, use it
+        // Set exact amount if passed from game click
         if (urlAmount) {
             targetAmount = Number(urlAmount) || 500;
         }
