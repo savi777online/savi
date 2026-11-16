@@ -132,7 +132,7 @@
             <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money to proceed.</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
-                <button onclick="redirectToPayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Balance</button>
+                <button onclick="redirectToGamePayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Balance</button>
             </div>
         </div>
     </div>
@@ -276,7 +276,6 @@
                 return;
             }
 
-            // Fix: Fallback name if name field is empty or missing
             document.getElementById('profile-name').innerText = uData.name || "User";
             currentUserWallet = Number(uData.balance) || Number(uData.walletBalance) || 0;
             document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
@@ -346,8 +345,13 @@
             document.getElementById('confirm-price-span').innerText = "₹" + pendingGamePrice;
             document.getElementById('confirm-game-modal').classList.remove('hidden');
         } else {
+            // Direct redirect to payment with exact game price and market name
             document.getElementById('deposit-modal').classList.remove('hidden');
         }
+    }
+
+    window.redirectToGamePayment = function() {
+        window.location.href = `payment.html?userid=${savedMobile}&amount=${pendingGamePrice}&market=${encodeURIComponent(pendingMarketName)}`;
     }
 
     document.getElementById('btn-execute-unlock').onclick = async function() {
