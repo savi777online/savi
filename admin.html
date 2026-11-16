@@ -707,26 +707,26 @@
         });
     }
 
-    // FIXED: Now updates user wallet balance AND auto-unlocks the specific game upon admin approval!
+    // FIXED LOGIC: If payment is for a specific game, ONLY unlock the game without adding cash to wallet. If it's general top-up, add balance to wallet.
     window.approveDeposit = async function(reqId, userId, amount, userName, passType) {
         if (!confirm(`Approve ₹${amount} for ${userName} (${userId})?`)) return;
         try {
             const userRef = doc(db, "users", userId);
             const userSnap = await getDoc(userRef);
-            let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
-            const newBal = currentBal + Number(amount);
+            let updatePayload = {};
 
-            let updatePayload = { 
-                balance: newBal, 
-                walletBalance: newBal 
-            };
-
-            // If payment was for a specific game, automatically unlock it for the user!
             if (passType && passType.startsWith("Game: ")) {
+                // यह किसी विशेष गेम के लिए पेमेंट है: वॉलेट बैलेंस नहीं बढ़ेगा, सिर्फ गेम अनलॉक होगा!
                 const gameName = passType.replace("Game: ", "").trim();
                 let unlocked = userSnap.exists() ? (userSnap.data().unlockedGames || {}) : {};
-                unlocked[gameName] = Date.now(); // Unlock for 12 hours
+                unlocked[gameName] = Date.now(); // 12 घंटे के लिए अनलॉक
                 updatePayload.unlockedGames = unlocked;
+            } else {
+                // यह सामान्य 'Add Balance' (वॉलेट रिचार्ज) है: केवल वॉलेट बैलेंस बढ़ेगा
+                let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
+                const newBal = currentBal + Number(amount);
+                updatePayload.balance = newBal;
+                updatePayload.walletBalance = newBal;
             }
 
             await updateDoc(userRef, updatePayload);
@@ -742,7 +742,7 @@
             });
 
             await deleteDoc(doc(db, "pending_deposits", reqId));
-            alert("✅ Deposit approved, wallet updated & game unlocked successfully!");
+            alert("✅ Request approved successfully!");
         } catch(e) {
             alert("❌ Approval failed: " + e.message);
         }
