@@ -707,7 +707,7 @@
         });
     }
 
-    // FIXED: Now updates user wallet balance AND auto-unlocks the game if requested via payment!
+    // FIXED: Now updates user wallet balance AND auto-unlocks the specific game upon admin approval!
     window.approveDeposit = async function(reqId, userId, amount, userName, passType) {
         if (!confirm(`Approve ₹${amount} for ${userName} (${userId})?`)) return;
         try {
