@@ -237,7 +237,10 @@
 
     async function beginLiveEngine() {
         savedMobile = localStorage.getItem('app_user_mobile');
-        if (!savedMobile) { window.location.href = 'index.html'; return; }
+        if (!savedMobile) { 
+            window.location.href = 'index.html'; 
+            return; 
+        }
 
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
         updateOnlineStatus(true);
@@ -261,7 +264,10 @@
         }).catch(() => {});
 
         onSnapshot(doc(db, "users", savedMobile), (snapshot) => {
-            if (!snapshot.exists()) { handleLogout(); return; }
+            if (!snapshot.exists()) { 
+                handleLogout(); 
+                return; 
+            }
             const uData = snapshot.data();
             
             if (uData.status === "blocked") {
@@ -270,6 +276,7 @@
                 return;
             }
 
+            // Fix: Fallback name if name field is empty or missing
             document.getElementById('profile-name').innerText = uData.name || "User";
             currentUserWallet = Number(uData.balance) || Number(uData.walletBalance) || 0;
             document.getElementById('wallet-balance-text').innerText = "₹" + currentUserWallet;
