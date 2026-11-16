@@ -132,9 +132,10 @@
 
 </div>
 
+<!-- FIREBASE SDK & SCRIPT -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocFromServer, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
@@ -155,14 +156,21 @@
     window.addEventListener('DOMContentLoaded', () => {
         const savedMobile = localStorage.getItem('app_user_mobile');
         if (savedMobile) {
-            // Check if user still exists in DB before auto-redirecting
-            getDoc(doc(db, "users", savedMobile)).then(snap => {
+            getDocFromServer(doc(db, "users", savedMobile)).then(snap => {
                 if (snap.exists() && snap.data().status !== "blocked") {
                     window.location.href = 'dashboard.html';
                 } else {
                     localStorage.removeItem('app_user_mobile');
                 }
-            }).catch(() => {});
+            }).catch(() => {
+                getDoc(doc(db, "users", savedMobile)).then(snap => {
+                    if (snap.exists() && snap.data().status !== "blocked") {
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        localStorage.removeItem('app_user_mobile');
+                    }
+                }).catch(() => {});
+            });
         }
     });
 
@@ -171,7 +179,7 @@
         let cleaned = rawInput.replace(/\D/g, '');
 
         if (cleaned.length !== 10) {
-            alert("❌ Please enter a valid 10-digit mobile number.");
+            alert("❌ कृपया सही 10-अंकों का मोबाइल नंबर दर्ज करें।");
             return;
         }
 
@@ -182,7 +190,13 @@
 
         try {
             const userRef = doc(db, "users", currentMobile);
-            const userSnap = await getDoc(userRef);
+            let userSnap;
+            try {
+                // Force server fetch to bypass stale offline cache after admin deletion
+                userSnap = await getDocFromServer(userRef);
+            } catch (err) {
+                userSnap = await getDoc(userRef);
+            }
 
             if (userSnap.exists()) {
                 fetchedUserData = userSnap.data();
@@ -199,12 +213,17 @@
                 document.getElementById('step-pin').classList.remove('hidden');
                 document.getElementById('login-mobile-display').innerText = "+91 " + currentMobile;
                 document.getElementById('welcome-user-name').innerText = fetchedUserData.name || "User";
+                document.getElementById('input-login-pin').value = "";
             } else {
+                fetchedUserData = null;
                 btn.innerHTML = "Next";
                 btn.disabled = false;
                 document.getElementById('step-mobile').classList.add('hidden');
                 document.getElementById('step-name').classList.remove('hidden');
                 document.getElementById('setup-mobile-display').innerText = "+91 " + currentMobile;
+                document.getElementById('input-name').value = "";
+                document.getElementById('input-new-pin').value = "";
+                document.getElementById('input-confirm-pin').value = "";
             }
         } catch (error) {
             alert("❌ Connection error: " + error.message);
@@ -216,12 +235,12 @@
     window.verifyLoginPin = function() {
         const pin = document.getElementById('input-login-pin').value.trim();
         if (pin.length !== 4) {
-            alert("❌ Please enter a valid 4-digit PIN.");
+            alert("❌ कृपया 4-अंकों का सही पिन दर्ज करें।");
             return;
         }
 
         if (fetchedUserData && fetchedUserData.pin && fetchedUserData.pin !== pin) {
-            alert("❌ Incorrect 4-digit PIN! Please try again.");
+            alert("❌ गलत पिन! कृपया पुनः प्रयास करें।");
             return;
         }
 
@@ -235,9 +254,12 @@
         document.getElementById('step-forgot').classList.add('hidden');
         document.getElementById('step-mobile').classList.remove('hidden');
         document.getElementById('input-mobile').value = "";
+        document.getElementById('input-name').value = "";
         document.getElementById('input-new-pin').value = "";
         document.getElementById('input-confirm-pin').value = "";
         document.getElementById('input-login-pin').value = "";
+        currentMobile = "";
+        fetchedUserData = null;
     }
 
     window.completeNewUserRegistration = async function() {
@@ -246,15 +268,15 @@
         const confirmPin = document.getElementById('input-confirm-pin').value.trim();
 
         if (!name) {
-            alert("❌ Name is mandatory! Please enter your full name.");
+            alert("❌ कृपया अपना पूरा नाम दर्ज करें।");
             return;
         }
         if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
-            alert("❌ Please enter a valid 4-digit PIN.");
+            alert("❌ कृपया 4-अंकों का वैध पिन दर्ज करें।");
             return;
         }
         if (pin !== confirmPin) {
-            alert("❌ PIN and Confirm PIN do not match!");
+            alert("❌ पिन और कंफर्म पिन मेल नहीं खा रहे हैं!");
             return;
         }
 
@@ -288,6 +310,7 @@
         document.getElementById('step-pin').classList.add('hidden');
         document.getElementById('step-forgot').classList.remove('hidden');
         document.getElementById('forgot-mobile').value = currentMobile;
+        document.getElementById('forgot-name').value = "";
         document.getElementById('forgot-result-box').classList.add('hidden');
     }
 
@@ -301,7 +324,7 @@
         const nameInput = document.getElementById('forgot-name').value.trim().toLowerCase();
 
         if (mobileInput.length !== 10 || !nameInput) {
-            alert("❌ Please enter both valid mobile number and full name.");
+            alert("❌ कृपया सही मोबाइल नंबर और पूरा नाम दर्ज करें।");
             return;
         }
 
@@ -311,10 +334,15 @@
 
         try {
             const userRef = doc(db, "users", mobileInput);
-            const userSnap = await getDoc(userRef);
+            let userSnap;
+            try {
+                userSnap = await getDocFromServer(userRef);
+            } catch (err) {
+                userSnap = await getDoc(userRef);
+            }
 
             if (!userSnap.exists()) {
-                alert("❌ No account found with this mobile number.");
+                alert("❌ इस मोबाइल नंबर से कोई खाता नहीं मिला।");
                 btn.disabled = false;
                 btn.innerText = "Check Four Digit PIN";
                 return;
@@ -325,7 +353,7 @@
                 document.getElementById('recovered-pin-display').innerText = data.pin || "No PIN Set";
                 document.getElementById('forgot-result-box').classList.remove('hidden');
             } else {
-                alert("❌ Name does not match with this mobile number.");
+                alert("❌ दर्ज किया गया नाम इस मोबाइल नंबर से मेल नहीं खाता है।");
             }
         } catch (e) {
             alert("❌ Error: " + e.message);
