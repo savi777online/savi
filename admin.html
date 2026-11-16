@@ -570,9 +570,10 @@
                             <span class="text-blue-950 font-bold">${d.name || 'User'} <span class="text-slate-400">(${d.userid})</span></span>
                             <span class="text-emerald-600 font-black text-sm">+₹${d.amount}</span>
                         </div>
+                        <p class="font-mono text-[10px] text-gray-500">Pass / Type: <span class="font-bold text-blue-700">${d.passType || 'Deposit'}</span></p>
                         <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr}</span></p>
                         <div class="flex space-x-2 pt-1">
-                            <button onclick="approveDeposit('${d.id}', '${d.userid}', ${d.amount}, '${d.name || 'User'}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
+                            <button onclick="approveDeposit('${d.id}', '${d.userid}', ${d.amount}, '${d.name || 'User'}', '${d.passType || ''}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
                             <button onclick="rejectDeposit('${d.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
                         </div>
                     </div>`;
@@ -706,27 +707,42 @@
         });
     }
 
-    window.approveDeposit = async function(reqId, userId, amount, userName) {
+    // FIXED: Now updates user wallet balance AND auto-unlocks the game if requested via payment!
+    window.approveDeposit = async function(reqId, userId, amount, userName, passType) {
         if (!confirm(`Approve ₹${amount} for ${userName} (${userId})?`)) return;
         try {
             const userRef = doc(db, "users", userId);
             const userSnap = await getDoc(userRef);
             let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
-            const newBal = currentBal + amount;
+            const newBal = currentBal + Number(amount);
 
-            await updateDoc(userRef, { balance: newBal, walletBalance: newBal });
+            let updatePayload = { 
+                balance: newBal, 
+                walletBalance: newBal 
+            };
+
+            // If payment was for a specific game, automatically unlock it for the user!
+            if (passType && passType.startsWith("Game: ")) {
+                const gameName = passType.replace("Game: ", "").trim();
+                let unlocked = userSnap.exists() ? (userSnap.data().unlockedGames || {}) : {};
+                unlocked[gameName] = Date.now(); // Unlock for 12 hours
+                updatePayload.unlockedGames = unlocked;
+            }
+
+            await updateDoc(userRef, updatePayload);
 
             await setDoc(doc(db, "deposits", reqId), {
                 userid: userId,
                 userMobile: userId,
                 name: userName,
+                passType: passType || 'Deposit',
                 amount: amount,
                 timestamp: Date.now(),
                 status: "approved"
             });
 
             await deleteDoc(doc(db, "pending_deposits", reqId));
-            alert("✅ Deposit approved & wallet updated successfully!");
+            alert("✅ Deposit approved, wallet updated & game unlocked successfully!");
         } catch(e) {
             alert("❌ Approval failed: " + e.message);
         }
@@ -805,7 +821,7 @@
             let hasUnlocked = false;
             for(let marketName in unlockedObj) {
                 const timeVal = unlockedObj[marketName];
-                if(Date.now() - timeVal < 3 * 60 * 60 * 1000) {
+                if(Date.now() - timeVal < 12 * 60 * 60 * 1000) {
                     hasUnlocked = true;
                     unlockedMarketsHtml += `
                         <div class="flex justify-between items-center bg-blue-50 border border-blue-100 p-2 rounded-xl mt-1.5">
