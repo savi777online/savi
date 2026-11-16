@@ -28,7 +28,7 @@
             </div>
 
             <div>
-                <label id="pass-label-title" class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount (VIP Pass)</label>
+                <label id="pass-label-title" class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-base font-black text-blue-600">₹</span>
                     <input type="number" id="amount-input" placeholder="500" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
@@ -49,7 +49,7 @@
                 <input type="text" id="utr-input" placeholder="Enter 12-digit UTR / UPI Ref ID" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 px-3 text-xs font-bold text-gray-800 focus:outline-none focus:border-blue-600 font-mono shadow-inner">
             </div>
 
-            <button onclick="submitDepositRequest()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-xl text-xs uppercase shadow-md active:scale-[0.99] transition-transform">Submit Pass Request</button>
+            <button onclick="submitDepositRequest()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3.5 rounded-xl text-xs uppercase shadow-md active:scale-[0.99] transition-transform">Submit Payment Request</button>
             <button onclick="window.location.href='dashboard.html'" class="w-full bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Back to Dashboard</button>
             <div id="status-text" class="text-center text-[11px] font-bold text-blue-600 h-6"></div>
         </div>
@@ -74,15 +74,19 @@
     const db = getFirestore(app);
 
     let adminUpiId = "mahalakshmi@upi";
-    let dailyPrice = 100;
-    let weeklyPrice = 500;
     let userId = "";
     let passType = "weekly";
+    let targetAmount = 500;
+    let targetMarket = "";
 
     window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
         userId = urlParams.get('userid') || localStorage.getItem('app_user_mobile');
         passType = urlParams.get('passtype') || 'weekly';
+        
+        // Catch passed price and market name from dashboard click
+        const urlAmount = urlParams.get('amount');
+        targetMarket = urlParams.get('market') || '';
 
         if (!userId) {
             alert("User not logged in!");
@@ -97,16 +101,18 @@
             if (configSnap.exists()) {
                 const data = configSnap.data();
                 if (data.upi_address) adminUpiId = data.upi_address;
-                if (data.dailyPrice) dailyPrice = Number(data.dailyPrice) || 100;
-                if (data.weeklyPrice) weeklyPrice = Number(data.weeklyPrice) || 500;
+                if (!urlAmount && data.weeklyPrice) targetAmount = Number(data.weeklyPrice) || 500;
             }
         } catch(e) {}
 
-        const targetPrice = passType === 'daily' ? dailyPrice : weeklyPrice;
-        const passTitle = passType === 'daily' ? 'Daily Pass' : 'Weekly VIP Pass';
+        // If specific amount came from dashboard get-game click, use it
+        if (urlAmount) {
+            targetAmount = Number(urlAmount) || 500;
+        }
 
-        document.getElementById('pass-label-title').innerText = `Enter Deposit Amount (${passTitle})`;
-        document.getElementById('amount-input').value = targetPrice;
+        let labelText = targetMarket ? `Pay for Game: ${targetMarket}` : `Enter Deposit Amount`;
+        document.getElementById('pass-label-title').innerText = labelText;
+        document.getElementById('amount-input').value = targetAmount;
         updateQrCode();
     });
 
@@ -148,14 +154,14 @@
                 userid: userId,
                 userMobile: userId,
                 name: userName,
-                passType: passType,
+                passType: targetMarket ? `Game: ${targetMarket}` : passType,
                 amount: amount,
                 utr: utr,
                 timestamp: Date.now(),
                 status: "pending"
             });
 
-            alert("✅ Pass request submitted successfully! Waiting for Admin approval.");
+            alert("✅ Payment request submitted successfully! Waiting for Admin approval.");
             window.location.href = "dashboard.html";
         } catch (e) {
             alert("❌ Failed to submit request: " + e.message);
