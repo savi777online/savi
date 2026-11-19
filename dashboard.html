@@ -20,42 +20,41 @@
 
 <div class="app-container">
 
-    <!-- HEADLINE APPBAR -->
-    <div class="bg-blue-900 text-white px-4 py-3.5 flex items-center justify-between shadow-lg sticky top-0 z-40">
-        <div class="flex items-center space-x-2.5">
-            <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain">
-            <h1 class="font-black tracking-wider text-lg uppercase">MAHALAKSHMI</h1>
+    <!-- HEADLINE APPBAR WITH COMPACT BALANCE & WALLET ADD BUTTON -->
+    <div class="bg-blue-900 text-white px-4 py-3 flex items-center justify-between shadow-lg sticky top-0 z-40">
+        <div class="flex items-center space-x-2.5 min-w-0">
+            <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain shrink-0">
+            <h1 class="font-black tracking-wider text-base uppercase truncate">MAHALAKSHMI</h1>
+        </div>
+
+        <div class="flex items-center space-x-1.5 shrink-0">
+            <div class="bg-blue-950/90 border border-blue-700/60 px-2.5 py-1 rounded-xl text-right leading-tight">
+                <span class="block text-[8px] text-blue-200 font-bold uppercase tracking-wider">Balance</span>
+                <span id="wallet-balance-text" class="text-amber-300 font-black text-xs font-mono">₹0</span>
+            </div>
+            <button type="button" onclick="redirectToGeneralPayment()" title="Add Balance" aria-label="Add Balance" class="bg-amber-400 hover:bg-amber-500 text-blue-950 w-8 h-8 rounded-xl flex items-center justify-center shadow transition-transform active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
     <div class="flex-1 p-4 space-y-3.5">
 
-        <!-- 1. USER PROFILE & WALLET BALANCE SIDE BY SIDE -->
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center space-x-3">
-                <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-lg shadow-inner border border-white/20">
-                    👤
-                </div>
-                <div>
-                    <p id="profile-name" class="font-black text-sm tracking-wide text-amber-300">Loading...</p>
-                    <p id="profile-phone" class="text-blue-200 font-medium text-[9px] font-mono">Mobile: --</p>
-                </div>
+        <!-- 1. CLEAR USER PROFILE (NAME & MOBILE) -->
+        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center space-x-3.5 border border-blue-700/40">
+            <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/20 shrink-0">
+                👤
             </div>
-
-            <div class="bg-gradient-to-br from-indigo-950 via-blue-950 to-slate-900 rounded-3xl p-4 shadow-lg text-white border border-indigo-800/40 flex flex-col justify-center items-center relative overflow-hidden">
-                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
-                <p class="text-[9px] text-indigo-300 font-black uppercase tracking-widest z-10">Balance</p>
-                <p id="wallet-balance-text" class="text-amber-400 font-black text-xl font-mono z-10">₹0</p>
+            <div class="min-w-0">
+                <p id="profile-name" class="font-black text-base tracking-wide text-amber-300 truncate">Loading...</p>
+                <p id="profile-phone" class="text-blue-100 font-bold text-xs font-mono mt-0.5 truncate">Mobile: --</p>
             </div>
         </div>
 
-        <!-- 2. COMPACT ADD BALANCE BUTTON -->
-        <button onclick="redirectToGeneralPayment()" class="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-black py-3 px-4 rounded-3xl text-xs uppercase tracking-widest shadow-md transition-transform active:scale-[0.99] flex items-center justify-center">
-            Add Balance
-        </button>
-
-        <!-- 3. SLIDING TEXT (MARQUEE) -->
+        <!-- 2. SLIDING TEXT (MARQUEE) -->
         <div class="bg-blue-900 border border-blue-800 rounded-2xl py-2 px-3 shadow-sm overflow-hidden whitespace-nowrap">
             <marquee behavior="scroll" direction="left" scrollamount="5" class="text-xs font-black text-amber-300 uppercase tracking-wider">
                 <span id="sliding-marquee-text">Welcome to mahalaxmiplay.online</span>
@@ -109,16 +108,17 @@
             <div id="games-container" class="space-y-2.5"></div>
         </div>
 
-        <!-- DOWNLOAD APP PROMO BOX (BELOW MARKETS, ABOVE NOTICE BOARD) -->
-        <div class="bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 rounded-3xl p-4 shadow-lg border border-amber-400/40 text-white flex items-center justify-between gap-3">
-            <div class="flex items-center space-x-3 min-w-0">
-                <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi App" class="w-11 h-11 rounded-2xl bg-white/10 p-1.5 object-contain border border-amber-300/30 shrink-0">
+        <!-- HIGHLIGHTED DOWNLOAD APP PROMO BOX (BELOW MARKETS, ABOVE NOTICE BOARD) -->
+        <div class="bg-gradient-to-r from-amber-500/20 via-indigo-900 to-blue-950 rounded-3xl p-4 shadow-xl border-2 border-amber-400 text-white flex items-center justify-between gap-3 relative overflow-hidden">
+            <div class="flex items-center space-x-3 min-w-0 z-10">
+                <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi App" class="w-12 h-12 rounded-2xl bg-amber-400/20 p-1.5 object-contain border border-amber-300/60 shrink-0">
                 <div class="min-w-0">
-                    <h3 class="font-black text-sm text-amber-300 tracking-wide leading-tight truncate">Download Mahalakshmi App</h3>
-                    <p class="text-[11px] text-blue-100 font-semibold mt-0.5 leading-snug">Get benefits with bonuses</p>
+                    <span class="inline-block bg-amber-400 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">🎁 Surprise Bonus</span>
+                    <h3 class="font-black text-sm text-amber-300 tracking-wide leading-tight">Download Mahalakshmi App</h3>
+                    <p class="text-[11px] text-amber-100 font-semibold mt-0.5 leading-snug">Agar aap is application ko download karoge toh bonus mein kuch na kuch surprise mil jayega!</p>
                 </div>
             </div>
-            <button onclick="redirectToDownloadPage()" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-[10px] px-3.5 py-2.5 rounded-2xl uppercase tracking-wider shadow-md shrink-0 transition-transform active:scale-95">
+            <button type="button" onclick="redirectToDownloadPage()" class="bg-amber-400 hover:bg-amber-300 text-blue-950 font-black text-[10px] px-3.5 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 transition-transform active:scale-95 z-10">
                 Download App
             </button>
         </div>
