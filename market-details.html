@@ -143,9 +143,10 @@
     let serverTimeOffset = 0;
     let todayDayKey = "";
     let selectedDayKey = "";
+    let activeDayPrice = 100;
 
     function getTodayDayKey(ms) {
-        const dayIdx = new Date(ms).getDay(); // 0 = Sun, 1 = Mon...
+        const dayIdx = new Date(ms).getDay();
         return dayIdx === 0 ? "sunday" : DAYS_ORDER[dayIdx - 1].key;
     }
 
@@ -177,14 +178,14 @@
     window.closeConfirmModal = () => document.getElementById('confirm-game-modal').classList.add('hidden');
 
     window.redirectToGamePayment = function() {
-        const price = Number(marketDocData?.price) || 100;
+        const price = Number(activeDayPrice) || Number(marketDocData?.price) || 100;
         window.location.href = `payment.html?userid=${savedMobile}&amount=${price}&market=${encodeURIComponent(marketName)}`;
     }
 
     window.handleGetGameClick = function(gamePrice) {
-        const price = Number(gamePrice) || 100;
-        if (currentUserWallet >= price) {
-            document.getElementById('confirm-price-span').innerText = "₹" + price;
+        activeDayPrice = Number(gamePrice) || Number(marketDocData?.price) || 100;
+        if (currentUserWallet >= activeDayPrice) {
+            document.getElementById('confirm-price-span').innerText = "₹" + activeDayPrice;
             document.getElementById('confirm-game-modal').classList.remove('hidden');
         } else {
             document.getElementById('deposit-modal').classList.remove('hidden');
@@ -193,7 +194,7 @@
 
     document.getElementById('btn-execute-unlock').onclick = async function() {
         closeConfirmModal();
-        const price = Number(marketDocData?.price) || 100;
+        const price = Number(activeDayPrice) || Number(marketDocData?.price) || 100;
         if (currentUserWallet >= price && savedMobile && marketName) {
             const newBalance = currentUserWallet - price;
             try {
@@ -217,10 +218,10 @@
         renderWeekAndCard();
     }
 
-    function buildNumbersGridHtml(dayGameObj, fallbackMarketData) {
-        const otcRaw = (dayGameObj && dayGameObj.otcValue) || fallbackMarketData?.otcValue || '';
-        const jodiRaw = (dayGameObj && dayGameObj.jodiValue) || fallbackMarketData?.jodiValue || '';
-        const panelRaw = (dayGameObj && dayGameObj.panelValue) || fallbackMarketData?.panelValue || '';
+    function buildNumbersGridHtml(dayGameObj) {
+        const otcRaw = (dayGameObj && dayGameObj.otcValue) || '';
+        const jodiRaw = (dayGameObj && dayGameObj.jodiValue) || '';
+        const panelRaw = (dayGameObj && dayGameObj.panelValue) || '';
 
         const otcList = otcRaw ? otcRaw.split(/[\s*\/]+/).filter(Boolean) : [];
         const jodiList = jodiRaw ? jodiRaw.split(/[\s,]+/).filter(Boolean) : [];
@@ -268,7 +269,6 @@
             selectedDayKey = visibleDays.length ? visibleDays[visibleDays.length - 1].key : todayDayKey;
         }
 
-        // Render line-by-line large day buttons
         const daysBar = document.getElementById('week-days-bar');
         daysBar.innerHTML = visibleDays.map(d => {
             const isSelected = d.key === selectedDayKey;
@@ -293,30 +293,25 @@
         const badgeEl = document.getElementById('card-action-badge');
         const contentEl = document.getElementById('card-inner-content');
 
-        const dayStatus = (selectedDayEntry && selectedDayEntry.status) || (marketDocData && marketDocData.marketStatus) || 'active';
-        const gamePrice = Number(marketDocData?.price) || 100;
-        const unlockTime = unlockedGames[marketName];
-        const isUnlockedForToday = (dayStatus === 'force_show') || (dayStatus !== 'locked' && unlockTime && (nowMs - unlockTime < 12 * 60 * 60 * 1000));
+        const dayStatus = (selectedDayEntry && selectedDayEntry.status) || 'active';
+        const gamePrice = (selectedDayEntry && selectedDayEntry.price !== undefined && selectedDayEntry.price !== '')
+            ? Number(selectedDayEntry.price)
+            : (Number(marketDocData?.price) || 100);
+        activeDayPrice = gamePrice;
 
-        if (selectedDayKey === todayDayKey) {
-            if (dayStatus === 'locked') {
-                badgeEl.innerHTML = `<div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">🔒 CLOSED</div>`;
-                contentEl.innerHTML = `<div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100 text-center">Market is currently closed</div>`;
-            } else if (isUnlockedForToday) {
-                badgeEl.innerHTML = `<div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider">✓ UNLOCKED</div>`;
-                contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry, marketDocData);
-            } else {
-                badgeEl.innerHTML = `<button onclick="handleGetGameClick(${gamePrice})" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-[10px] py-1.5 px-3 rounded-xl shadow uppercase tracking-wider transition-transform active:scale-95">🔥 GET GAME (₹${gamePrice})</button>`;
-                contentEl.innerHTML = `<p class="text-[11px] text-gray-500 font-semibold py-3 text-center">Unlock game for ₹${gamePrice} to view Open, Jodi & Panel details.</p>`;
-            }
+        const unlockTime = unlockedGames[marketName];
+        const hasValidUnlock = Boolean(unlockTime && (nowMs - unlockTime < 12 * 60 * 60 * 1000));
+        const shouldShowNumbers = (dayStatus === 'force_show') || (dayStatus === 'active' && hasValidUnlock);
+
+        if (dayStatus === 'locked') {
+            badgeEl.innerHTML = `<div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">🔒 CLOSED</div>`;
+            contentEl.innerHTML = `<div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100 text-center">Market is currently closed</div>`;
+        } else if (shouldShowNumbers) {
+            badgeEl.innerHTML = `<div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider">✓ UNLOCKED</div>`;
+            contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry);
         } else {
-            if (dayStatus === 'locked') {
-                badgeEl.innerHTML = `<div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">🔒 CLOSED</div>`;
-                contentEl.innerHTML = `<div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100 text-center">Market is currently closed</div>`;
-            } else {
-                badgeEl.innerHTML = `<div class="bg-blue-50 text-blue-900 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-blue-200">${dayMeta.label}</div>`;
-                contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry, null);
-            }
+            badgeEl.innerHTML = `<button onclick="handleGetGameClick(${gamePrice})" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-[10px] py-1.5 px-3 rounded-xl shadow uppercase tracking-wider transition-transform active:scale-95">🔥 GET GAME (₹${gamePrice})</button>`;
+            contentEl.innerHTML = `<p class="text-[11px] text-gray-500 font-semibold py-3 text-center">Unlock ${dayMeta.label} game for ₹${gamePrice} to view Open, Jodi & Panel details.</p>`;
         }
     }
 
