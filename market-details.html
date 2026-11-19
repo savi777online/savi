@@ -34,14 +34,14 @@
     <!-- MAIN CONTENT -->
     <div class="flex-1 p-4 space-y-4">
 
-        <!-- THIS WEEK (MONDAY TO SUNDAY) -->
+        <!-- THIS WEEK (LINE BY LINE DAYS) -->
         <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-3">
             <div class="flex items-center justify-between">
                 <h2 class="font-black text-xs text-blue-950 uppercase tracking-widest">📅 THIS WEEK</h2>
-                <span class="text-[10px] font-bold text-gray-400 uppercase">Mon - Sun</span>
+                <span class="text-[10px] font-bold text-gray-400 uppercase">Select Day</span>
             </div>
 
-            <div id="week-days-bar" class="grid grid-cols-7 gap-1.5">
+            <div id="week-days-bar" class="flex flex-col space-y-2">
                 <!-- Populated by JS -->
             </div>
         </div>
@@ -50,10 +50,12 @@
         <div id="day-game-card" class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 flex flex-col space-y-3">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-sm shadow-sm">⭐</div>
+                    <div class="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center shadow-sm border border-blue-100 overflow-hidden shrink-0">
+                        <img src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain">
+                    </div>
                     <div>
                         <h3 id="card-market-heading" class="font-black text-sm tracking-wider text-gray-900 uppercase">MARKET</h3>
-                        <span id="card-day-label" class="text-[10px] text-blue-700 font-bold uppercase">TODAY</span>
+                        <span id="card-day-label" class="text-[10px] text-blue-700 font-bold font-mono">--</span>
                     </div>
                 </div>
                 <div id="card-action-badge"></div>
@@ -83,7 +85,7 @@
         <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">⚠️</div>
             <h3 class="text-gray-800 font-black text-lg">Insufficient Balance</h3>
-            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock today's game. Please add money to proceed.</p>
+            <p class="text-xs text-gray-500 font-semibold leading-relaxed">Your wallet does not have enough balance to unlock this game. Please add money to proceed.</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button onclick="closeDepositModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">Cancel</button>
                 <button onclick="redirectToGamePayment()" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Add Balance</button>
@@ -96,7 +98,7 @@
         <div class="bg-white rounded-3xl p-6 w-full max-w-[330px] space-y-4 text-center shadow-2xl">
             <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">🎯</div>
             <h3 class="text-gray-800 font-black text-lg">Confirm Game Unlock</h3>
-            <p id="confirm-modal-text" class="text-xs text-gray-500 font-semibold leading-relaxed">Do you want to spend <span id="confirm-price-span" class="font-black text-blue-600">₹0</span> to unlock today's game for 12 hours?</p>
+            <p id="confirm-modal-text" class="text-xs text-gray-500 font-semibold leading-relaxed">Do you want to spend <span id="confirm-price-span" class="font-black text-blue-600">₹0</span> to unlock this game for 12 hours?</p>
             <div class="grid grid-cols-2 gap-3 pt-2">
                 <button onclick="closeConfirmModal()" class="bg-gray-100 text-gray-600 font-bold py-2.5 rounded-xl text-xs uppercase">No</button>
                 <button id="btn-execute-unlock" class="bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow">Yes, Unlock</button>
@@ -124,13 +126,13 @@
     const db = getFirestore(app);
 
     const DAYS_ORDER = [
-        { key: "monday", short: "MON", label: "Monday" },
-        { key: "tuesday", short: "TUE", label: "Tuesday" },
-        { key: "wednesday", short: "WED", label: "Wednesday" },
-        { key: "thursday", short: "THU", label: "Thursday" },
-        { key: "friday", short: "FRI", label: "Friday" },
-        { key: "saturday", short: "SAT", label: "Saturday" },
-        { key: "sunday", short: "SUN", label: "Sunday" }
+        { key: "monday", label: "Monday" },
+        { key: "tuesday", label: "Tuesday" },
+        { key: "wednesday", label: "Wednesday" },
+        { key: "thursday", label: "Thursday" },
+        { key: "friday", label: "Friday" },
+        { key: "saturday", label: "Saturday" },
+        { key: "sunday", label: "Sunday" }
     ];
 
     let savedMobile = "";
@@ -145,6 +147,26 @@
     function getTodayDayKey(ms) {
         const dayIdx = new Date(ms).getDay(); // 0 = Sun, 1 = Mon...
         return dayIdx === 0 ? "sunday" : DAYS_ORDER[dayIdx - 1].key;
+    }
+
+    function getVisibleDays(weeklyMap, currentDayKey) {
+        const currentIdx = DAYS_ORDER.findIndex(d => d.key === currentDayKey);
+        return DAYS_ORDER.filter((d, idx) => {
+            const hasEntry = weeklyMap && Object.prototype.hasOwnProperty.call(weeklyMap, d.key);
+            if (currentIdx === -1) return true;
+            return idx <= currentIdx || hasEntry;
+        });
+    }
+
+    function getDayTimingText(dayKey, weeklyMap, fallbackData) {
+        const entry = weeklyMap && weeklyMap[dayKey];
+        if (entry && entry.timing && entry.timing.trim()) {
+            return entry.timing.trim();
+        }
+        if (dayKey === todayDayKey && fallbackData && fallbackData.gameDate && fallbackData.gameDate.trim()) {
+            return fallbackData.gameDate.trim();
+        }
+        return "--";
     }
 
     window.goBackDashboard = function() {
@@ -240,51 +262,61 @@
         if (!selectedDayKey) selectedDayKey = todayDayKey;
 
         const weeklyMap = (marketDocData && marketDocData.weeklyGames) || {};
+        const visibleDays = getVisibleDays(weeklyMap, todayDayKey);
 
-        // Render Mon - Sun buttons
+        if (!visibleDays.some(d => d.key === selectedDayKey)) {
+            selectedDayKey = visibleDays.length ? visibleDays[visibleDays.length - 1].key : todayDayKey;
+        }
+
+        // Render line-by-line large day buttons
         const daysBar = document.getElementById('week-days-bar');
-        daysBar.innerHTML = DAYS_ORDER.map(d => {
+        daysBar.innerHTML = visibleDays.map(d => {
             const isSelected = d.key === selectedDayKey;
-            const isToday = d.key === todayDayKey;
+            const timingStr = getDayTimingText(d.key, weeklyMap, marketDocData);
             const activeClass = isSelected
-                ? "bg-blue-900 text-white border-blue-900 shadow"
-                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-blue-50";
+                ? "bg-blue-900 text-white border-blue-900 shadow-md"
+                : "bg-slate-50 text-slate-800 border-slate-200 hover:bg-blue-50";
             return `
-                <button onclick="selectWeekDay('${d.key}')" class="py-2 px-1 rounded-2xl border text-center transition-all flex flex-col items-center ${activeClass}">
-                    <span class="text-[10px] font-black tracking-wide">${d.short}</span>
-                    <span class="text-[8px] font-bold mt-0.5 ${isSelected ? 'text-amber-300' : (isToday ? 'text-emerald-600' : 'text-transparent')}">${isToday ? 'TODAY' : '•'}</span>
+                <button type="button" onclick="selectWeekDay('${d.key}')" class="w-full px-4 py-3 rounded-2xl border text-left transition-all flex items-center justify-between ${activeClass}">
+                    <span class="text-sm font-black tracking-wide">${d.label}</span>
+                    <span class="text-[11px] font-mono font-bold ${isSelected ? 'text-amber-300' : 'text-slate-500'}">${timingStr}</span>
                 </button>`;
         }).join('');
 
         const dayMeta = DAYS_ORDER.find(d => d.key === selectedDayKey) || DAYS_ORDER[0];
-        const isTodaySelected = selectedDayKey === todayDayKey;
+        const selectedDayEntry = weeklyMap[selectedDayKey] || null;
+        const selectedDayTiming = getDayTimingText(selectedDayKey, weeklyMap, marketDocData);
+
         document.getElementById('card-market-heading').innerText = marketName;
-        document.getElementById('card-day-label').innerText = isTodaySelected ? `${dayMeta.label} (Today)` : `${dayMeta.label} (Weekly Record)`;
+        document.getElementById('card-day-label').innerText = `${dayMeta.label} • ${selectedDayTiming}`;
 
         const badgeEl = document.getElementById('card-action-badge');
         const contentEl = document.getElementById('card-inner-content');
 
-        const marketStatus = (marketDocData && marketDocData.marketStatus) || 'active';
+        const dayStatus = (selectedDayEntry && selectedDayEntry.status) || (marketDocData && marketDocData.marketStatus) || 'active';
         const gamePrice = Number(marketDocData?.price) || 100;
         const unlockTime = unlockedGames[marketName];
-        const isUnlockedForToday = (marketStatus === 'force_show') || (marketStatus !== 'locked' && unlockTime && (nowMs - unlockTime < 12 * 60 * 60 * 1000));
+        const isUnlockedForToday = (dayStatus === 'force_show') || (dayStatus !== 'locked' && unlockTime && (nowMs - unlockTime < 12 * 60 * 60 * 1000));
 
-        // If user is viewing TODAY, apply normal unlock/lock/price logic
-        if (isTodaySelected) {
-            if (marketStatus === 'locked') {
+        if (selectedDayKey === todayDayKey) {
+            if (dayStatus === 'locked') {
                 badgeEl.innerHTML = `<div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">🔒 CLOSED</div>`;
                 contentEl.innerHTML = `<div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100 text-center">Market is currently closed</div>`;
             } else if (isUnlockedForToday) {
                 badgeEl.innerHTML = `<div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider">✓ UNLOCKED</div>`;
-                contentEl.innerHTML = buildNumbersGridHtml(weeklyMap[selectedDayKey], marketDocData);
+                contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry, marketDocData);
             } else {
                 badgeEl.innerHTML = `<button onclick="handleGetGameClick(${gamePrice})" class="bg-amber-400 hover:bg-amber-500 text-blue-950 font-black text-[10px] py-1.5 px-3 rounded-xl shadow uppercase tracking-wider transition-transform active:scale-95">🔥 GET GAME (₹${gamePrice})</button>`;
-                contentEl.innerHTML = `<p class="text-[11px] text-gray-500 font-semibold py-3 text-center">Unlock today's game for ₹${gamePrice} to view Open, Jodi & Panel details.</p>`;
+                contentEl.innerHTML = `<p class="text-[11px] text-gray-500 font-semibold py-3 text-center">Unlock game for ₹${gamePrice} to view Open, Jodi & Panel details.</p>`;
             }
         } else {
-            // Viewing another day of THIS WEEK (e.g., Monday, yesterday, or other day)
-            badgeEl.innerHTML = `<div class="bg-blue-50 text-blue-900 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-blue-200">${dayMeta.short}</div>`;
-            contentEl.innerHTML = buildNumbersGridHtml(weeklyMap[selectedDayKey], null);
+            if (dayStatus === 'locked') {
+                badgeEl.innerHTML = `<div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-gray-200">🔒 CLOSED</div>`;
+                contentEl.innerHTML = `<div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-3 px-4 rounded-2xl uppercase tracking-wider border border-gray-100 text-center">Market is currently closed</div>`;
+            } else {
+                badgeEl.innerHTML = `<div class="bg-blue-50 text-blue-900 font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-blue-200">${dayMeta.label}</div>`;
+                contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry, null);
+            }
         }
     }
 
