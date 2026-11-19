@@ -587,9 +587,12 @@
 
                     return `
                         <div class="bg-white border ${isDayOpen ? 'border-blue-400 shadow-sm' : 'border-slate-200'} rounded-2xl overflow-hidden">
-                            <div onclick="toggleDayEditor('${id}', '${d.key}')" class="px-3.5 py-2.5 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 transition-colors">
-                                <span class="text-xs font-black text-blue-950">${d.label}</span>
-                                <span class="text-[10px] font-mono text-slate-500 truncate max-w-[160px]">${curTiming || 'Tap to edit'}</span>
+                            <div class="px-3.5 py-2.5 flex items-center justify-between gap-2">
+                                <div onclick="toggleDayEditor('${id}', '${d.key}')" class="flex-1 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 rounded-xl py-0.5 pr-1 transition-colors min-w-0">
+                                    <span class="text-xs font-black text-blue-950">${d.label}</span>
+                                    <span class="text-[10px] font-mono text-slate-500 truncate max-w-[125px]">${curTiming || 'Tap to edit'}</span>
+                                </div>
+                                <button type="button" onclick="event.stopPropagation(); clearSingleDayData('${id}', '${d.key}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[9px] font-black px-2 py-1 rounded-lg uppercase shrink-0">Clear Data</button>
                             </div>
                             ${editorFormHtml}
                         </div>`;
@@ -603,16 +606,40 @@
 
             return `
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-3.5 flex justify-between items-center cursor-pointer" onclick="toggleMarketDays('${id}')">
-                        <div class="flex items-center space-x-2">
-                            <span class="font-black text-gray-900 text-xs uppercase">${id}</span>
-                            <span class="text-[11px] bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded-xl font-black font-mono">₹${m.price || 100}</span>
+                    <div class="p-3.5 flex justify-between items-center cursor-pointer gap-2" onclick="toggleMarketDays('${id}')">
+                        <div class="flex items-center space-x-2 min-w-0">
+                            <span class="font-black text-gray-900 text-xs uppercase truncate">${id}</span>
+                            <span class="text-[11px] bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded-xl font-black font-mono shrink-0">₹${m.price || 100}</span>
                         </div>
-                        <button onclick="event.stopPropagation(); deleteMarket('${id}')" class="text-red-500 text-xs font-bold px-2.5 py-1 bg-red-50 rounded-xl">Delete</button>
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <button type="button" onclick="event.stopPropagation(); clearMarketAllData('${id}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-black px-2.5 py-1 rounded-xl uppercase">Clear Data</button>
+                            <button type="button" onclick="event.stopPropagation(); deleteMarket('${id}')" class="text-red-500 text-xs font-bold px-2 py-1 bg-red-50 rounded-xl">Delete</button>
+                        </div>
                     </div>
                     ${daysSectionHtml}
                 </div>`;
         }).join('');
+    }
+
+    window.clearMarketAllData = async function(id) {
+        if (!confirm(`Clear all weekly data for ${id}?`)) return;
+        await setDoc(doc(db, "markets", id), {
+            weeklyGames: {}
+        }, { merge: true });
+        alert(`Cleared all data for ${id}.`);
+    }
+
+    window.clearSingleDayData = async function(id, dayKey) {
+        const dayLabel = (ADMIN_DAYS.find(d => d.key === dayKey)?.label) || dayKey;
+        if (!confirm(`Clear ${dayLabel} data for ${id}?`)) return;
+        const existingMarket = globalMarketsCache[id] || {};
+        const existingWeekly = { ...(existingMarket.weeklyGames || {}) };
+        delete existingWeekly[dayKey];
+
+        await setDoc(doc(db, "markets", id), {
+            weeklyGames: existingWeekly
+        }, { merge: true });
+        alert(`Cleared ${dayLabel} data for ${id}.`);
     }
 
     window.toggleMarketDays = function(id) {
