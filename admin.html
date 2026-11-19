@@ -169,7 +169,7 @@
                         <input type="number" id="mkt-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold text-blue-600">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Market Global Status</label>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Selected Day Status</label>
                         <select id="mkt-status" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold text-gray-800">
                             <option value="active">Active (Normal)</option>
                             <option value="locked">Locked (Closed)</option>
@@ -182,7 +182,7 @@
                     <input type="text" id="mkt-date" placeholder="19/11/2026 9:45 AM" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono">
                 </div>
 
-                <!-- WEEKLY DAY SELECTOR (MON - SUN) FOR EDITING PAST / ANY DAY -->
+                <!-- WEEKLY DAY SELECTOR (MON - SUN) FOR EDITING ANY DAY'S STATUS, TIMING & GAME -->
                 <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-3 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <span class="text-[10px] font-black text-blue-950 uppercase tracking-wider">📅 Week Day Editor (Mon - Sun)</span>
@@ -339,11 +339,13 @@
         const m = globalMarketsCache[marketId];
         const weekly = (m && m.weeklyGames && m.weeklyGames[dayKey]) || null;
         if (weekly) {
+            document.getElementById('mkt-status').value = weekly.status || (m && m.marketStatus) || 'active';
             document.getElementById('mkt-day-timing').value = weekly.timing || '';
             document.getElementById('mkt-otc').value = weekly.otcValue || '';
             document.getElementById('mkt-jodi').value = weekly.jodiValue || '';
             document.getElementById('mkt-panel').value = weekly.panelValue || '';
         } else {
+            document.getElementById('mkt-status').value = (m && m.marketStatus) || 'active';
             document.getElementById('mkt-day-timing').value = (m && m.gameDate) || '';
             document.getElementById('mkt-otc').value = (m && m.otcValue) || '';
             document.getElementById('mkt-jodi').value = (m && m.jodiValue) || '';
@@ -790,11 +792,13 @@
             let updatePayload = {};
 
             if (passType && passType.startsWith("Game: ")) {
+                // यह किसी विशेष गेम के लिए पेमेंट है: वॉलेट बैलेंस नहीं बढ़ेगा, सिर्फ गेम अनलॉक होगा!
                 const gameName = passType.replace("Game: ", "").trim();
                 let unlocked = userSnap.exists() ? (userSnap.data().unlockedGames || {}) : {};
-                unlocked[gameName] = Date.now();
+                unlocked[gameName] = Date.now(); // 12 घंटे के लिए अनलॉक
                 updatePayload.unlockedGames = unlocked;
             } else {
+                // यह सामान्य 'Add Balance' (वॉलेट रिचार्ज) है: केवल वॉलेट बैलेंस बढ़ेगा
                 let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
                 const newBal = currentBal + Number(amount);
                 updatePayload.balance = newBal;
@@ -995,7 +999,6 @@
         document.getElementById('mkt-serial').value = m.serialNo || '';
         document.getElementById('mkt-date').value = m.gameDate || '';
         document.getElementById('mkt-price').value = m.price || 100;
-        document.getElementById('mkt-status').value = m.marketStatus || 'active';
         renderAdminWeekDayButtons();
         loadDayDataIntoFields(id, currentEditDayKey);
     }
@@ -1019,6 +1022,7 @@
         const name = document.getElementById('mkt-name').value.trim().toUpperCase();
         if(!name) return alert("Enter Game Name.");
 
+        const selectedStatus = document.getElementById('mkt-status').value;
         const dayTiming = document.getElementById('mkt-day-timing').value.trim();
         const otcVal = document.getElementById('mkt-otc').value.trim();
         const jodiVal = document.getElementById('mkt-jodi').value.trim();
@@ -1026,6 +1030,7 @@
 
         const existingWeekly = (globalMarketsCache[name] && globalMarketsCache[name].weeklyGames) || {};
         existingWeekly[currentEditDayKey] = {
+            status: selectedStatus,
             timing: dayTiming,
             otcValue: otcVal,
             jodiValue: jodiVal,
@@ -1037,7 +1042,7 @@
             serialNo: Number(document.getElementById('mkt-serial').value) || 0,
             gameDate: document.getElementById('mkt-date').value.trim() || dayTiming,
             price: Number(document.getElementById('mkt-price').value) || 100,
-            marketStatus: document.getElementById('mkt-status').value,
+            marketStatus: selectedStatus,
             otcValue: otcVal,
             jodiValue: jodiVal,
             panelValue: panelVal,
@@ -1045,7 +1050,7 @@
         }, { merge: true });
 
         const dayLabel = (ADMIN_DAYS.find(d => d.key === currentEditDayKey)?.label) || currentEditDayKey.toUpperCase();
-        alert(`Game details published for ${name} (${dayLabel}).`);
+        alert(`Game details published for ${name} (${dayLabel} - ${selectedStatus.toUpperCase()}).`);
     }
 
     window.toggleUserBlockStatus = async function(userId, currentlyBlocked) {
