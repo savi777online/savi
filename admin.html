@@ -151,67 +151,34 @@
 
         <!-- GAMES TAB -->
         <div id="tab-games" class="space-y-4 hidden">
+            <!-- ADD NEW MARKET ONLY -->
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
-                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">Add/Edit Game Target</h3>
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">Add Game</h3>
                 <div class="grid grid-cols-3 gap-2">
                     <div class="col-span-2">
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Name</label>
-                        <input type="text" id="mkt-name" oninput="onMarketNameInput()" placeholder="SRIDEVI" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs uppercase font-bold">
+                        <input type="text" id="new-mkt-name" placeholder="SRIDEVI" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs uppercase font-bold">
                     </div>
                     <div>
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">Serial Sort</label>
-                        <input type="number" id="mkt-serial" placeholder="1" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold">
+                        <input type="number" id="new-mkt-serial" placeholder="1" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Price (₹)</label>
-                        <input type="number" id="mkt-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold text-blue-600">
+                        <input type="number" id="new-mkt-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold text-blue-600">
                     </div>
                     <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Selected Day Status</label>
-                        <select id="mkt-status" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold text-gray-800">
-                            <option value="active">Active (Normal)</option>
-                            <option value="locked">Locked (Closed)</option>
-                            <option value="force_show">Force Show to Everyone (Override)</option>
-                        </select>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Display Timestamp</label>
+                        <input type="text" id="new-mkt-date" placeholder="19/11/2026 9:45 AM" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Display Timestamp (Market Header)</label>
-                    <input type="text" id="mkt-date" placeholder="19/11/2026 9:45 AM" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono">
-                </div>
-
-                <!-- WEEKLY DAY SELECTOR (MON - SUN) FOR EDITING ONLY SELECTED DAY -->
-                <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-3 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-black text-blue-950 uppercase tracking-wider">📅 Week Day Editor (Mon - Sun)</span>
-                        <span id="active-edit-day-badge" class="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded-lg uppercase">THURSDAY</span>
-                    </div>
-                    <div id="admin-week-days-bar" class="grid grid-cols-7 gap-1"></div>
-                    <div>
-                        <label class="block text-[10px] text-blue-900 font-bold mb-1">🕒 Selected Day Timing / Date</label>
-                        <input type="text" id="mkt-day-timing" placeholder="e.g. 17/11/2026 | 11:30 AM - 01:30 PM" class="w-full bg-white border border-blue-200 rounded-xl p-2 text-xs font-mono">
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">🎲 OTC Value Line</label>
-                        <input type="text" id="mkt-otc" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">🔗 Jodi Value Line</label>
-                        <input type="text" id="mkt-jodi" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">📊 Panel Value Line</label>
-                        <input type="text" id="mkt-panel" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold">
-                    </div>
-                </div>
-                <button onclick="addOrUpdateMarket()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Publish Game Update</button>
+                <button onclick="addNewMarketOnly()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Add Market</button>
             </div>
-            <div id="admin-markets-list" class="space-y-2"></div>
+
+            <!-- MARKETS LIST (CLICK MARKET -> MON-SUN -> CLICK DAY -> EDIT DAY) -->
+            <div id="admin-markets-list" class="space-y-2.5"></div>
         </div>
 
         <!-- USERS TAB -->
@@ -302,19 +269,17 @@
     const storage = getStorage(app);
 
     const ADMIN_DAYS = [
-        { key: "monday", short: "MON", label: "MONDAY" },
-        { key: "tuesday", short: "TUE", label: "TUESDAY" },
-        { key: "wednesday", short: "WED", label: "WEDNESDAY" },
-        { key: "thursday", short: "THU", label: "THURSDAY" },
-        { key: "friday", short: "FRI", label: "FRIDAY" },
-        { key: "saturday", short: "SAT", label: "SATURDAY" },
-        { key: "sunday", short: "SUN", label: "SUNDAY" }
+        { key: "monday", label: "Monday" },
+        { key: "tuesday", label: "Tuesday" },
+        { key: "wednesday", label: "Wednesday" },
+        { key: "thursday", label: "Thursday" },
+        { key: "friday", label: "Friday" },
+        { key: "saturday", label: "Saturday" },
+        { key: "sunday", label: "Sunday" }
     ];
 
-    let currentEditDayKey = (() => {
-        const dIdx = new Date().getDay();
-        return dIdx === 0 ? "sunday" : ADMIN_DAYS[dIdx - 1].key;
-    })();
+    let expandedMarketId = null;
+    let expandedDayKey = null;
 
     let globalMarketsCache = {};
     let cachedUsersList = [];
@@ -323,53 +288,6 @@
 
     let mediaRecorderEngine = null;
     let registeredAudioChunks = [];
-
-    function renderAdminWeekDayButtons() {
-        const bar = document.getElementById('admin-week-days-bar');
-        if (!bar) return;
-        bar.innerHTML = ADMIN_DAYS.map(d => {
-            const active = d.key === currentEditDayKey;
-            return `<button type="button" onclick="selectAdminEditDay('${d.key}')" class="py-1.5 rounded-xl text-[10px] font-black border transition-colors ${active ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-white text-blue-950 border-blue-200 hover:bg-blue-100'}">${d.short}</button>`;
-        }).join('');
-        const meta = ADMIN_DAYS.find(x => x.key === currentEditDayKey) || ADMIN_DAYS[0];
-        document.getElementById('active-edit-day-badge').innerText = meta.label;
-    }
-
-    function loadDayDataIntoFields(marketId, dayKey) {
-        const m = globalMarketsCache[marketId];
-        const weekly = (m && m.weeklyGames && m.weeklyGames[dayKey]) || null;
-        if (weekly) {
-            document.getElementById('mkt-status').value = weekly.status || 'active';
-            document.getElementById('mkt-day-timing').value = weekly.timing || '';
-            document.getElementById('mkt-otc').value = weekly.otcValue || '';
-            document.getElementById('mkt-jodi').value = weekly.jodiValue || '';
-            document.getElementById('mkt-panel').value = weekly.panelValue || '';
-        } else {
-            document.getElementById('mkt-status').value = 'active';
-            document.getElementById('mkt-day-timing').value = '';
-            document.getElementById('mkt-otc').value = '';
-            document.getElementById('mkt-jodi').value = '';
-            document.getElementById('mkt-panel').value = '';
-        }
-    }
-
-    window.selectAdminEditDay = function(dayKey) {
-        currentEditDayKey = dayKey;
-        renderAdminWeekDayButtons();
-        const mktId = document.getElementById('mkt-name').value.trim().toUpperCase();
-        if (mktId && globalMarketsCache[mktId]) {
-            loadDayDataIntoFields(mktId, dayKey);
-        }
-    }
-
-    window.onMarketNameInput = function() {
-        const mktId = document.getElementById('mkt-name').value.trim().toUpperCase();
-        if (mktId && globalMarketsCache[mktId]) {
-            loadDayDataIntoFields(mktId, currentEditDayKey);
-        }
-    }
-
-    renderAdminWeekDayButtons();
 
     const inputsZone = document.getElementById('slider-inputs-zone');
     inputsZone.innerHTML = '';
@@ -611,6 +529,157 @@
         saveSystemConfig();
     }
 
+    function renderMarketsAccordionList() {
+        const list = document.getElementById('admin-markets-list');
+        if (!list) return;
+        const sortedIds = Object.keys(globalMarketsCache).sort((a, b) => (Number(globalMarketsCache[a].serialNo) || 999) - (Number(globalMarketsCache[b].serialNo) || 999));
+
+        list.innerHTML = sortedIds.map(id => {
+            const m = globalMarketsCache[id];
+            const isMktOpen = expandedMarketId === id;
+            const weeklyMap = (m && m.weeklyGames) || {};
+
+            let daysSectionHtml = "";
+            if (isMktOpen) {
+                const dayRowsHtml = ADMIN_DAYS.map(d => {
+                    const isDayOpen = expandedDayKey === d.key;
+                    const dayObj = weeklyMap[d.key] || {};
+                    const curStatus = dayObj.status || 'active';
+                    const curTiming = dayObj.timing || '';
+                    const curOtc = dayObj.otcValue || '';
+                    const curJodi = dayObj.jodiValue || '';
+                    const curPanel = dayObj.panelValue || '';
+
+                    const editorFormHtml = isDayOpen ? `
+                        <div class="bg-slate-50 border-t border-slate-200 p-3 space-y-2.5 rounded-b-2xl" onclick="event.stopPropagation()">
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">${d.label} Status</label>
+                                <select id="day-status-${id}-${d.key}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold text-gray-800">
+                                    <option value="active" ${curStatus === 'active' ? 'selected' : ''}>Active (Normal)</option>
+                                    <option value="locked" ${curStatus === 'locked' ? 'selected' : ''}>Locked (Closed)</option>
+                                    <option value="force_show" ${curStatus === 'force_show' ? 'selected' : ''}>Force Show to Everyone (Override)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">🕒 ${d.label} Timing / Date</label>
+                                <input type="text" id="day-timing-${id}-${d.key}" value="${curTiming.replace(/"/g, '&quot;')}" placeholder="e.g. 19/11/2026 | 11:30 AM - 01:30 PM" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">🎲 OTC Value Line</label>
+                                <input type="text" id="day-otc-${id}-${d.key}" value="${curOtc.replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">🔗 Jodi Value Line</label>
+                                <input type="text" id="day-jodi-${id}-${d.key}" value="${curJodi.replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">📊 Panel Value Line</label>
+                                <input type="text" id="day-panel-${id}-${d.key}" value="${curPanel.replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold">
+                            </div>
+                            <button type="button" onclick="saveMarketDayUpdate('${id}', '${d.key}')" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow">Save ${d.label}</button>
+                        </div>` : "";
+
+                    return `
+                        <div class="bg-white border ${isDayOpen ? 'border-blue-400 shadow-sm' : 'border-slate-200'} rounded-2xl overflow-hidden">
+                            <div onclick="toggleDayEditor('${id}', '${d.key}')" class="px-3.5 py-2.5 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 transition-colors">
+                                <span class="text-xs font-black text-blue-950">${d.label}</span>
+                                <span class="text-[10px] font-mono text-slate-500 truncate max-w-[160px]">${curTiming || 'Tap to edit'}</span>
+                            </div>
+                            ${editorFormHtml}
+                        </div>`;
+                }).join('');
+
+                daysSectionHtml = `
+                    <div class="px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-2 bg-slate-50/60" onclick="event.stopPropagation()">
+                        ${dayRowsHtml}
+                    </div>`;
+            }
+
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-3.5 flex justify-between items-center cursor-pointer" onclick="toggleMarketDays('${id}')">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-black text-gray-900 text-xs uppercase">${id}</span>
+                            <span class="text-[11px] bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded-xl font-black font-mono">₹${m.price || 100}</span>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteMarket('${id}')" class="text-red-500 text-xs font-bold px-2.5 py-1 bg-red-50 rounded-xl">Delete</button>
+                    </div>
+                    ${daysSectionHtml}
+                </div>`;
+        }).join('');
+    }
+
+    window.toggleMarketDays = function(id) {
+        if (expandedMarketId === id) {
+            expandedMarketId = null;
+            expandedDayKey = null;
+        } else {
+            expandedMarketId = id;
+            expandedDayKey = null;
+        }
+        renderMarketsAccordionList();
+    }
+
+    window.toggleDayEditor = function(id, dayKey) {
+        if (expandedDayKey === dayKey) {
+            expandedDayKey = null;
+        } else {
+            expandedDayKey = dayKey;
+        }
+        renderMarketsAccordionList();
+    }
+
+    window.addNewMarketOnly = async function() {
+        const name = document.getElementById('new-mkt-name').value.trim().toUpperCase();
+        if (!name) return alert("Enter Game Name.");
+
+        const serialNo = Number(document.getElementById('new-mkt-serial').value) || 0;
+        const price = Number(document.getElementById('new-mkt-price').value) || 100;
+        const gameDate = document.getElementById('new-mkt-date').value.trim();
+
+        const existing = globalMarketsCache[name] || {};
+        await setDoc(doc(db, "markets", name), {
+            serialNo: serialNo,
+            price: price,
+            gameDate: gameDate || existing.gameDate || '',
+            marketStatus: existing.marketStatus || 'active',
+            weeklyGames: existing.weeklyGames || {}
+        }, { merge: true });
+
+        document.getElementById('new-mkt-name').value = '';
+        document.getElementById('new-mkt-serial').value = '';
+        document.getElementById('new-mkt-price').value = '';
+        document.getElementById('new-mkt-date').value = '';
+        alert("Market added!");
+    }
+
+    window.saveMarketDayUpdate = async function(id, dayKey) {
+        const selectedStatus = document.getElementById(`day-status-${id}-${dayKey}`).value;
+        const dayTiming = document.getElementById(`day-timing-${id}-${dayKey}`).value.trim();
+        const otcVal = document.getElementById(`day-otc-${id}-${dayKey}`).value.trim();
+        const jodiVal = document.getElementById(`day-jodi-${id}-${dayKey}`).value.trim();
+        const panelVal = document.getElementById(`day-panel-${id}-${dayKey}`).value.trim();
+
+        const existingMarket = globalMarketsCache[id] || {};
+        const existingWeekly = { ...(existingMarket.weeklyGames || {}) };
+
+        existingWeekly[dayKey] = {
+            status: selectedStatus,
+            timing: dayTiming,
+            otcValue: otcVal,
+            jodiValue: jodiVal,
+            panelValue: panelVal,
+            updatedAt: Date.now()
+        };
+
+        await setDoc(doc(db, "markets", id), {
+            weeklyGames: existingWeekly
+        }, { merge: true });
+
+        const dayLabel = (ADMIN_DAYS.find(d => d.key === dayKey)?.label) || dayKey;
+        alert(`Saved ${id} - ${dayLabel}!`);
+    }
+
     function loadLiveHooks() {
         onSnapshot(doc(db, "system_config", "settings"), (snap) => {
             if(snap.exists()) {
@@ -689,28 +758,11 @@
         });
 
         onSnapshot(collection(db, "markets"), (querySnapshot) => {
-            const list = document.getElementById('admin-markets-list');
-            list.innerHTML = '';
-            const sorted = querySnapshot.docs.sort((a,b) => (Number(a.data().serialNo)||999) - (Number(b.data().serialNo)||999));
-            sorted.forEach(doc => {
-                const m = doc.data();
-                globalMarketsCache[doc.id] = m;
-                const status = m.marketStatus || 'active';
-                let statusBadge = '<span class="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold ml-1">Active</span>';
-                if(status === 'locked') statusBadge = '<span class="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold ml-1">Locked</span>';
-                if(status === 'force_show') statusBadge = '<span class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold ml-1">Force Show</span>';
-
-                list.innerHTML += `
-                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 flex justify-between items-center cursor-pointer shadow-sm" onclick="populateMarketForm('${doc.id}')">
-                        <div>
-                            <span class="text-xs font-black text-blue-900 font-mono mr-1">[${m.serialNo}]</span>
-                            <span class="font-bold text-gray-800 text-xs uppercase mr-2">${doc.id}</span>
-                            <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-xl font-bold">₹${m.price || 100}</span>
-                            ${statusBadge}
-                        </div>
-                        <button onclick="event.stopPropagation(); deleteMarket('${doc.id}')" class="text-red-500 text-xs font-bold px-2 py-1 bg-red-50 rounded-xl">Delete</button>
-                    </div>`;
+            globalMarketsCache = {};
+            querySnapshot.forEach(doc => {
+                globalMarketsCache[doc.id] = doc.data();
             });
+            renderMarketsAccordionList();
         });
 
         onSnapshot(collection(db, "users"), (querySnapshot) => {
@@ -792,11 +844,13 @@
             let updatePayload = {};
 
             if (passType && passType.startsWith("Game: ")) {
+                // यह किसी विशेष गेम के लिए पेमेंट है: वॉलेट बैलेंस नहीं बढ़ेगा, सिर्फ गेम अनलॉक होगा!
                 const gameName = passType.replace("Game: ", "").trim();
                 let unlocked = userSnap.exists() ? (userSnap.data().unlockedGames || {}) : {};
-                unlocked[gameName] = Date.now();
+                unlocked[gameName] = Date.now(); // 12 घंटे के लिए अनलॉक
                 updatePayload.unlockedGames = unlocked;
             } else {
+                // यह सामान्य 'Add Balance' (वॉलेट रिचार्ज) है: केवल वॉलेट बैलेंस बढ़ेगा
                 let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
                 const newBal = currentBal + Number(amount);
                 updatePayload.balance = newBal;
@@ -991,16 +1045,6 @@
         }
     }
 
-    window.populateMarketForm = function(id) {
-        const m = globalMarketsCache[id]; if(!m) return;
-        document.getElementById('mkt-name').value = id;
-        document.getElementById('mkt-serial').value = m.serialNo || '';
-        document.getElementById('mkt-date').value = m.gameDate || '';
-        document.getElementById('mkt-price').value = m.price || 100;
-        renderAdminWeekDayButtons();
-        loadDayDataIntoFields(id, currentEditDayKey);
-    }
-
     window.saveSystemConfig = async function() {
         try {
             const slider_images = [];
@@ -1016,51 +1060,21 @@
         } catch(e) { alert("Save failed."); }
     }
 
-    window.addOrUpdateMarket = async function() {
-        const name = document.getElementById('mkt-name').value.trim().toUpperCase();
-        if(!name) return alert("Enter Game Name.");
-
-        const selectedStatus = document.getElementById('mkt-status').value;
-        const dayTiming = document.getElementById('mkt-day-timing').value.trim();
-        const otcVal = document.getElementById('mkt-otc').value.trim();
-        const jodiVal = document.getElementById('mkt-jodi').value.trim();
-        const panelVal = document.getElementById('mkt-panel').value.trim();
-
-        const existingMarket = globalMarketsCache[name] || {};
-        const existingWeekly = { ...(existingMarket.weeklyGames || {}) };
-
-        existingWeekly[currentEditDayKey] = {
-            status: selectedStatus,
-            timing: dayTiming,
-            otcValue: otcVal,
-            jodiValue: jodiVal,
-            panelValue: panelVal,
-            updatedAt: Date.now()
-        };
-
-        const payload = {
-            serialNo: Number(document.getElementById('mkt-serial').value) || 0,
-            gameDate: document.getElementById('mkt-date').value.trim() || existingMarket.gameDate || '',
-            price: Number(document.getElementById('mkt-price').value) || 100,
-            weeklyGames: existingWeekly
-        };
-
-        if (!existingMarket.marketStatus) {
-            payload.marketStatus = selectedStatus;
-        }
-
-        await setDoc(doc(db, "markets", name), payload, { merge: true });
-
-        const dayLabel = (ADMIN_DAYS.find(d => d.key === currentEditDayKey)?.label) || currentEditDayKey.toUpperCase();
-        alert(`Game details published for ${name} (${dayLabel} - ${selectedStatus.toUpperCase()}).`);
-    }
-
     window.toggleUserBlockStatus = async function(userId, currentlyBlocked) {
         await updateDoc(doc(db, "users", userId), { status: currentlyBlocked ? "allowed" : "blocked" });
         alert(currentlyBlocked ? "User unblocked." : "User blocked.");
     }
 
-    window.deleteMarket = async function(id) { if(confirm("Wipe market?")) await deleteDoc(doc(db, "markets", id)); }
+    window.deleteMarket = async function(id) {
+        if(confirm("Wipe market?")) {
+            if (expandedMarketId === id) {
+                expandedMarketId = null;
+                expandedDayKey = null;
+            }
+            await deleteDoc(doc(db, "markets", id));
+        }
+    }
+
     window.deleteUser = async function(id) { if(confirm("Permanently delete this user from database?")) await deleteDoc(doc(db, "users", id)); }
 </script>
 </body>
