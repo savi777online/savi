@@ -166,7 +166,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Price (₹)</label>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Default Game Price (₹)</label>
                         <input type="number" id="new-mkt-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold text-blue-600">
                     </div>
                     <div>
@@ -545,6 +545,7 @@
                     const isDayOpen = expandedDayKey === d.key;
                     const dayObj = weeklyMap[d.key] || {};
                     const curStatus = dayObj.status || 'active';
+                    const curPrice = dayObj.price !== undefined && dayObj.price !== '' ? dayObj.price : (m.price || 100);
                     const curTiming = dayObj.timing || '';
                     const curOtc = dayObj.otcValue || '';
                     const curJodi = dayObj.jodiValue || '';
@@ -552,13 +553,19 @@
 
                     const editorFormHtml = isDayOpen ? `
                         <div class="bg-slate-50 border-t border-slate-200 p-3 space-y-2.5 rounded-b-2xl" onclick="event.stopPropagation()">
-                            <div>
-                                <label class="block text-[10px] text-gray-500 font-bold mb-1">${d.label} Status</label>
-                                <select id="day-status-${id}-${d.key}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold text-gray-800">
-                                    <option value="active" ${curStatus === 'active' ? 'selected' : ''}>Active (Normal)</option>
-                                    <option value="locked" ${curStatus === 'locked' ? 'selected' : ''}>Locked (Closed)</option>
-                                    <option value="force_show" ${curStatus === 'force_show' ? 'selected' : ''}>Force Show to Everyone (Override)</option>
-                                </select>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 font-bold mb-1">${d.label} Status</label>
+                                    <select id="day-status-${id}-${d.key}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold text-gray-800">
+                                        <option value="active" ${curStatus === 'active' ? 'selected' : ''}>Active (Normal)</option>
+                                        <option value="locked" ${curStatus === 'locked' ? 'selected' : ''}>Locked (Closed)</option>
+                                        <option value="force_show" ${curStatus === 'force_show' ? 'selected' : ''}>Force Show to Everyone (Override)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 font-bold mb-1">${d.label} Price (₹)</label>
+                                    <input type="number" id="day-price-${id}-${d.key}" value="${curPrice}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold text-blue-600">
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-[10px] text-gray-500 font-bold mb-1">🕒 ${d.label} Timing / Date</label>
@@ -655,6 +662,7 @@
 
     window.saveMarketDayUpdate = async function(id, dayKey) {
         const selectedStatus = document.getElementById(`day-status-${id}-${dayKey}`).value;
+        const dayPrice = Number(document.getElementById(`day-price-${id}-${dayKey}`).value) || Number(globalMarketsCache[id]?.price) || 100;
         const dayTiming = document.getElementById(`day-timing-${id}-${dayKey}`).value.trim();
         const otcVal = document.getElementById(`day-otc-${id}-${dayKey}`).value.trim();
         const jodiVal = document.getElementById(`day-jodi-${id}-${dayKey}`).value.trim();
@@ -665,6 +673,7 @@
 
         existingWeekly[dayKey] = {
             status: selectedStatus,
+            price: dayPrice,
             timing: dayTiming,
             otcValue: otcVal,
             jodiValue: jodiVal,
