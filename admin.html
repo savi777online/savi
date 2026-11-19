@@ -304,7 +304,6 @@
         `;
     }
 
-    // Firebase Auth State Listener
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('admin-gate').classList.add('hidden');
@@ -844,7 +843,6 @@
         });
     }
 
-    // FIXED LOGIC: If payment is for a specific game, ONLY unlock the game without adding cash to wallet. If it's general top-up, add balance to wallet.
     window.approveDeposit = async function(reqId, userId, amount, userName, passType) {
         if (!confirm(`Approve ₹${amount} for ${userName} (${userId})?`)) return;
         try {
@@ -853,13 +851,11 @@
             let updatePayload = {};
 
             if (passType && passType.startsWith("Game: ")) {
-                // यह किसी विशेष गेम के लिए पेमेंट है: वॉलेट बैलेंस नहीं बढ़ेगा, सिर्फ गेम अनलॉक होगा!
                 const gameName = passType.replace("Game: ", "").trim();
                 let unlocked = userSnap.exists() ? (userSnap.data().unlockedGames || {}) : {};
-                unlocked[gameName] = Date.now(); // 12 घंटे के लिए अनलॉक
+                unlocked[gameName] = Date.now();
                 updatePayload.unlockedGames = unlocked;
             } else {
-                // यह सामान्य 'Add Balance' (वॉलेट रिचार्ज) है: केवल वॉलेट बैलेंस बढ़ेगा
                 let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
                 const newBal = currentBal + Number(amount);
                 updatePayload.balance = newBal;
