@@ -56,38 +56,48 @@
         </div>
 
         <!-- HIGHLIGHTED WEEKLY SUBSCRIPTION PLAN (7 DAYS) -->
-        <div id="weekly-subscription-card" class="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-3xl p-4 shadow-xl border-2 border-amber-200 text-blue-950 relative overflow-hidden">
+        <div id="weekly-subscription-card" class="bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 rounded-3xl p-4 shadow-2xl border-2 border-amber-100 text-blue-950 relative overflow-hidden">
             <div class="flex items-start justify-between gap-3">
-                <div class="space-y-1 min-w-0">
-                    <div class="flex items-center space-x-2">
+                <div class="space-y-1.5 min-w-0">
+                    <div class="flex items-center flex-wrap gap-1.5">
                         <span class="bg-blue-950 text-amber-300 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
-                            ⭐ Weekly Plan • 7 Days
+                            ⭐ All-Access Weekly Pass • 7 Days
                         </span>
-                        <span id="sub-status-pill" class="bg-white/80 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        <span id="sub-status-pill" class="bg-white/90 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                             Checking...
                         </span>
                     </div>
                     <h2 class="font-black text-base tracking-wide text-blue-950 pt-0.5">
-                        1 Week Subscription (7 Days)
+                        Weekly Subscription (7 Days Full Access)
                     </h2>
-                    <p id="sub-description-text" class="text-xs font-bold text-blue-950/85 leading-snug">
-                        Get full 7-day weekly access with a single subscription.
+                    <p id="sub-description-text" class="text-xs font-extrabold text-blue-950/90 leading-relaxed">
+                        Subscribe once to unlock every single game for a full 7 days with complete access across all markets.
                     </p>
-                    <p id="sub-validity-text" class="hidden text-[11px] font-black text-blue-950 bg-white/60 border border-blue-950/15 rounded-xl px-2.5 py-1 inline-block mt-1">
+                    <div class="pt-0.5 space-y-1 text-[11px] font-bold text-blue-950/90">
+                        <p class="flex items-center space-x-1.5">
+                            <span class="inline-block w-4 h-4 rounded-full bg-blue-950 text-amber-300 text-[10px] font-black flex items-center justify-center shrink-0">✓</span>
+                            <span>All games unlocked for all 7 days</span>
+                        </p>
+                        <p class="flex items-center space-x-1.5">
+                            <span class="inline-block w-4 h-4 rounded-full bg-blue-950 text-amber-300 text-[10px] font-black flex items-center justify-center shrink-0">✓</span>
+                            <span>Complete access to every market &amp; daily chart</span>
+                        </p>
+                    </div>
+                    <p id="sub-validity-text" class="hidden text-[11px] font-black text-emerald-300 bg-blue-950 border border-amber-200/40 rounded-xl px-3 py-1.5 inline-block mt-1 shadow-sm">
                         Active till: --
                     </p>
                 </div>
 
-                <div class="text-right shrink-0 bg-blue-950 text-amber-300 rounded-2xl px-3 py-2 shadow-md border border-amber-200/40 min-w-[74px]">
-                    <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-200/80">7 Days</span>
+                <div class="text-right shrink-0 bg-blue-950 text-amber-300 rounded-2xl px-3.5 py-2.5 shadow-lg border border-amber-200/50 min-w-[78px]">
+                    <span class="block text-[9px] font-extrabold uppercase tracking-wider text-amber-200/85">7 Days</span>
                     <span id="weekly-plan-price" class="font-black text-base font-mono">--</span>
                 </div>
             </div>
 
             <!-- SHOWN ONLY WHEN USER IS NOT AN ACTIVE SUBSCRIBER -->
-            <div id="subscribe-action-container" class="mt-3 pt-2.5 border-t border-blue-950/15 flex items-center justify-between gap-3">
-                <span id="subscribe-validity-label" class="text-[11px] font-extrabold text-blue-950">
-                    Validity: <strong>7 Days (1 Week)</strong>
+            <div id="subscribe-action-container" class="mt-3.5 pt-3 border-t border-blue-950/20 flex items-center justify-between gap-3">
+                <span id="subscribe-validity-label" class="text-[11px] font-black text-blue-950">
+                    Duration: <strong>7 Full Days</strong> • All Games
                 </span>
                 <button id="btn-subscribe-weekly" type="button" disabled onclick="handleSubscribeWeekly()" class="bg-blue-950/60 text-amber-300/80 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0 cursor-not-allowed">
                     Syncing Price...
@@ -117,7 +127,7 @@
         <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
         <div id="app-links-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
             <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
-                <span>🔗 Quick Resources & Links</span>
+                <span>🔗 Quick Resources &amp; Links</span>
             </h3>
             <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
         </div>
@@ -149,18 +159,26 @@
             <div id="games-container" class="space-y-2.5"></div>
         </div>
 
-        <!-- HIGHLIGHTED DOWNLOAD APP PROMO BOX (BELOW MARKETS, ABOVE NOTICE BOARD) -->
-        <div class="bg-gradient-to-r from-amber-500/20 via-indigo-900 to-blue-950 rounded-3xl p-4 shadow-xl border-2 border-amber-400 text-white flex items-center justify-between gap-3 relative overflow-hidden">
-            <div class="flex items-center space-x-3 min-w-0 z-10">
-                <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi App" class="w-12 h-12 rounded-2xl bg-amber-400/20 p-1.5 object-contain border border-amber-300/60 shrink-0">
-                <div class="min-w-0">
-                    <span class="inline-block bg-amber-400 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">🎁 Surprise Bonus</span>
-                    <h3 class="font-black text-sm text-amber-300 tracking-wide leading-tight">Download Mahalakshmi App</h3>
-                    <p class="text-[11px] text-amber-100 font-semibold mt-0.5 leading-snug">Agar aap is application ko download karoge toh bonus mein kuch na kuch surprise mil jayega!</p>
+        <!-- ATTRACTIVE DOWNLOAD APP PROMO BOX WITH LARGE BOTTOM BUTTON -->
+        <div class="bg-gradient-to-br from-indigo-950 via-blue-900 to-blue-950 rounded-3xl p-4 shadow-2xl border-2 border-amber-400 text-white flex flex-col space-y-3.5 relative overflow-hidden">
+            <div class="flex items-center space-x-3.5 min-w-0 z-10">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 p-1 shadow-lg shrink-0 flex items-center justify-center">
+                    <div class="w-full h-full bg-blue-950 rounded-xl flex items-center justify-center p-1">
+                        <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi App" class="w-full h-full object-contain">
+                    </div>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center flex-wrap gap-1.5 mb-1">
+                        <span class="inline-block bg-amber-400 text-blue-950 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">🎁 Surprise Bonus</span>
+                        <span class="inline-block bg-white/15 text-amber-200 border border-amber-300/30 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Android App</span>
+                    </div>
+                    <h3 class="font-black text-base text-amber-300 tracking-wide leading-tight">Download Mahalakshmi App</h3>
+                    <p class="text-[11px] text-amber-100/95 font-semibold mt-1 leading-snug">Agar aap is application ko download karoge toh bonus mein kuch na kuch surprise mil jayega!</p>
                 </div>
             </div>
-            <button type="button" onclick="redirectToDownloadPage()" class="bg-amber-400 hover:bg-amber-300 text-blue-950 font-black text-[10px] px-3.5 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 transition-transform active:scale-95 z-10">
-                Download App
+
+            <button type="button" onclick="redirectToDownloadPage()" class="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 hover:from-amber-200 hover:to-amber-300 text-blue-950 font-black text-sm py-3.5 px-5 rounded-2xl uppercase tracking-wider shadow-xl border border-amber-100 transition-transform active:scale-[0.98] z-10 flex items-center justify-center space-x-2">
+                <span>📲 Download Mahalakshmi App</span>
             </button>
         </div>
 
@@ -381,7 +399,7 @@
                 headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-300/60 text-emerald-200 shrink-0";
             }
             if (descText) {
-                descText.innerText = "Your 1-week (7 days) subscription plan is active.";
+                descText.innerText = "Your 7-day all-access pass is active — every game is unlocked for your subscription period.";
             }
             if (validityText) {
                 if (expiryMs > 0) {
@@ -391,9 +409,9 @@
                         month: 'short',
                         year: 'numeric'
                     });
-                    validityText.innerText = `Active (${remainingDays}d left) • Valid till ${expiryFormatted}`;
+                    validityText.innerText = `Active (${remainingDays}d left) • All Games Unlocked till ${expiryFormatted}`;
                 } else {
-                    validityText.innerText = "Weekly Subscription Active (7 Days)";
+                    validityText.innerText = "7-Day Subscription Active • All Games Unlocked";
                 }
                 validityText.classList.remove('hidden');
             }
@@ -419,8 +437,8 @@
                 }
                 if (descText) {
                     descText.innerText = pendingUtrCode
-                        ? `UTR (${pendingUtrCode}) submitted. Waiting for admin approval or rejection.`
-                        : "UTR submitted. Waiting for admin approval or rejection.";
+                        ? `UTR (${pendingUtrCode}) submitted. Once approved, all games unlock for 7 full days.`
+                        : "UTR submitted. Once approved, all games unlock for 7 full days.";
                 }
                 if (validityLabel) {
                     validityLabel.innerHTML = "Status: <strong>Pending</strong>";
@@ -434,17 +452,17 @@
             } else {
                 if (statusPill) {
                     statusPill.innerText = "Not Subscribed";
-                    statusPill.className = "bg-white/85 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
+                    statusPill.className = "bg-white/90 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
                 }
                 if (headerBadge) {
                     headerBadge.innerText = "7-Day Plan";
                     headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0";
                 }
                 if (descText) {
-                    descText.innerText = "Subscribe for 1 week (7 days) to unlock weekly benefits.";
+                    descText.innerText = "Subscribe once to unlock every single game for a full 7 days with complete access across all markets.";
                 }
                 if (validityLabel) {
-                    validityLabel.innerHTML = "Validity: <strong>7 Days (1 Week)</strong>";
+                    validityLabel.innerHTML = "Duration: <strong>7 Full Days</strong> • All Games";
                 }
                 if (subscribeBtn) {
                     subscribeBtn.onclick = window.handleSubscribeWeekly;
