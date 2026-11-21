@@ -16,11 +16,14 @@
 
 <div class="app-container">
 
-    <!-- FULL LOADING OVERLAY UNTIL ALL DATA IS READY -->
-    <div id="page-loading-overlay" class="absolute inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-3">
-        <div class="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-xs font-black text-amber-300 uppercase tracking-widest">Loading Market Data...</p>
-        <p class="text-[11px] text-slate-300 font-semibold">Please wait while details sync.</p>
+    <!-- LIGHT SPLASH SCREEN UNTIL INITIAL DATA LOADS -->
+    <div id="market-splash-screen" class="absolute inset-0 bg-gradient-to-b from-blue-950 via-blue-900 to-indigo-950 z-50 flex flex-col items-center justify-center p-6 text-center space-y-3">
+        <div class="w-16 h-16 rounded-3xl bg-white/10 border border-amber-300/40 flex items-center justify-center shadow-lg p-2">
+            <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi" class="w-12 h-12 object-contain">
+        </div>
+        <h2 class="text-base font-black tracking-widest uppercase text-amber-300">MAHALAKSHMI</h2>
+        <div class="w-7 h-7 border-3 border-amber-300 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-[11px] font-bold text-blue-100 tracking-wide">Syncing market & subscription status...</p>
     </div>
 
     <!-- HEADER -->
@@ -142,6 +145,7 @@
     let serverTimeOffset = 0;
     let todayDayKey = "";
     let selectedDayKey = "";
+    let splashFallbackTimer = null;
 
     let readyFlags = {
         user: false,
@@ -155,17 +159,21 @@
     }
 
     function syncReadyGate() {
-        const overlay = document.getElementById('page-loading-overlay');
+        const splashEl = document.getElementById('market-splash-screen');
         const mainContent = document.getElementById('main-market-content');
         if (isAllDataReady()) {
-            if (overlay) overlay.classList.add('hidden');
+            if (splashFallbackTimer) {
+                clearTimeout(splashFallbackTimer);
+                splashFallbackTimer = null;
+            }
+            if (splashEl) splashEl.classList.add('hidden');
             if (mainContent) {
                 mainContent.classList.remove('opacity-0', 'pointer-events-none');
                 mainContent.classList.add('opacity-100');
             }
             renderWeekAndCard();
         } else {
-            if (overlay) overlay.classList.remove('hidden');
+            if (splashEl) splashEl.classList.remove('hidden');
             if (mainContent) {
                 mainContent.classList.add('opacity-0', 'pointer-events-none');
                 mainContent.classList.remove('opacity-100');
@@ -409,6 +417,16 @@
 
         document.getElementById('market-title').innerText = marketName;
         syncReadyGate();
+
+        if (splashFallbackTimer) clearTimeout(splashFallbackTimer);
+        splashFallbackTimer = setTimeout(() => {
+            readyFlags.user = true;
+            readyFlags.market = true;
+            readyFlags.settings = true;
+            readyFlags.pending = true;
+            if (weeklyPlanPrice === null) weeklyPlanPrice = 99;
+            syncReadyGate();
+        }, 8000);
 
         fetch(window.location.href, { method: 'HEAD' }).then(res => {
             const dHeader = res.headers.get('Date');
