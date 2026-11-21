@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #cbd5e1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding-bottom: 90px; }
+        .app-container::-webkit-scrollbar { display: none; }
+        @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
+
+        .slider-wrapper { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .slider-wrapper::-webkit-scrollbar { display: none; }
+        .slide-frame { flex-shrink: 0; width: 100%; height: 100%; scroll-snap-align: start; object-fit: contain; background-color: #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- HEADLINE APPBAR -->
+    <div class="bg-blue-900 text-white px-4 py-3 flex items-center justify-between shadow-lg sticky top-0 z-40">
+        <div class="flex items-center space-x-2.5 min-w-0">
+            <img id="app-logo" src="https://i.imgur.com/pCFtcKd.png" alt="Logo" class="w-8 h-8 object-contain shrink-0">
+            <h1 class="font-black tracking-wider text-base uppercase truncate">MAHALAKSHMI</h1>
+        </div>
+        <span id="header-sub-badge" class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0">
+            7-Day Plan
+        </span>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div class="flex-1 p-4 space-y-3.5">
+
+        <!-- 1. CLEAR USER PROFILE (NAME & MOBILE) -->
+        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center space-x-3.5 border border-blue-700/40">
+            <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-xl shadow-inner border border-white/20 shrink-0">
+                👤
+            </div>
+            <div class="min-w-0">
+                <p id="profile-name" class="font-black text-base tracking-wide text-amber-300 truncate">Loading...</p>
+                <p id="profile-phone" class="text-blue-100 font-bold text-xs font-mono mt-0.5 truncate">Mobile: --</p>
+            </div>
+        </div>
+
+        <!-- HIGHLIGHTED WEEKLY SUBSCRIPTION PLAN (7 DAYS) -->
+        <div id="weekly-subscription-card" class="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-3xl p-4 shadow-xl border-2 border-amber-200 text-blue-950 relative overflow-hidden">
+            <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1 min-w-0">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-blue-950 text-amber-300 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
+                            ⭐ Weekly Plan • 7 Days
+                        </span>
+                        <span id="sub-status-pill" class="bg-white/80 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            Unsubscribed
+                        </span>
+                    </div>
+                    <h2 class="font-black text-base tracking-wide text-blue-950 pt-0.5">
+                        1 Week Subscription (7 Days)
+                    </h2>
+                    <p id="sub-description-text" class="text-xs font-bold text-blue-950/85 leading-snug">
+                        Get full 7-day weekly access with a single subscription.
+                    </p>
+                    <p id="sub-validity-text" class="hidden text-[11px] font-black text-blue-950 bg-white/60 border border-blue-950/15 rounded-xl px-2.5 py-1 inline-block mt-1">
+                        Active till: --
+                    </p>
+                </div>
+
+                <div class="text-right shrink-0 bg-blue-950 text-amber-300 rounded-2xl px-3 py-2 shadow-md border border-amber-200/40">
+                    <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-200/80">7 Days</span>
+                    <span id="weekly-plan-price" class="font-black text-base font-mono">₹99</span>
+                </div>
+            </div>
+
+            <!-- SHOWN ONLY WHEN USER IS NOT AN ACTIVE SUBSCRIBER -->
+            <div id="subscribe-action-container" class="mt-3 pt-2.5 border-t border-blue-950/15 flex items-center justify-between gap-3">
+                <span class="text-[11px] font-extrabold text-blue-950">
+                    Validity: <strong>7 Days (1 Week)</strong>
+                </span>
+                <button id="btn-subscribe-weekly" type="button" onclick="handleSubscribeWeekly()" class="bg-blue-950 hover:bg-blue-900 text-amber-300 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0">
+                    Subscribe Now
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. SLIDING TEXT (MARQUEE) -->
+        <div class="bg-blue-900 border border-blue-800 rounded-2xl py-2 px-3 shadow-sm overflow-hidden whitespace-nowrap">
+            <marquee behavior="scroll" direction="left" scrollamount="5" class="text-xs font-black text-amber-300 uppercase tracking-wider">
+                <span id="sliding-marquee-text">Welcome to mahalaxmiplay.online</span>
+            </marquee>
+        </div>
+
+        <!-- LIVE SERVER TIME SYNC CLOCK -->
+        <div class="grid grid-cols-2 gap-2">
+            <div class="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
+                <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Today's Date</span>
+                <div id="live-calendar-text" class="text-xs font-black tracking-wider font-mono text-white mt-0.5">--/--/----</div>
+            </div>
+            <div class="bg-gradient-to-r from-indigo-800 to-blue-900 rounded-2xl p-3 shadow-md text-center border border-blue-500/20 text-white flex flex-col justify-center">
+                <span class="text-[9px] text-blue-200 font-bold uppercase tracking-wider">Live Time</span>
+                <div id="live-clock" class="text-sm font-black tracking-widest font-mono text-amber-300 mt-0.5">--:--:--</div>
+            </div>
+        </div>
+
+        <!-- CLICKABLE APP SHORTCUTS AND DYNAMIC LINKS MODULE -->
+        <div id="app-links-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
+            <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
+                <span>🔗 Quick Resources & Links</span>
+            </h3>
+            <div id="links-elements-container" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <!-- VOICE NOTES STREAM INTERFACE SECTION -->
+        <div id="voice-notes-section" class="hidden bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-2">
+            <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider px-1 flex items-center space-x-1.5">
+                <span>🎙️ Admin Voice Announcements</span>
+            </h3>
+            <div id="voice-elements-container" class="space-y-2.5"></div>
+        </div>
+
+        <!-- IMAGE BANNER SLIDER -->
+        <div class="relative w-full h-44 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-200">
+            <div id="slider-container" class="slider-wrapper">
+                <img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0" alt="Banner Placeholder">
+            </div>
+        </div>
+
+        <!-- HIGHLIGHTED MARKETS SECTION (ABOVE DOWNLOAD APP & NOTICE BOARD) -->
+        <div class="bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 rounded-3xl p-4 shadow-lg border border-blue-700/60 space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 bg-amber-400 rounded-full animate-pulse"></span>
+                    <h2 class="font-black text-xs text-amber-300 uppercase tracking-widest">Live Markets</h2>
+                </div>
+                <span class="text-[9px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">Tap To Open</span>
+            </div>
+            <div id="games-container" class="space-y-2.5"></div>
+        </div>
+
+        <!-- HIGHLIGHTED DOWNLOAD APP PROMO BOX (BELOW MARKETS, ABOVE NOTICE BOARD) -->
+        <div class="bg-gradient-to-r from-amber-500/20 via-indigo-900 to-blue-950 rounded-3xl p-4 shadow-xl border-2 border-amber-400 text-white flex items-center justify-between gap-3 relative overflow-hidden">
+            <div class="flex items-center space-x-3 min-w-0 z-10">
+                <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi App" class="w-12 h-12 rounded-2xl bg-amber-400/20 p-1.5 object-contain border border-amber-300/60 shrink-0">
+                <div class="min-w-0">
+                    <span class="inline-block bg-amber-400 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">🎁 Surprise Bonus</span>
+                    <h3 class="font-black text-sm text-amber-300 tracking-wide leading-tight">Download Mahalakshmi App</h3>
+                    <p class="text-[11px] text-amber-100 font-semibold mt-0.5 leading-snug">Agar aap is application ko download karoge toh bonus mein kuch na kuch surprise mil jayega!</p>
+                </div>
+            </div>
+            <button type="button" onclick="redirectToDownloadPage()" class="bg-amber-400 hover:bg-amber-300 text-blue-950 font-black text-[10px] px-3.5 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 transition-transform active:scale-95 z-10">
+                Download App
+            </button>
+        </div>
+
+        <!-- NOTICE BOARD (BELOW DOWNLOAD APP) -->
+        <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2.5">
+            <div class="bg-amber-200/60 border border-amber-300 py-1.5 px-3 rounded-2xl flex items-center justify-center space-x-2 text-amber-900 w-fit mx-auto shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <h3 class="font-black text-[11px] uppercase tracking-wider">Notice Board</h3>
+            </div>
+            <p id="notice-text" class="text-sm text-amber-950 font-black text-center tracking-wide leading-snug px-2">Welcome to Mahalakshmi App.</p>
+        </div>
+
+    </div>
+
+    <!-- FIXED BOTTOM NAVIGATION BAR WITH REFRESH & LOGOUT BUTTONS -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div class="w-full max-w-[450px] bg-slate-200/95 backdrop-blur-md border-t border-slate-300 p-3 shadow-2xl flex items-center gap-2 pointer-events-auto">
+            <button onclick="window.location.reload();" class="flex-1 bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <span>Refresh</span>
+            </button>
+            <button onclick="handleLogout()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-4 rounded-2xl text-xs uppercase tracking-widest shadow flex items-center justify-center space-x-2 transition-transform active:scale-95">
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, collection, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
+        authDomain: "mahalakshmi-1358f.firebaseapp.com",
+        projectId: "mahalakshmi-1358f",
+        storageBucket: "mahalakshmi-1358f.firebasestorage.app",
+        messagingSenderId: "26487681138",
+        appId: "1:26487681138:web:dfa4095fa2285b584212eb",
+        measurementId: "G-Y2SVGE7BVJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const WEEKLY_DAYS = 7;
+    const WEEKLY_MS = WEEKLY_DAYS * 24 * 60 * 60 * 1000;
+
+    let activeSliderTimer = null;
+    let weeklyPlanPrice = 99;
+    let isActiveSubscriber = false;
+    let currentUserData = {};
+    let cachedMarkets = [];
+    let serverTimeOffset = 0;
+    let savedMobile = "";
+    let heartbeatInterval = null;
+
+    function getCorrectedNowMs() {
+        return Date.now() + serverTimeOffset;
+    }
+
+    function parseExpiryTimestamp(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const parsed = Number(val);
+            if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+            const dateMs = Date.parse(val);
+            return Number.isNaN(dateMs) ? 0 : dateMs;
+        }
+        if (typeof val === 'object') {
+            if (typeof val.toMillis === 'function') return val.toMillis();
+            if (typeof val.seconds === 'number') return val.seconds * 1000;
+        }
+        return 0;
+    }
+
+    function evaluateSubscriptionState(uData = {}) {
+        const nowMs = getCorrectedNowMs();
+        const rawExpiry =
+            uData.subscriptionExpiry ??
+            uData.subscription_expiry ??
+            uData.subscribedUntil ??
+            uData.subscriptionEnd ??
+            uData.weeklyExpiry ??
+            0;
+
+        const expiryMs = parseExpiryTimestamp(rawExpiry);
+        const explicitActiveFlag =
+            uData.isSubscribed === true ||
+            uData.subscriptionActive === true ||
+            uData.is_subscribed === true ||
+            uData.subscriptionStatus === "active";
+
+        if (expiryMs > 0) {
+            isActiveSubscriber = expiryMs > nowMs;
+            return { active: isActiveSubscriber, expiryMs };
+        }
+
+        if (explicitActiveFlag) {
+            const createdMs = parseExpiryTimestamp(uData.subscriptionStart ?? uData.subscribedAt ?? 0);
+            if (createdMs > 0) {
+                const computedExpiry = createdMs + WEEKLY_MS;
+                isActiveSubscriber = computedExpiry > nowMs;
+                return { active: isActiveSubscriber, expiryMs: computedExpiry };
+            }
+            isActiveSubscriber = true;
+            return { active: true, expiryMs: 0 };
+        }
+
+        isActiveSubscriber = false;
+        return { active: false, expiryMs: 0 };
+    }
+
+    function renderSubscriptionUI() {
+        const { active, expiryMs } = evaluateSubscriptionState(currentUserData);
+        const statusPill = document.getElementById('sub-status-pill');
+        const headerBadge = document.getElementById('header-sub-badge');
+        const descText = document.getElementById('sub-description-text');
+        const validityText = document.getElementById('sub-validity-text');
+        const subscribeContainer = document.getElementById('subscribe-action-container');
+        const priceEl = document.getElementById('weekly-plan-price');
+
+        if (priceEl) {
+            priceEl.innerText = "₹" + weeklyPlanPrice;
+        }
+
+        if (active) {
+            if (statusPill) {
+                statusPill.innerText = "Active • 7 Days";
+                statusPill.className = "bg-emerald-950 text-emerald-300 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
+            }
+            if (headerBadge) {
+                headerBadge.innerText = "Subscribed";
+                headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-300/60 text-emerald-200 shrink-0";
+            }
+            if (descText) {
+                descText.innerText = "Your 1-week (7 days) subscription plan is active.";
+            }
+            if (validityText) {
+                if (expiryMs > 0) {
+                    const remainingDays = Math.max(1, Math.ceil((expiryMs - getCorrectedNowMs()) / (24 * 60 * 60 * 1000)));
+                    const expiryFormatted = new Date(expiryMs).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    validityText.innerText = `Active (${remainingDays}d left) • Valid till ${expiryFormatted}`;
+                } else {
+                    validityText.innerText = "Weekly Subscription Active (7 Days)";
+                }
+                validityText.classList.remove('hidden');
+            }
+            if (subscribeContainer) {
+                subscribeContainer.classList.add('hidden');
+            }
+        } else {
+            if (statusPill) {
+                statusPill.innerText = "Not Subscribed";
+                statusPill.className = "bg-white/85 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
+            }
+            if (headerBadge) {
+                headerBadge.innerText = "7-Day Plan";
+                headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0";
+            }
+            if (descText) {
+                descText.innerText = "Subscribe for 1 week (7 days) to unlock weekly benefits.";
+            }
+            if (validityText) {
+                validityText.classList.add('hidden');
+            }
+            if (subscribeContainer) {
+                subscribeContainer.classList.remove('hidden');
+            }
+        }
+    }
+
+    function updateInstantClock() {
+        const secureCorrectedMs = getCorrectedNowMs();
+        const now = new Date(secureCorrectedMs);
+        document.getElementById('live-clock').innerText = now.toLocaleTimeString();
+        document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        renderSubscriptionUI();
+    }
+    updateInstantClock();
+    setInterval(updateInstantClock, 1000);
+
+    window.addEventListener('DOMContentLoaded', () => {
+        beginLiveEngine();
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment') === 'success') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
+    async function updateOnlineStatus(isOnlineFlag) {
+        if (!savedMobile) return;
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            const payload = isOnlineFlag ? { lastSeen: Date.now() } : { lastSeen: Date.now() - 30000 };
+            await setDoc(userRef, payload, { merge: true });
+        } catch(e) {}
+    }
+
+    window.addEventListener('focus', () => { updateOnlineStatus(true); });
+    window.addEventListener('blur', () => { updateOnlineStatus(false); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateOnlineStatus(true);
+        } else {
+            updateOnlineStatus(false);
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (savedMobile) {
+            const userRef = doc(db, "users", savedMobile);
+            setDoc(userRef, { lastSeen: Date.now() - 30000 }, { merge: true }).catch(() => {});
+        }
+    });
+
+    window.processAndRedirectSecureLink = function(event, targetUrl) {
+        if(event) { event.preventDefault(); event.stopPropagation(); }
+        if(!targetUrl) return false;
+        let urlString = targetUrl.trim();
+        if (urlString.includes("youtube.com") || urlString.includes("youtu.be") || urlString.includes("wa.me") || urlString.includes("whatsapp") || urlString.startsWith("http://") || urlString.startsWith("https://")) {
+            window.location.href = urlString;
+            return false;
+        }
+        let rawCleanLinkPath = urlString.replace("https://", "").replace("http://", "");
+        window.location.href = "intent://" + rawCleanLinkPath + "#Intent;scheme=https;action=android.intent.action.VIEW;end;";
+        return false;
+    }
+
+    async function beginLiveEngine() {
+        savedMobile = localStorage.getItem('app_user_mobile');
+        if (!savedMobile) { 
+            window.location.href = 'index.html'; 
+            return; 
+        }
+
+        document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
+        updateOnlineStatus(true);
+
+        try {
+            const userRef = doc(db, "users", savedMobile);
+            await setDoc(userRef, { lastActive: Date.now(), fcmStatus: "active" }, { merge: true });
+        } catch(e) {}
+
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+            updateOnlineStatus(true);
+        }, 8000);
+
+        fetch(window.location.href, { method: 'HEAD' }).then(response => {
+            const serverDateHeader = response.headers.get('Date');
+            if(serverDateHeader) {
+                const serverMs = Date.parse(serverDateHeader);
+                serverTimeOffset = serverMs - Date.now();
+                renderSubscriptionUI();
+            }
+        }).catch(() => {});
+
+        onSnapshot(doc(db, "users", savedMobile), (snapshot) => {
+            if (!snapshot.exists()) { 
+                handleLogout(); 
+                return; 
+            }
+            const uData = snapshot.data();
+            
+            if (uData.status === "blocked") {
+                alert("❌ Your account profile has been suspended.");
+                handleLogout();
+                return;
+            }
+
+            currentUserData = uData;
+            document.getElementById('profile-name').innerText = uData.name || "User";
+            renderSubscriptionUI();
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "markets"), (querySnapshot) => {
+            cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
+            renderGameCards();
+        });
+
+        onSnapshot(collection(db, "app_links"), (querySnapshot) => {
+            const section = document.getElementById('app-links-section');
+            const container = document.getElementById('links-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((lDoc) => {
+                    const l = lDoc.data();
+                    container.innerHTML += `
+                        <a href="${l.url}" onclick="return processAndRedirectSecureLink(event, '${l.url}')" class="flex items-center justify-between bg-blue-50/80 hover:bg-blue-100 border border-blue-200/60 p-3 rounded-2xl text-blue-900 font-bold text-xs shadow-sm transition-colors">
+                            <span class="truncate pr-2">${l.headline || 'Quick Link'}</span>
+                            <span class="bg-blue-600 text-white px-2.5 py-1 rounded-xl text-[10px] shrink-0 uppercase">Open</span>
+                        </a>`;
+                });
+            }
+        });
+
+        onSnapshot(collection(db, "voicenotes"), (querySnapshot) => {
+            const section = document.getElementById('voice-notes-section');
+            const container = document.getElementById('voice-elements-container');
+            container.innerHTML = '';
+            if (querySnapshot.empty) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                querySnapshot.forEach((vDoc) => {
+                    const v = vDoc.data();
+                    container.innerHTML += `
+                        <div class="bg-blue-50/80 border border-blue-200/60 p-3 rounded-2xl space-y-2 shadow-sm">
+                            <p class="font-bold text-blue-900 text-xs">${v.title || 'Voice Note'}</p>
+                            <audio controls class="w-full h-8"><source src="${v.url}" type="audio/webm"><source src="${v.url}" type="audio/mp4">Your browser does not support audio playback.</audio>
+                        </div>`;
+                });
+            }
+        });
+
+        onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+                if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
+                if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
+                if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
+
+                const configuredPrice = Number(
+                    data.weekly_subscription_price ??
+                    data.weeklyPrice ??
+                    data.subscription_price ??
+                    99
+                );
+                if (!Number.isNaN(configuredPrice) && configuredPrice > 0) {
+                    weeklyPlanPrice = configuredPrice;
+                }
+                renderSubscriptionUI();
+            }
+        });
+    }
+
+    window.handleSubscribeWeekly = function() {
+        if (isActiveSubscriber) return;
+        const mobileParam = encodeURIComponent(savedMobile || "");
+        window.location.href = `payment.html?userid=${mobileParam}&plan=weekly_7d&days=${WEEKLY_DAYS}&amount=${weeklyPlanPrice}`;
+    }
+
+    window.openMarketPage = function(marketName) {
+        window.location.href = `market-details.html?market=${encodeURIComponent(marketName)}`;
+    }
+
+    window.redirectToDownloadPage = function() {
+        window.location.href = 'download.html';
+    }
+
+    function renderGameCards() {
+        const container = document.getElementById('games-container'); if(!container) return;
+        let htmlBuffer = "";
+
+        cachedMarkets.forEach((docSnap) => {
+            const marketName = docSnap.id;
+            const safeMarketName = marketName.replace(/'/g, "\\'");
+
+            htmlBuffer += `
+                <div onclick="openMarketPage('${safeMarketName}')" class="bg-gradient-to-r from-white to-blue-50/90 hover:from-amber-50 hover:to-amber-100/70 rounded-2xl px-4 py-3.5 shadow-md border-l-4 border-amber-400 flex items-center justify-between cursor-pointer transition-all active:scale-[0.99]">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="w-7 h-7 rounded-xl bg-blue-900 text-amber-300 font-black text-xs flex items-center justify-center shadow-sm">★</span>
+                        <h3 class="font-black text-sm tracking-wider text-blue-950 uppercase">${marketName}</h3>
+                    </div>
+                    <span class="bg-blue-900 text-amber-300 font-black text-xs px-2.5 py-1 rounded-xl shadow-sm">→</span>
+                </div>`;
+        });
+        container.innerHTML = htmlBuffer;
+    }
+
+    function setupAutoImageSlider(images) {
+        const slider = document.getElementById('slider-container'); if (!slider) return;
+        clearInterval(activeSliderTimer);
+        const cleanImages = images.filter(url => url && url.trim() !== "" && url.startsWith('http'));
+        if (cleanImages.length === 0) {
+            slider.innerHTML = `<img src="https://i.imgur.com/pCFtcKd.png" class="slide-frame shrink-0">`; return;
+        }
+        slider.innerHTML = '';
+        cleanImages.forEach(url => { 
+            let formattedUrl = url;
+            if(url.includes("firebasestorage.googleapis.com") && !url.includes("%2F")) {
+                formattedUrl = url.replace("/o/slider_banners", "/o/slider_banners%2F");
+            }
+            slider.innerHTML += `<img src="${formattedUrl}" class="slide-frame shrink-0" onerror="this.src='https://i.imgur.com/pCFtcKd.png'">`; 
+        });
+        let index = 0;
+        if (cleanImages.length > 1) {
+            activeSliderTimer = setInterval(() => {
+                index++; if (index >= cleanImages.length) index = 0;
+                slider.scrollTo({ left: index * slider.clientWidth, behavior: 'smooth' });
+            }, 4000);
+        }
+    }
+
+    window.handleLogout = function() { 
+        updateOnlineStatus(false);
+        localStorage.removeItem('app_user_mobile'); 
+        window.location.href = 'index.html'; 
+    }
+</script>
+</body>
+</html>
