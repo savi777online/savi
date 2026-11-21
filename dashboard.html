@@ -76,7 +76,7 @@
 
             <!-- SHOWN ONLY WHEN USER IS NOT AN ACTIVE SUBSCRIBER -->
             <div id="subscribe-action-container" class="mt-3 pt-2.5 border-t border-blue-950/15 flex items-center justify-between gap-3">
-                <span class="text-[11px] font-extrabold text-blue-950">
+                <span id="subscribe-validity-label" class="text-[11px] font-extrabold text-blue-950">
                     Validity: <strong>7 Days (1 Week)</strong>
                 </span>
                 <button id="btn-subscribe-weekly" type="button" disabled onclick="handleSubscribeWeekly()" class="bg-blue-950/60 text-amber-300/80 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0 cursor-not-allowed">
@@ -222,6 +222,8 @@
     let weeklyPlanPrice = readCachedPrice();
     let isPriceSynced = false;
     let isActiveSubscriber = false;
+    let hasPendingSubscriptionRequest = false;
+    let pendingUtrCode = "";
     let currentUserData = {};
     let cachedMarkets = [];
     let serverTimeOffset = 0;
@@ -318,22 +320,11 @@
         const validityText = document.getElementById('sub-validity-text');
         const subscribeContainer = document.getElementById('subscribe-action-container');
         const subscribeBtn = document.getElementById('btn-subscribe-weekly');
+        const validityLabel = document.getElementById('subscribe-validity-label');
         const priceEl = document.getElementById('weekly-plan-price');
 
         if (priceEl) {
             priceEl.innerText = weeklyPlanPrice !== null ? ("₹" + weeklyPlanPrice) : "--";
-        }
-
-        if (subscribeBtn) {
-            if (weeklyPlanPrice !== null) {
-                subscribeBtn.disabled = false;
-                subscribeBtn.innerText = isPriceSynced ? "Subscribe Now" : "Subscribe Now";
-                subscribeBtn.className = "bg-blue-950 hover:bg-blue-900 text-amber-300 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0 cursor-pointer";
-            } else {
-                subscribeBtn.disabled = true;
-                subscribeBtn.innerText = "Syncing Price...";
-                subscribeBtn.className = "bg-blue-950/60 text-amber-300/80 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 cursor-not-allowed";
-            }
         }
 
         if (active) {
@@ -366,22 +357,63 @@
                 subscribeContainer.classList.add('hidden');
             }
         } else {
-            if (statusPill) {
-                statusPill.innerText = "Not Subscribed";
-                statusPill.className = "bg-white/85 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
-            }
-            if (headerBadge) {
-                headerBadge.innerText = "7-Day Plan";
-                headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0";
-            }
-            if (descText) {
-                descText.innerText = "Subscribe for 1 week (7 days) to unlock weekly benefits.";
+            if (subscribeContainer) {
+                subscribeContainer.classList.remove('hidden');
             }
             if (validityText) {
                 validityText.classList.add('hidden');
             }
-            if (subscribeContainer) {
-                subscribeContainer.classList.remove('hidden');
+
+            if (hasPendingSubscriptionRequest) {
+                if (statusPill) {
+                    statusPill.innerText = "Pending Approval";
+                    statusPill.className = "bg-blue-950 text-amber-300 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
+                }
+                if (headerBadge) {
+                    headerBadge.innerText = "Pending";
+                    headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-400/20 border border-amber-300/60 text-amber-300 shrink-0";
+                }
+                if (descText) {
+                    descText.innerText = pendingUtrCode
+                        ? `UTR (${pendingUtrCode}) submitted. Waiting for admin approval or rejection.`
+                        : "UTR submitted. Waiting for admin approval or rejection.";
+                }
+                if (validityLabel) {
+                    validityLabel.innerHTML = "Status: <strong>Pending</strong>";
+                }
+                if (subscribeBtn) {
+                    subscribeBtn.disabled = true;
+                    subscribeBtn.onclick = null;
+                    subscribeBtn.innerText = "Pending";
+                    subscribeBtn.className = "bg-blue-950 text-amber-300 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 cursor-not-allowed opacity-95";
+                }
+            } else {
+                if (statusPill) {
+                    statusPill.innerText = "Not Subscribed";
+                    statusPill.className = "bg-white/85 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider";
+                }
+                if (headerBadge) {
+                    headerBadge.innerText = "7-Day Plan";
+                    headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0";
+                }
+                if (descText) {
+                    descText.innerText = "Subscribe for 1 week (7 days) to unlock weekly benefits.";
+                }
+                if (validityLabel) {
+                    validityLabel.innerHTML = "Validity: <strong>7 Days (1 Week)</strong>";
+                }
+                if (subscribeBtn) {
+                    subscribeBtn.onclick = window.handleSubscribeWeekly;
+                    if (weeklyPlanPrice !== null) {
+                        subscribeBtn.disabled = false;
+                        subscribeBtn.innerText = isPriceSynced ? "Subscribe Now" : "Subscribe Now";
+                        subscribeBtn.className = "bg-blue-950 hover:bg-blue-900 text-amber-300 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0 cursor-pointer";
+                    } else {
+                        subscribeBtn.disabled = true;
+                        subscribeBtn.innerText = "Syncing Price...";
+                        subscribeBtn.className = "bg-blue-950/60 text-amber-300/80 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 cursor-not-allowed";
+                    }
+                }
             }
         }
     }
@@ -504,6 +536,26 @@
             renderGameCards();
         });
 
+        onSnapshot(collection(db, "pending_deposits"), (querySnapshot) => {
+            let foundPending = false;
+            let utrValue = "";
+            const cleanSavedMobile = String(savedMobile || "").trim();
+
+            querySnapshot.forEach((pDoc) => {
+                const pData = pDoc.data() || {};
+                const docUser = String(pData.userid || pData.userMobile || pData.phone || pData.mobile || "").trim();
+                const statusVal = String(pData.status || "pending").toLowerCase();
+                if (cleanSavedMobile && docUser === cleanSavedMobile && statusVal !== "approved" && statusVal !== "rejected") {
+                    foundPending = true;
+                    utrValue = pData.utr || pData.ref || "";
+                }
+            });
+
+            hasPendingSubscriptionRequest = foundPending;
+            pendingUtrCode = utrValue;
+            renderSubscriptionUI();
+        });
+
         onSnapshot(collection(db, "markets"), (querySnapshot) => {
             cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
             renderGameCards();
@@ -555,7 +607,7 @@
     }
 
     window.handleSubscribeWeekly = async function() {
-        if (isActiveSubscriber) return;
+        if (isActiveSubscriber || hasPendingSubscriptionRequest) return;
         const latestPrice = await fetchLatestAdminPriceNow();
         if (latestPrice === null || Number.isNaN(Number(latestPrice)) || Number(latestPrice) <= 0) {
             alert("Please wait a moment, fetching latest plan price from server...");
