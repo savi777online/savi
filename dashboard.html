@@ -20,6 +20,16 @@
 
 <div class="app-container">
 
+    <!-- LIGHT SPLASH SCREEN UNTIL INITIAL DATA LOADS -->
+    <div id="dashboard-splash-screen" class="absolute inset-0 bg-gradient-to-b from-blue-950 via-blue-900 to-indigo-950 z-50 flex flex-col items-center justify-center p-6 text-center space-y-3">
+        <div class="w-16 h-16 rounded-3xl bg-white/10 border border-amber-300/40 flex items-center justify-center shadow-lg p-2">
+            <img src="https://i.imgur.com/pCFtcKd.png" alt="Mahalakshmi" class="w-12 h-12 object-contain">
+        </div>
+        <h2 class="text-base font-black tracking-widest uppercase text-amber-300">MAHALAKSHMI</h2>
+        <div class="w-7 h-7 border-3 border-amber-300 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-[11px] font-bold text-blue-100 tracking-wide">Syncing your account & plan...</p>
+    </div>
+
     <!-- HEADLINE APPBAR -->
     <div class="bg-blue-900 text-white px-4 py-3 flex items-center justify-between shadow-lg sticky top-0 z-40">
         <div class="flex items-center space-x-2.5 min-w-0">
@@ -32,7 +42,7 @@
     </div>
 
     <!-- MAIN DASHBOARD CONTENT -->
-    <div class="flex-1 p-4 space-y-3.5">
+    <div id="main-dashboard-body" class="flex-1 p-4 space-y-3.5 opacity-0 pointer-events-none transition-opacity duration-200">
 
         <!-- 1. CLEAR USER PROFILE (NAME & MOBILE) -->
         <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-4 shadow-md text-white flex items-center space-x-3.5 border border-blue-700/40">
@@ -229,6 +239,40 @@
     let serverTimeOffset = 0;
     let savedMobile = "";
     let heartbeatInterval = null;
+    let splashFallbackTimer = null;
+
+    let splashReadyFlags = {
+        user: false,
+        pending: false,
+        settings: false,
+        markets: false
+    };
+
+    function isInitialSplashReady() {
+        return splashReadyFlags.user && splashReadyFlags.pending && splashReadyFlags.settings && splashReadyFlags.markets;
+    }
+
+    function syncSplashScreenState() {
+        const splashEl = document.getElementById('dashboard-splash-screen');
+        const bodyEl = document.getElementById('main-dashboard-body');
+        if (isInitialSplashReady()) {
+            if (splashFallbackTimer) {
+                clearTimeout(splashFallbackTimer);
+                splashFallbackTimer = null;
+            }
+            if (splashEl) splashEl.classList.add('hidden');
+            if (bodyEl) {
+                bodyEl.classList.remove('opacity-0', 'pointer-events-none');
+                bodyEl.classList.add('opacity-100');
+            }
+        } else {
+            if (splashEl) splashEl.classList.remove('hidden');
+            if (bodyEl) {
+                bodyEl.classList.add('opacity-0', 'pointer-events-none');
+                bodyEl.classList.remove('opacity-100');
+            }
+        }
+    }
 
     function extractAdminPrice(data = {}) {
         const candidate =
@@ -423,13 +467,15 @@
         const now = new Date(secureCorrectedMs);
         document.getElementById('live-clock').innerText = now.toLocaleTimeString();
         document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        renderSubscriptionUI();
+        if (isInitialSplashReady()) {
+            renderSubscriptionUI();
+        }
     }
-    renderSubscriptionUI();
     updateInstantClock();
     setInterval(updateInstantClock, 1000);
 
     window.addEventListener('DOMContentLoaded', () => {
+        syncSplashScreenState();
         beginLiveEngine();
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('payment') === 'success') {
@@ -496,6 +542,17 @@
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
         updateOnlineStatus(true);
 
+        if (splashFallbackTimer) clearTimeout(splashFallbackTimer);
+        splashFallbackTimer = setTimeout(() => {
+            splashReadyFlags.user = true;
+            splashReadyFlags.pending = true;
+            splashReadyFlags.settings = true;
+            splashReadyFlags.markets = true;
+            renderSubscriptionUI();
+            renderGameCards();
+            syncSplashScreenState();
+        }, 8000);
+
         fetchLatestAdminPriceNow();
 
         try {
@@ -534,6 +591,8 @@
             document.getElementById('profile-name').innerText = uData.name || "User";
             renderSubscriptionUI();
             renderGameCards();
+            splashReadyFlags.user = true;
+            syncSplashScreenState();
         });
 
         onSnapshot(collection(db, "pending_deposits"), (querySnapshot) => {
@@ -554,11 +613,15 @@
             hasPendingSubscriptionRequest = foundPending;
             pendingUtrCode = utrValue;
             renderSubscriptionUI();
+            splashReadyFlags.pending = true;
+            syncSplashScreenState();
         });
 
         onSnapshot(collection(db, "markets"), (querySnapshot) => {
             cachedMarkets = querySnapshot.docs.sort((a, b) => (Number(a.data().serialNo) || 999) - (Number(b.data().serialNo) || 999));
             renderGameCards();
+            splashReadyFlags.markets = true;
+            syncSplashScreenState();
         });
 
         onSnapshot(collection(db, "app_links"), (querySnapshot) => {
@@ -603,6 +666,8 @@
             if (snapshot.exists()) {
                 applySettingsData(snapshot.data());
             }
+            splashReadyFlags.settings = true;
+            syncSplashScreenState();
         });
     }
 
