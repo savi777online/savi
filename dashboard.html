@@ -54,7 +54,7 @@
                             ⭐ Weekly Plan • 7 Days
                         </span>
                         <span id="sub-status-pill" class="bg-white/80 text-blue-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                            Unsubscribed
+                            Checking...
                         </span>
                     </div>
                     <h2 class="font-black text-base tracking-wide text-blue-950 pt-0.5">
@@ -68,9 +68,9 @@
                     </p>
                 </div>
 
-                <div class="text-right shrink-0 bg-blue-950 text-amber-300 rounded-2xl px-3 py-2 shadow-md border border-amber-200/40">
+                <div class="text-right shrink-0 bg-blue-950 text-amber-300 rounded-2xl px-3 py-2 shadow-md border border-amber-200/40 min-w-[74px]">
                     <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-200/80">7 Days</span>
-                    <span id="weekly-plan-price" class="font-black text-base font-mono">₹2500</span>
+                    <span id="weekly-plan-price" class="font-black text-base font-mono">--</span>
                 </div>
             </div>
 
@@ -79,8 +79,8 @@
                 <span class="text-[11px] font-extrabold text-blue-950">
                     Validity: <strong>7 Days (1 Week)</strong>
                 </span>
-                <button id="btn-subscribe-weekly" type="button" onclick="handleSubscribeWeekly()" class="bg-blue-950 hover:bg-blue-900 text-amber-300 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0">
-                    Subscribe Now
+                <button id="btn-subscribe-weekly" type="button" disabled onclick="handleSubscribeWeekly()" class="bg-blue-950/60 text-amber-300/80 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0 cursor-not-allowed">
+                    Syncing Price...
                 </button>
             </div>
         </div>
@@ -182,7 +182,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, collection, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, onSnapshot, collection, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
@@ -199,15 +199,59 @@
 
     const WEEKLY_DAYS = 7;
     const WEEKLY_MS = WEEKLY_DAYS * 24 * 60 * 60 * 1000;
+    const PRICE_CACHE_KEY = "mahalakshmi_weekly_price_cache";
+
+    function readCachedPrice() {
+        try {
+            const raw = localStorage.getItem(PRICE_CACHE_KEY);
+            const num = Number(raw);
+            if (!Number.isNaN(num) && num > 0) return num;
+        } catch (e) {}
+        return null;
+    }
+
+    function writeCachedPrice(price) {
+        try {
+            if (typeof price === "number" && !Number.isNaN(price) && price > 0) {
+                localStorage.setItem(PRICE_CACHE_KEY, String(price));
+            }
+        } catch (e) {}
+    }
 
     let activeSliderTimer = null;
-    let weeklyPlanPrice = 99;
+    let weeklyPlanPrice = readCachedPrice();
+    let isPriceSynced = false;
     let isActiveSubscriber = false;
     let currentUserData = {};
     let cachedMarkets = [];
     let serverTimeOffset = 0;
     let savedMobile = "";
     let heartbeatInterval = null;
+
+    function extractAdminPrice(data = {}) {
+        const candidate =
+            data.weekly_subscription_price ??
+            data.weeklyPrice ??
+            data.subscription_price;
+        const parsed = Number(candidate);
+        return (!Number.isNaN(parsed) && parsed > 0) ? parsed : null;
+    }
+
+    function applySettingsData(data = {}) {
+        if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
+        if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
+        if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
+
+        const adminPrice = extractAdminPrice(data);
+        if (adminPrice !== null) {
+            weeklyPlanPrice = adminPrice;
+            isPriceSynced = true;
+            writeCachedPrice(adminPrice);
+        } else if (weeklyPlanPrice !== null) {
+            isPriceSynced = true;
+        }
+        renderSubscriptionUI();
+    }
 
     function getCorrectedNowMs() {
         return Date.now() + serverTimeOffset;
@@ -273,10 +317,23 @@
         const descText = document.getElementById('sub-description-text');
         const validityText = document.getElementById('sub-validity-text');
         const subscribeContainer = document.getElementById('subscribe-action-container');
+        const subscribeBtn = document.getElementById('btn-subscribe-weekly');
         const priceEl = document.getElementById('weekly-plan-price');
 
         if (priceEl) {
-            priceEl.innerText = "₹" + weeklyPlanPrice;
+            priceEl.innerText = weeklyPlanPrice !== null ? ("₹" + weeklyPlanPrice) : "--";
+        }
+
+        if (subscribeBtn) {
+            if (weeklyPlanPrice !== null) {
+                subscribeBtn.disabled = false;
+                subscribeBtn.innerText = isPriceSynced ? "Subscribe Now" : "Subscribe Now";
+                subscribeBtn.className = "bg-blue-950 hover:bg-blue-900 text-amber-300 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg transition-transform active:scale-95 shrink-0 cursor-pointer";
+            } else {
+                subscribeBtn.disabled = true;
+                subscribeBtn.innerText = "Syncing Price...";
+                subscribeBtn.className = "bg-blue-950/60 text-amber-300/80 font-black text-xs px-4 py-2.5 rounded-2xl uppercase tracking-wider shadow-lg shrink-0 cursor-not-allowed";
+            }
         }
 
         if (active) {
@@ -336,6 +393,7 @@
         document.getElementById('live-calendar-text').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         renderSubscriptionUI();
     }
+    renderSubscriptionUI();
     updateInstantClock();
     setInterval(updateInstantClock, 1000);
 
@@ -386,6 +444,16 @@
         return false;
     }
 
+    async function fetchLatestAdminPriceNow() {
+        try {
+            const snap = await getDoc(doc(db, "system_config", "settings"));
+            if (snap.exists()) {
+                applySettingsData(snap.data());
+            }
+        } catch (e) {}
+        return weeklyPlanPrice;
+    }
+
     async function beginLiveEngine() {
         savedMobile = localStorage.getItem('app_user_mobile');
         if (!savedMobile) { 
@@ -395,6 +463,8 @@
 
         document.getElementById('profile-phone').innerText = "Mobile: " + savedMobile;
         updateOnlineStatus(true);
+
+        fetchLatestAdminPriceNow();
 
         try {
             const userRef = doc(db, "users", savedMobile);
@@ -479,29 +549,20 @@
 
         onSnapshot(doc(db, "system_config", "settings"), (snapshot) => {
             if (snapshot.exists()) {
-                const data = snapshot.data();
-                if (data.notice_text) document.getElementById('notice-text').innerText = data.notice_text;
-                if (data.sliding_text) document.getElementById('sliding-marquee-text').innerText = data.sliding_text;
-                if (data.slider_images && Array.isArray(data.slider_images)) { setupAutoImageSlider(data.slider_images); }
-
-                const configuredPrice = Number(
-                    data.weekly_subscription_price ??
-                    data.weeklyPrice ??
-                    data.subscription_price ??
-                    99
-                );
-                if (!Number.isNaN(configuredPrice) && configuredPrice > 0) {
-                    weeklyPlanPrice = configuredPrice;
-                }
-                renderSubscriptionUI();
+                applySettingsData(snapshot.data());
             }
         });
     }
 
-    window.handleSubscribeWeekly = function() {
+    window.handleSubscribeWeekly = async function() {
         if (isActiveSubscriber) return;
+        const latestPrice = await fetchLatestAdminPriceNow();
+        if (latestPrice === null || Number.isNaN(Number(latestPrice)) || Number(latestPrice) <= 0) {
+            alert("Please wait a moment, fetching latest plan price from server...");
+            return;
+        }
         const mobileParam = encodeURIComponent(savedMobile || "");
-        window.location.href = `payment.html?userid=${mobileParam}&plan=weekly_7d&days=${WEEKLY_DAYS}&amount=${weeklyPlanPrice}`;
+        window.location.href = `payment.html?userid=${mobileParam}&plan=weekly_7d&days=${WEEKLY_DAYS}&amount=${Number(latestPrice)}`;
     }
 
     window.openMarketPage = function(marketName) {
