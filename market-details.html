@@ -16,22 +16,26 @@
 
 <div class="app-container">
 
+    <!-- FULL LOADING OVERLAY UNTIL ALL DATA IS READY -->
+    <div id="page-loading-overlay" class="absolute inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-3">
+        <div class="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs font-black text-amber-300 uppercase tracking-widest">Loading Market Data...</p>
+        <p class="text-[11px] text-slate-300 font-semibold">Please wait while details sync.</p>
+    </div>
+
     <!-- HEADER -->
     <div class="bg-blue-900 text-white px-4 py-3.5 flex items-center justify-between shadow-lg sticky top-0 z-40">
         <div class="flex items-center space-x-2.5 min-w-0">
             <button onclick="goBackDashboard()" class="bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-xl text-xs font-black shrink-0">← Back</button>
-            <div class="min-w-0">
-                <h1 id="market-title" class="font-black tracking-wider text-base uppercase leading-none truncate">MARKET</h1>
-                <p id="market-date-sub" class="text-[10px] text-blue-200 font-mono mt-0.5 truncate">--/--/----</p>
-            </div>
+            <h1 id="market-title" class="font-black tracking-wider text-base uppercase leading-none truncate">MARKET</h1>
         </div>
         <span id="sub-header-badge" class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0">
-            7-Day Plan
+            Syncing...
         </span>
     </div>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-1 p-4 space-y-4">
+    <div id="main-market-content" class="flex-1 p-4 space-y-4 opacity-0 pointer-events-none transition-opacity duration-200">
 
         <!-- THIS WEEK (LINE BY LINE DAYS) -->
         <div class="bg-white rounded-3xl p-4 shadow-sm border border-gray-200 space-y-3">
@@ -100,6 +104,7 @@
 
     const WEEKLY_DAYS = 7;
     const WEEKLY_MS = WEEKLY_DAYS * 24 * 60 * 60 * 1000;
+    const PRICE_CACHE_KEY = "mahalakshmi_weekly_price_cache";
 
     const DAYS_ORDER = [
         { key: "monday", label: "Monday" },
@@ -111,14 +116,59 @@
         { key: "sunday", label: "Sunday" }
     ];
 
+    function readCachedPrice() {
+        try {
+            const num = Number(localStorage.getItem(PRICE_CACHE_KEY));
+            if (!Number.isNaN(num) && num > 0) return num;
+        } catch (e) {}
+        return null;
+    }
+
+    function writeCachedPrice(price) {
+        try {
+            if (typeof price === "number" && !Number.isNaN(price) && price > 0) {
+                localStorage.setItem(PRICE_CACHE_KEY, String(price));
+            }
+        } catch (e) {}
+    }
+
     let savedMobile = "";
     let marketName = "";
     let isActiveSubscriber = false;
-    let weeklyPlanPrice = 99;
+    let weeklyPlanPrice = readCachedPrice();
     let marketDocData = null;
     let serverTimeOffset = 0;
     let todayDayKey = "";
     let selectedDayKey = "";
+
+    let readyFlags = {
+        user: false,
+        market: false,
+        settings: false
+    };
+
+    function isAllDataReady() {
+        return readyFlags.user && readyFlags.market && readyFlags.settings && weeklyPlanPrice !== null;
+    }
+
+    function syncReadyGate() {
+        const overlay = document.getElementById('page-loading-overlay');
+        const mainContent = document.getElementById('main-market-content');
+        if (isAllDataReady()) {
+            if (overlay) overlay.classList.add('hidden');
+            if (mainContent) {
+                mainContent.classList.remove('opacity-0', 'pointer-events-none');
+                mainContent.classList.add('opacity-100');
+            }
+            renderWeekAndCard();
+        } else {
+            if (overlay) overlay.classList.remove('hidden');
+            if (mainContent) {
+                mainContent.classList.add('opacity-0', 'pointer-events-none');
+                mainContent.classList.remove('opacity-100');
+            }
+        }
+    }
 
     function getCorrectedNowMs() {
         return Date.now() + serverTimeOffset;
@@ -202,11 +252,13 @@
     }
 
     window.goToWeeklySubscription = function() {
+        if (!isAllDataReady() || weeklyPlanPrice === null) return;
         const mobileParam = encodeURIComponent(savedMobile || "");
-        window.location.href = `payment.html?userid=${mobileParam}&plan=weekly_7d&days=${WEEKLY_DAYS}&amount=${weeklyPlanPrice}`;
+        window.location.href = `payment.html?userid=${mobileParam}&plan=weekly_7d&days=${WEEKLY_DAYS}&amount=${Number(weeklyPlanPrice)}`;
     }
 
     window.selectWeekDay = function(dayKey) {
+        if (!isAllDataReady()) return;
         selectedDayKey = dayKey;
         renderWeekAndCard();
     }
@@ -251,6 +303,8 @@
     }
 
     function renderWeekAndCard() {
+        if (!isAllDataReady()) return;
+
         const nowMs = getCorrectedNowMs();
         todayDayKey = getTodayDayKey(nowMs);
         if (!selectedDayKey) selectedDayKey = todayDayKey;
@@ -336,6 +390,7 @@
         }
 
         document.getElementById('market-title').innerText = marketName;
+        syncReadyGate();
 
         fetch(window.location.href, { method: 'HEAD' }).then(res => {
             const dHeader = res.headers.get('Date');
@@ -355,29 +410,31 @@
                 return;
             }
             isActiveSubscriber = checkSubscriptionActive(uData);
-            renderWeekAndCard();
+            readyFlags.user = true;
+            syncReadyGate();
         });
 
         onSnapshot(doc(db, "system_config", "settings"), (snap) => {
             if (snap.exists()) {
                 const s = snap.data();
-                const configuredPrice = Number(
+                const candidate =
                     s.weekly_subscription_price ??
                     s.weeklyPrice ??
-                    s.subscription_price ??
-                    99
-                );
+                    s.subscription_price;
+                const configuredPrice = Number(candidate);
                 if (!Number.isNaN(configuredPrice) && configuredPrice > 0) {
                     weeklyPlanPrice = configuredPrice;
+                    writeCachedPrice(configuredPrice);
                 }
-                renderWeekAndCard();
             }
+            readyFlags.settings = true;
+            syncReadyGate();
         });
 
         onSnapshot(doc(db, "markets", marketName), (snap) => {
             marketDocData = snap.exists() ? snap.data() : {};
-            document.getElementById('market-date-sub').innerText = marketDocData.gameDate || new Date().toLocaleDateString('en-GB');
-            renderWeekAndCard();
+            readyFlags.market = true;
+            syncReadyGate();
         });
 
         try {
