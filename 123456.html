@@ -33,113 +33,16 @@
     <div class="bg-amber-900 text-white px-5 py-4 flex items-center justify-between shadow-md sticky top-0 z-40">
         <div>
             <h2 class="font-black text-sm tracking-wide text-white">MAHALAKSHMI STAFF</h2>
-            <p class="text-[9px] text-amber-200 uppercase tracking-widest">Restricted Console</p>
+            <p class="text-[9px] text-amber-200 uppercase tracking-widest">Users &amp; Approvals Console</p>
         </div>
         <button onclick="handleAdminLogout()" class="bg-red-600 hover:bg-red-700 px-3 py-1.5 text-[10px] font-bold rounded-xl shadow">LOGOUT</button>
     </div>
 
-    <!-- NAVIGATION TABS -->
-    <div class="bg-white grid grid-cols-3 text-center text-[11px] font-black text-slate-400 sticky top-[72px] z-40 shadow-sm border-b border-slate-200">
-        <button onclick="openTab('system')" id="nav-system" class="py-4 border-b-2 border-amber-600 text-amber-600">Settings</button>
-        <button onclick="openTab('games')" id="nav-games" class="py-4 border-b-2 border-transparent">Games</button>
-        <button onclick="openTab('users')" id="nav-users" class="py-4 border-b-2 border-transparent">Users</button>
-    </div>
-
-    <!-- SCROLLER AREA -->
+    <!-- SCROLLER AREA (USERS SECTION ONLY) -->
     <div class="flex-1 p-4 space-y-4 pb-20">
 
-        <!-- SETTINGS TAB -->
-        <div id="tab-system" class="space-y-4">
-            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
-                <h3 class="font-black text-xs text-amber-900 uppercase tracking-wider">System Control & Gateways</h3>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Receiver UPI ID Address (For QR Code)</label>
-                    <input type="text" id="cfg-upi" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-mono">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Customer Support Phone Number (WhatsApp)</label>
-                    <input type="text" id="cfg-support-phone" placeholder="e.g. 919113224019" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notice Text Broadcast</label>
-                    <textarea id="cfg-notice" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800"></textarea>
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">⚡ Sliding Marquee Text (Dashboard)</label>
-                    <input type="text" id="cfg-sliding" placeholder="e.g. Welcome to mahalaxmiplay.online" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
-                </div>
-                <button onclick="saveSystemConfig()" class="w-full bg-amber-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Save Parameters</button>
-            </div>
+        <div id="tab-users" class="space-y-4">
 
-            <!-- PUSH NOTIFICATION SENDER BOX -->
-            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
-                <h3 class="font-black text-xs text-amber-900 uppercase tracking-wider">🔔 Send Push Notification</h3>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notification Title</label>
-                    <input type="text" id="notif-title" placeholder="Mahalakshmi Alert" value="Mahalakshmi Update" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notification Message / Body</label>
-                    <textarea id="notif-body" rows="2" placeholder="Type your message here..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800"></textarea>
-                </div>
-                <button onclick="sendPushNotificationToAll()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow transition-transform active:scale-95">📤 Send Notification To All</button>
-            </div>
-        </div>
-
-        <!-- GAMES TAB -->
-        <div id="tab-games" class="space-y-4 hidden">
-            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
-                <h3 class="font-black text-xs text-amber-900 uppercase tracking-wider">Add/Edit Game Target</h3>
-                <div class="grid grid-cols-3 gap-2">
-                    <div class="col-span-2">
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Name</label>
-                        <input type="text" id="mkt-name" placeholder="SRIDEVI" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs uppercase font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Serial Sort</label>
-                        <input type="number" id="mkt-serial" placeholder="1" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Price (₹)</label>
-                        <input type="number" id="mkt-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold text-amber-600">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Market Global Status</label>
-                        <select id="mkt-status" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold text-gray-800">
-                            <option value="active">Active (Normal)</option>
-                            <option value="locked">Locked (Closed)</option>
-                            <option value="force_show">Force Show to Everyone (Override)</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Display Timestamp</label>
-                    <input type="text" id="mkt-date" placeholder="17/06/2026 9:35 AM" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono">
-                </div>
-                <div class="space-y-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">🎲 OTC Value Line</label>
-                        <input type="text" id="mkt-otc" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">🔗 Jodi Value Line</label>
-                        <input type="text" id="mkt-jodi" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 font-bold mb-1">📊 Panel Value Line</label>
-                        <input type="text" id="mkt-panel" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold">
-                    </div>
-                </div>
-                <button onclick="addOrUpdateMarket()" class="w-full bg-amber-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Publish Game Update</button>
-            </div>
-            <div id="admin-markets-list" class="space-y-2"></div>
-        </div>
-
-        <!-- USERS TAB -->
-        <div id="tab-users" class="space-y-4 hidden">
-            
             <!-- PENDING DEPOSIT APPROVALS SECTION -->
             <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2">
                 <div class="flex items-center space-x-2">
@@ -151,9 +54,10 @@
                 </div>
             </div>
 
+            <!-- SEARCH & FILTER USERS -->
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col space-y-2">
                 <div class="flex space-x-2">
-                    <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search name..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-gray-800 font-semibold focus:outline-none focus:border-amber-500">
+                    <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search user name..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-gray-800 font-semibold focus:outline-none focus:border-amber-500">
                     <select id="user-filter-dropdown" onchange="triggerUserFilterDisplay()" class="bg-amber-50 border border-amber-200 rounded-2xl px-3 text-xs font-bold text-amber-900 focus:outline-none">
                         <option value="all">⚡ Filter Options</option>
                         <option value="online">🟢 Online Users</option>
@@ -172,7 +76,7 @@
                 <div onclick="toggleDepositHistory()" class="flex justify-between items-center cursor-pointer select-none">
                     <div class="flex items-center space-x-2">
                         <span class="text-base">📜</span>
-                        <h3 class="font-black text-xs text-amber-950 uppercase tracking-wider">Deposit & Transaction History</h3>
+                        <h3 class="font-black text-xs text-amber-950 uppercase tracking-wider">Deposit &amp; Transaction History</h3>
                     </div>
                     <span id="history-arrow" class="text-xs font-bold text-slate-400">▼</span>
                 </div>
@@ -182,10 +86,12 @@
                 </div>
             </div>
 
+            <!-- USERS DIRECTORY (ONLY USER NAME) -->
             <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200 space-y-3">
-                <h3 class="font-black text-xs text-gray-400 uppercase tracking-wider">Subscribers Directory</h3>
-                <div id="users-directory-zone" class="space-y-3"></div>
+                <h3 class="font-black text-xs text-gray-400 uppercase tracking-wider">Users Directory</h3>
+                <div id="users-directory-zone" class="space-y-2"></div>
             </div>
+
         </div>
 
     </div>
@@ -193,9 +99,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
@@ -210,17 +115,37 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const storage = getStorage(app);
 
-    let globalMarketsCache = {};
+    const WEEKLY_DAYS = 7;
+    const WEEKLY_MS = WEEKLY_DAYS * 24 * 60 * 60 * 1000;
+
     let cachedUsersList = [];
-    let openedUserCards = new Set();
     let isHistoryOpen = false;
+    let liveHooksLoaded = false;
+
+    function parseExpiryMs(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const num = Number(val);
+            if (!Number.isNaN(num) && num > 0) return num;
+            const parsed = Date.parse(val);
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        if (typeof val === 'object') {
+            if (typeof val.toMillis === 'function') return val.toMillis();
+            if (typeof val.seconds === 'number') return val.seconds * 1000;
+        }
+        return 0;
+    }
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('admin-gate').classList.add('hidden');
-            loadLiveHooks();
+            if (!liveHooksLoaded) {
+                liveHooksLoaded = true;
+                loadLiveHooks();
+            }
         } else {
             document.getElementById('admin-gate').classList.remove('hidden');
         }
@@ -241,30 +166,6 @@
         try { await signOut(auth); window.location.reload(); } catch(e) {}
     }
 
-    window.openTab = function(tabId) {
-        ['system', 'games', 'users'].forEach(t => {
-            document.getElementById('tab-'+t).classList.add('hidden');
-            document.getElementById('nav-'+t).className = "py-4 border-b-2 border-transparent";
-        });
-        document.getElementById('tab-'+tabId).classList.remove('hidden');
-        document.getElementById('nav-'+tabId).className = "py-4 border-b-2 border-amber-600 text-amber-600";
-    }
-
-    window.sendPushNotificationToAll = async function() {
-        const title = document.getElementById('notif-title').value.trim();
-        const message = document.getElementById('notif-body').value.trim();
-        if (!message) { alert("Please type a notification message first."); return; }
-        try {
-            await setDoc(doc(db, "notifications", "notif_" + Date.now()), {
-                title: title || "Mahalakshmi Update",
-                message: message,
-                sentAt: serverTimestamp()
-            });
-            document.getElementById('notif-body').value = '';
-            alert("🚀 Push notification broadcasted successfully!");
-        } catch (e) { alert("❌ Failed: " + e.message); }
-    }
-
     window.toggleDepositHistory = function() {
         const container = document.getElementById('deposit-history-container');
         const arrow = document.getElementById('history-arrow');
@@ -274,16 +175,6 @@
     }
 
     function loadLiveHooks() {
-        onSnapshot(doc(db, "system_config", "settings"), (snap) => {
-            if(snap.exists()) {
-                const s = snap.data();
-                document.getElementById('cfg-notice').value = s.notice_text || '';
-                document.getElementById('cfg-sliding').value = s.sliding_text || '';
-                document.getElementById('cfg-upi').value = s.upi_address || '';
-                document.getElementById('cfg-support-phone').value = s.support_phone || '';
-            }
-        });
-
         onSnapshot(collection(db, "pending_deposits"), (snapshot) => {
             const zone = document.getElementById('pending-deposits-zone');
             zone.innerHTML = '';
@@ -291,39 +182,28 @@
             snapshot.forEach(dDoc => {
                 count++;
                 const d = dDoc.data();
+                const reqUserId = d.userid || d.userMobile || d.phone || d.mobile || '';
+                const reqAmount = Number(d.amount) || 0;
+                const reqName = d.name || d.userName || 'User';
+                const reqPassType = d.passType || d.plan || 'Weekly Subscription (7 Days)';
+                const safeName = String(reqName).replace(/'/g, "\\'");
+                const safePassType = String(reqPassType).replace(/'/g, "\\'");
+
                 zone.innerHTML += `
                     <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col space-y-2 text-xs shadow-sm">
                         <div class="flex justify-between font-bold">
-                            <span class="text-amber-950 font-bold">${d.name || 'User'}</span>
-                            <span class="text-emerald-600 font-black text-sm">+₹${d.amount}</span>
+                            <span class="text-amber-950 font-bold">${reqName}</span>
+                            <span class="text-emerald-600 font-black text-sm">₹${reqAmount}</span>
                         </div>
-                        <p class="font-mono text-[10px] text-gray-500">Pass / Type: <span class="font-bold text-amber-700">${d.passType || 'Deposit'}</span></p>
-                        <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr}</span></p>
+                        <p class="font-mono text-[10px] text-gray-500">Plan / Type: <span class="font-bold text-amber-700">${reqPassType}</span></p>
+                        <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr || d.ref || '--'}</span></p>
                         <div class="flex space-x-2 pt-1">
-                            <button onclick="approveDeposit('${d.id}', '${d.userid}', ${d.amount}, '${d.name || 'User'}', '${d.passType || ''}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
-                            <button onclick="rejectDeposit('${d.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
+                            <button onclick="approveDeposit('${dDoc.id}', '${reqUserId}', ${reqAmount}, '${safeName}', '${safePassType}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
+                            <button onclick="rejectDeposit('${dDoc.id}', '${reqUserId}', ${reqAmount}, '${safeName}', '${safePassType}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
                         </div>
                     </div>`;
             });
             if (count === 0) zone.innerHTML = `<p class="text-[11px] text-gray-500 italic">No pending deposit requests.</p>`;
-        });
-
-        onSnapshot(collection(db, "markets"), (querySnapshot) => {
-            const list = document.getElementById('admin-markets-list');
-            list.innerHTML = '';
-            const sorted = querySnapshot.docs.sort((a,b) => (Number(a.data().serialNo)||999) - (Number(b.data().serialNo)||999));
-            sorted.forEach(doc => {
-                const m = doc.data();
-                globalMarketsCache[doc.id] = m;
-                list.innerHTML += `
-                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 flex justify-between items-center cursor-pointer shadow-sm" onclick="populateMarketForm('${doc.id}')">
-                        <div>
-                            <span class="text-xs font-black text-amber-900 font-mono mr-1">[${m.serialNo}]</span>
-                            <span class="font-bold text-gray-800 text-xs uppercase mr-2">${doc.id}</span>
-                            <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-xl font-bold">₹${m.price || 100}</span>
-                        </div>
-                    </div>`;
-            });
         });
 
         onSnapshot(collection(db, "users"), (querySnapshot) => {
@@ -331,79 +211,125 @@
             querySnapshot.forEach(uDoc => { 
                 cachedUsersList.push({ id: uDoc.id, ...uDoc.data() }); 
             });
-            cachedUsersList.sort((a, b) => (Number(b.joinedAt) || 0) - (Number(a.joinedAt) || 0));
+            cachedUsersList.sort((a, b) => (Number(b.lastSeen) || 0) - (Number(a.lastSeen) || 0));
             document.getElementById('label-total-users').innerText = cachedUsersList.length;
             triggerUserFilterDisplay();
         });
 
-        onSnapshot(collection(db, "deposits"), (snap1) => {
-            onSnapshot(collection(db, "transactions"), (snap2) => {
-                onSnapshot(collection(db, "payments"), (snap3) => {
-                    let combinedDocs = [];
-                    snap1.forEach(doc => combinedDocs.push(doc));
-                    snap2.forEach(doc => combinedDocs.push(doc));
-                    snap3.forEach(doc => combinedDocs.push(doc));
-                    const historyZone = document.getElementById('deposit-history-zone');
-                    historyZone.innerHTML = '';
-                    let count = 0;
-                    let depositsList = [];
-                    combinedDocs.forEach(dDoc => { depositsList.push({ id: dDoc.id, ...dDoc.data() }); });
-                    depositsList.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
-                    depositsList.forEach(d => {
-                        count++;
-                        let ts = Number(d.timestamp) || Date.now();
-                        let parsedTime = new Date(ts).toLocaleString();
-                        historyZone.innerHTML += `
-                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
-                                <div class="flex justify-between font-bold">
-                                    <span class="text-slate-900">${d.name || 'User'}</span>
-                                    <span class="text-green-600 font-mono font-black">+₹${d.amount}</span>
-                                </div>
-                                <div class="flex justify-between text-[10px] text-slate-500">
-                                    <span>📅 ${parsedTime}</span>
-                                    <span class="font-mono bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">${d.status || 'success'}</span>
-                                </div>
-                            </div>`;
-                    });
-                    if(count === 0) { historyZone.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold italic text-center py-2">No transaction history found.</p>`; }
-                });
+        let snapCache = { deposits: [], transactions: [], payments: [] };
+
+        function renderCombinedHistory() {
+            const combinedDocs = [...snapCache.deposits, ...snapCache.transactions, ...snapCache.payments];
+            const historyZone = document.getElementById('deposit-history-zone');
+            historyZone.innerHTML = '';
+            let count = 0;
+
+            const getTs = x => {
+                let t = Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || Number(x.date) || 0;
+                return (t < 10000000000) ? t * 1000 : t;
+            };
+            combinedDocs.sort((a, b) => getTs(b) - getTs(a));
+
+            combinedDocs.forEach(d => {
+                count++;
+                let ts = getTs(d);
+                let parsedTime = ts > 0 ? new Date(ts).toLocaleString() : "--";
+                let statusStr = String(d.status || 'success').toLowerCase();
+                let badgeClass = statusStr === 'rejected'
+                    ? 'font-mono bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-bold'
+                    : 'font-mono bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold';
+
+                historyZone.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
+                        <div class="flex justify-between font-bold">
+                            <span class="text-slate-900">${d.name || d.userName || 'User'}</span>
+                            <span class="text-green-600 font-mono font-black">₹${d.amount || 0}</span>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>📅 ${parsedTime}</span>
+                            <span class="${badgeClass}">${d.status || 'success'}</span>
+                        </div>
+                    </div>`;
             });
+            if(count === 0) { historyZone.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold italic text-center py-2">No transaction history found.</p>`; }
+        }
+
+        onSnapshot(collection(db, "deposits"), (snap1) => {
+            snapCache.deposits = [];
+            snap1.forEach(doc => snapCache.deposits.push({ id: doc.id, ...doc.data() }));
+            renderCombinedHistory();
+        });
+
+        onSnapshot(collection(db, "transactions"), (snap2) => {
+            snapCache.transactions = [];
+            snap2.forEach(doc => snapCache.transactions.push({ id: doc.id, ...doc.data() }));
+            renderCombinedHistory();
+        });
+
+        onSnapshot(collection(db, "payments"), (snap3) => {
+            snapCache.payments = [];
+            snap3.forEach(doc => snapCache.payments.push({ id: doc.id, ...doc.data() }));
+            renderCombinedHistory();
         });
     }
 
-    // STAFF APPROVE LOGIC (Fully synced with main admin rules)
     window.approveDeposit = async function(reqId, userId, amount, userName, passType) {
-        if (!confirm(`Approve ₹${amount} for ${userName}?`)) return;
+        if (!confirm(`Approve ₹${amount} and activate 7-day subscription for ${userName}?`)) return;
         try {
-            const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            let updatePayload = {};
+            const now = Date.now();
+            if (userId) {
+                const userRef = doc(db, "users", userId);
+                const userSnap = await getDoc(userRef);
+                const rawExp = userSnap.exists()
+                    ? (userSnap.data().subscriptionExpiry ?? userSnap.data().subscription_expiry ?? 0)
+                    : 0;
+                const existingExpiry = parseExpiryMs(rawExp);
+                const baseTime = existingExpiry > now ? existingExpiry : now;
+                const newExpiry = baseTime + WEEKLY_MS;
 
-            if (passType && passType.startsWith("Game: ")) {
-                const gameName = passType.replace("Game: ", "").trim();
-                let unlocked = userSnap.exists() ? (userSnap.data().unlockedGames || {}) : {};
-                unlocked[gameName] = Date.now();
-                updatePayload.unlockedGames = unlocked;
-            } else {
-                let currentBal = userSnap.exists() ? (Number(userSnap.data().balance) || Number(userSnap.data().walletBalance) || 0) : 0;
-                const newBal = currentBal + Number(amount);
-                updatePayload.balance = newBal;
-                updatePayload.walletBalance = newBal;
+                await setDoc(userRef, {
+                    isSubscribed: true,
+                    subscriptionActive: true,
+                    subscriptionPlan: "weekly_7d",
+                    subscriptionDays: WEEKLY_DAYS,
+                    subscriptionStart: now,
+                    subscriptionExpiry: newExpiry,
+                    subscription_expiry: newExpiry
+                }, { merge: true });
             }
 
-            await updateDoc(userRef, updatePayload);
             await setDoc(doc(db, "deposits", reqId), {
-                userid: userId, userMobile: userId, name: userName, passType: passType || 'Deposit', amount: amount, timestamp: Date.now(), status: "approved"
-            });
+                userid: userId,
+                userMobile: userId,
+                name: userName,
+                passType: passType || 'Weekly Subscription (7 Days)',
+                amount: Number(amount) || 0,
+                timestamp: now,
+                status: "approved"
+            }, { merge: true });
+
             await deleteDoc(doc(db, "pending_deposits", reqId));
-            alert("✅ Request approved successfully!");
+            alert("✅ Request approved and 7-day subscription accepted!");
         } catch(e) { alert("❌ Approval failed: " + e.message); }
     }
 
-    window.rejectDeposit = async function(reqId) {
+    window.rejectDeposit = async function(reqId, userId = '', amount = 0, userName = 'User', passType = 'Weekly Subscription (7 Days)') {
         if (confirm("Reject this deposit request?")) {
-            await deleteDoc(doc(db, "pending_deposits", reqId));
-            alert("Deposit request rejected.");
+            try {
+                if (userId) {
+                    await setDoc(doc(db, "deposits", reqId), {
+                        userid: userId,
+                        userMobile: userId,
+                        name: userName,
+                        passType: passType,
+                        amount: Number(amount) || 0,
+                        timestamp: Date.now(),
+                        status: "rejected"
+                    }, { merge: true });
+                }
+                await deleteDoc(doc(db, "pending_deposits", reqId));
+                alert("Deposit request rejected.");
+            } catch (e) { alert("❌ Reject failed: " + e.message); }
         }
     }
 
@@ -427,103 +353,18 @@
         renderUserDirectoryItems(filtered);
     }
 
-    window.toggleUserCard = function(userId) {
-        const detailsDiv = document.getElementById(`user-details-${userId}`);
-        if (detailsDiv.classList.contains('hidden')) {
-            detailsDiv.classList.remove('hidden');
-            openedUserCards.add(userId);
-        } else {
-            detailsDiv.classList.add('hidden');
-            openedUserCards.delete(userId);
-        }
-    }
-
     function renderUserDirectoryItems(usersArray) {
         const container = document.getElementById('users-directory-zone');
         container.innerHTML = '';
         usersArray.forEach(u => {
             const isBlocked = u.status === "blocked";
-            let isOnline = false;
-            let lastSeenStr = "Never";
-            if(u.lastSeen) {
-                if (Date.now() - Number(u.lastSeen) < 15 * 1000) { isOnline = true; }
-                lastSeenStr = new Date(Number(u.lastSeen)).toLocaleString();
-            }
+            const blockBadge = isBlocked ? '<span class="text-white bg-slate-900 px-2 py-0.5 rounded-full font-bold text-[9px] ml-2">BLOCKED</span>' : '';
 
-            let joinedStr = u.joinedAt ? new Date(Number(u.joinedAt)).toLocaleString() : "Unknown";
-            const blockBadge = isBlocked ? '<span class="text-white bg-slate-900 px-2 py-0.5 rounded-full font-bold text-[9px]">BLOCKED</span>' : '';
-            const statusBadge = isOnline 
-                ? '<span class="text-green-600 bg-green-50 px-2.5 py-1 rounded-xl font-bold text-[10px] inline-flex items-center gap-1 border border-green-200"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online</span>' 
-                : '<span class="text-gray-500 bg-gray-100 px-2.5 py-1 rounded-xl font-bold text-[10px]">Offline</span>';
-
-            // NOTICE: Mobile number line completely removed/hidden for staff privacy!
             container.innerHTML += `
-                <div class="bg-white border border-slate-200 p-3.5 rounded-2xl flex flex-col space-y-2 text-xs cursor-pointer shadow-sm" onclick="toggleUserCard('${u.id}')">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-gray-900 text-sm">${u.name || 'User'} ${blockBadge}</p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            ${statusBadge}
-                            <span class="text-gray-400 text-xs">▼</span>
-                        </div>
-                    </div>
-                    <div id="user-details-${u.id}" class="${openedUserCards.has(u.id) ? '' : 'hidden'} space-y-2.5 pt-3 border-t border-slate-100" onclick="event.stopPropagation()">
-                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
-                            <p class="text-[10px] text-amber-700 font-bold">📅 Joined: ${joinedStr}</p>
-                            <p class="text-[10px] text-gray-500">👁️ Last Seen: ${lastSeenStr}</p>
-                        </div>
-                        <div class="pt-1">
-                            <button onclick="toggleUserBlockStatus('${u.id}', ${isBlocked})" class="w-full ${isBlocked ? 'bg-slate-700' : 'bg-slate-950'} text-white py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow">
-                                ${isBlocked ? 'Unblock User' : 'Block User'}
-                            </button>
-                        </div>
-                    </div>
+                <div class="bg-white border border-slate-200 px-3.5 py-2.5 rounded-2xl flex items-center text-xs shadow-sm">
+                    <p class="font-bold text-gray-900 text-sm">${u.name || 'User'}${blockBadge}</p>
                 </div>`;
         });
-    }
-
-    window.populateMarketForm = function(id) {
-        const m = globalMarketsCache[id]; if(!m) return;
-        document.getElementById('mkt-name').value = id;
-        document.getElementById('mkt-serial').value = m.serialNo || '';
-        document.getElementById('mkt-date').value = m.gameDate || '';
-        document.getElementById('mkt-price').value = m.price || 100;
-        document.getElementById('mkt-status').value = m.marketStatus || 'active';
-        document.getElementById('mkt-otc').value = m.otcValue || '';
-        document.getElementById('mkt-jodi').value = m.jodiValue || '';
-        document.getElementById('mkt-panel').value = m.panelValue || '';
-    }
-
-    window.saveSystemConfig = async function() {
-        try {
-            await setDoc(doc(db, "system_config", "settings"), {
-                notice_text: document.getElementById('cfg-notice').value.trim(),
-                sliding_text: document.getElementById('cfg-sliding').value.trim(),
-                upi_address: document.getElementById('cfg-upi').value.trim(),
-                support_phone: document.getElementById('cfg-support-phone').value.trim()
-            }, { merge: true });
-            alert("Parameters successfully saved!");
-        } catch(e) { alert("Save failed."); }
-    }
-
-    window.addOrUpdateMarket = async function() {
-        const name = document.getElementById('mkt-name').value.trim().toUpperCase(); if(!name) return alert("Enter Game Name.");
-        await setDoc(doc(db, "markets", name), {
-            serialNo: Number(document.getElementById('mkt-serial').value) || 0,
-            gameDate: document.getElementById('mkt-date').value.trim(),
-            price: Number(document.getElementById('mkt-price').value) || 100,
-            marketStatus: document.getElementById('mkt-status').value,
-            otcValue: document.getElementById('mkt-otc').value.trim(),
-            jodiValue: document.getElementById('mkt-jodi').value.trim(),
-            panelValue: document.getElementById('mkt-panel').value.trim()
-        }, { merge: true });
-        alert("Game details published.");
-    }
-
-    window.toggleUserBlockStatus = async function(userId, currentlyBlocked) {
-        await updateDoc(doc(db, "users", userId), { status: currentlyBlocked ? "allowed" : "blocked" });
-        alert(currentlyBlocked ? "User unblocked." : "User blocked.");
     }
 </script>
 </body>
