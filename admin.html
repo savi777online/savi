@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahalakshmi Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #e2e8f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; max-height: 850px; background: #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .app-container::-webkit-scrollbar { display: none; }
+        @media (max-width: 450px) { .app-container { height: 100vh; max-height: 100vh; } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ADMIN FIREBASE AUTH LOGIN SCREEN -->
+    <div id="admin-gate" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center p-6 z-50">
+        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-700 w-full max-w-xs text-center shadow-2xl space-y-4">
+            <h1 class="text-xl font-black text-blue-500 mb-1">Admin Portal</h1>
+            <p class="text-[11px] text-slate-400 mb-4 uppercase tracking-widest">Sign In with Firebase Credentials</p>
+            
+            <input type="email" id="admin-email" placeholder="Admin Gmail / Email" class="w-full bg-slate-950 border border-slate-700 text-white rounded-2xl p-3 text-xs focus:outline-none">
+            <input type="password" id="admin-password" placeholder="Password" class="w-full bg-slate-950 border border-slate-700 text-white rounded-2xl p-3 text-xs focus:outline-none mb-2">
+            
+            <button onclick="loginAdminFirebase()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest transition-transform active:scale-95 shadow">Login Admin</button>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <div class="bg-blue-900 text-white px-5 py-4 flex items-center justify-between shadow-md sticky top-0 z-40">
+        <div>
+            <h2 class="font-black text-sm tracking-wide text-white">MAHALAKSHMI ADMIN</h2>
+            <p class="text-[9px] text-blue-200 uppercase tracking-widest">Console Interface</p>
+        </div>
+        <button onclick="handleAdminLogout()" class="bg-red-600 hover:bg-red-700 px-3 py-1.5 text-[10px] font-bold rounded-xl shadow">LOGOUT</button>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="bg-white grid grid-cols-3 text-center text-[11px] font-black text-slate-400 sticky top-[72px] z-40 shadow-sm border-b border-slate-200">
+        <button onclick="openTab('system')" id="nav-system" class="py-4 border-b-2 border-blue-600 text-blue-600">Settings</button>
+        <button onclick="openTab('games')" id="nav-games" class="py-4 border-b-2 border-transparent">Games</button>
+        <button onclick="openTab('users')" id="nav-users" class="py-4 border-b-2 border-transparent">Users</button>
+    </div>
+
+    <!-- SCROLLER AREA -->
+    <div class="flex-1 p-4 space-y-4 pb-20">
+
+        <!-- SETTINGS TAB -->
+        <div id="tab-system" class="space-y-4">
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">System Control & Gateways</h3>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Receiver UPI ID Address (For QR Code)</label>
+                    <input type="text" id="cfg-upi" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-mono">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Customer Support Phone Number (WhatsApp)</label>
+                    <input type="text" id="cfg-support-phone" placeholder="e.g. 919113224019" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Weekly Subscription Price (7 Days, ₹)</label>
+                    <input type="number" id="cfg-weekly-price" placeholder="99" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-blue-700 font-mono font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notice Text Broadcast</label>
+                    <textarea id="cfg-notice" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">⚡ Sliding Marquee Text (Dashboard)</label>
+                    <input type="text" id="cfg-sliding" placeholder="e.g. Welcome to mahalaxmiplay.online" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
+                </div>
+                <button onclick="saveSystemConfig()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Save Parameters</button>
+            </div>
+
+            <!-- PUSH NOTIFICATION SENDER BOX -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🔔 Send Push Notification</h3>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notification Title</label>
+                    <input type="text" id="notif-title" placeholder="Mahalakshmi Alert" value="Mahalakshmi Update" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800 font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Notification Message / Body</label>
+                    <textarea id="notif-body" rows="2" placeholder="Type your message here..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs text-gray-800"></textarea>
+                </div>
+                <button onclick="sendPushNotificationToAll()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow transition-transform active:scale-95">📤 Send Notification To All</button>
+            </div>
+
+            <!-- DYNAMIC EXTERNAL LINKS / APP REDIRECTS CONSOLE PANEL -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🔗 App Shortcuts / Video Links Manager</h3>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Clickable Link Headline</label>
+                    <input type="text" id="link-headline" placeholder="e.g., Watch Free Video Guide on YouTube" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-semibold focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Redirect Destination URL Link</label>
+                    <input type="text" id="link-target-url" placeholder="https://youtube.com/..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono text-gray-600">
+                </div>
+                <button onclick="publishAppShortcutLink()" class="w-full bg-blue-700 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">🚀 Publish Redirect Link</button>
+                <div class="border-t border-slate-100 pt-3">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">Active Launch URLs</p>
+                    <div id="admin-links-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- VOICE NOTES RECORDER HUB -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">🎙️ Voice Notes Control Console</h3>
+                <div>
+                    <label class="block text-[10px] text-gray-400 font-bold mb-1">Voice Track Title (Optional)</label>
+                    <input type="text" id="voice-title" placeholder="Leaves empty for auto date-timestamp label..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-semibold focus:outline-none">
+                </div>
+                
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-col items-center justify-center space-y-2">
+                    <p class="text-[9px] uppercase tracking-wider font-bold text-gray-400">Record Live Audio Note</p>
+                    <div class="flex space-x-2">
+                        <button type="button" id="btn-start-rec" onclick="initiateMicrophoneRecording()" class="bg-blue-600 text-white font-bold text-[10px] px-3.5 py-2 rounded-xl uppercase">Start Record</button>
+                        <button type="button" id="btn-stop-rec" onclick="stopMicrophoneRecording()" disabled class="bg-gray-300 text-gray-600 font-bold text-[10px] px-3.5 py-2 rounded-xl uppercase">Stop</button>
+                    </div>
+                    <div id="rec-preview-zone" class="w-full hidden pt-1">
+                        <audio id="audio-playback-preview" controls class="w-full h-8"></audio>
+                    </div>
+                </div>
+
+                <div class="relative flex items-center justify-center my-1">
+                    <span class="absolute inset-x-0 h-px bg-slate-200"></span>
+                    <span class="relative bg-white px-2 text-[9px] font-bold text-gray-400 uppercase">OR Provide File Link</span>
+                </div>
+
+                <div>
+                    <input type="text" id="voice-url" placeholder="Audio network URL link container box..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono text-gray-600">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="file" id="voice-file-input" accept="audio/*" onchange="uploadVoiceFileToServer()" class="text-[9px] text-gray-500 file:py-1.5 file:px-2.5 file:rounded-xl file:border-0 file:bg-blue-500/10 file:text-blue-600 font-bold cursor-pointer flex-1">
+                    <span id="voice-upload-status" class="text-[9px] font-bold text-gray-400">Idle</span>
+                </div>
+                <button onclick="publishVoiceNote()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">🚀 Publish Voice Alert</button>
+                
+                <div class="border-t border-slate-100 pt-3">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">Live Broadcast Logs</p>
+                    <div id="admin-voice-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Image Sliders Gallery -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-2">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider mb-2">Gallery Image Banners (1-6)</h3>
+                <div class="space-y-2.5" id="slider-inputs-zone"></div>
+            </div>
+        </div>
+
+        <!-- GAMES TAB -->
+        <div id="tab-games" class="space-y-4 hidden">
+            <!-- ADD NEW MARKET ONLY -->
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-blue-900 uppercase tracking-wider">Add Game</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-2">
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Game Name</label>
+                        <input type="text" id="new-mkt-name" placeholder="SRIDEVI" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs uppercase font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Serial Sort</label>
+                        <input type="number" id="new-mkt-serial" placeholder="1" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-bold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Default Game Price (₹)</label>
+                        <input type="number" id="new-mkt-price" placeholder="100" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono font-bold text-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 font-bold mb-1">Display Timestamp</label>
+                        <input type="text" id="new-mkt-date" placeholder="19/11/2026 9:45 AM" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-2.5 text-xs font-mono">
+                    </div>
+                </div>
+                <button onclick="addNewMarketOnly()" class="w-full bg-blue-900 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow">Add Market</button>
+            </div>
+
+            <!-- MARKETS LIST (CLICK MARKET -> MON-SUN -> CLICK DAY -> EDIT DAY) -->
+            <div id="admin-markets-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- USERS TAB -->
+        <div id="tab-users" class="space-y-4 hidden">
+            
+            <!-- PENDING SUBSCRIPTION / DEPOSIT APPROVALS SECTION -->
+            <div class="bg-amber-50 border border-amber-200 rounded-3xl p-4 shadow-sm space-y-2">
+                <div class="flex items-center space-x-2">
+                    <span class="text-base">⏳</span>
+                    <h3 class="font-black text-xs text-amber-950 uppercase tracking-wider">Pending Subscription Approvals</h3>
+                </div>
+                <div id="pending-deposits-zone" class="space-y-2 pt-1">
+                    <p class="text-[11px] text-gray-500 italic">No pending requests.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex flex-col space-y-2">
+                <div class="flex space-x-2">
+                    <input type="text" id="user-search-bar" oninput="triggerUserFilterDisplay()" placeholder="🔍 Search name or phone number..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-gray-800 font-semibold focus:outline-none focus:border-blue-500">
+                    <select id="user-filter-dropdown" onchange="triggerUserFilterDisplay()" class="bg-blue-50 border border-blue-200 rounded-2xl px-3 text-xs font-bold text-blue-900 focus:outline-none">
+                        <option value="all">⚡ Filter Options</option>
+                        <option value="subscribed">⭐ Subscribed (7d)</option>
+                        <option value="unsubscribed">⚪ Unsubscribed</option>
+                        <option value="online">🟢 Online Users</option>
+                        <option value="offline">⚪ Offline Users</option>
+                        <option value="lastseen">🕒 Last Seen</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-blue-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-blue-900 border border-blue-200">
+                        <span>Total Users:</span>
+                        <span id="label-total-users" class="bg-blue-900 text-white px-2 py-0.5 rounded-xl font-black font-mono">0</span>
+                    </div>
+                    <div class="bg-emerald-50 rounded-2xl px-3 py-2 flex justify-between items-center text-xs font-bold text-emerald-900 border border-emerald-200">
+                        <span>Active 7d Subs:</span>
+                        <span id="label-active-subs" class="bg-emerald-700 text-white px-2 py-0.5 rounded-xl font-black font-mono">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEPOSIT / SUBSCRIPTION TRANSACTION HISTORY ACCORDION BOX -->
+            <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200 space-y-2">
+                <div onclick="toggleDepositHistory()" class="flex justify-between items-center cursor-pointer select-none">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-base">📜</span>
+                        <h3 class="font-black text-xs text-blue-950 uppercase tracking-wider">Subscription & Deposit History</h3>
+                    </div>
+                    <span id="history-arrow" class="text-xs font-bold text-slate-400">▼</span>
+                </div>
+                
+                <div id="deposit-history-container" class="hidden space-y-2.5 pt-2 border-t border-slate-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">All Subscription Payment Logs</span>
+                        <button onclick="clearAllDepositHistory()" class="bg-red-100 hover:bg-red-200 text-red-600 px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase">Clear History</button>
+                    </div>
+                    <div id="deposit-history-zone" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-black text-xs text-gray-400 uppercase tracking-wider">Users Directory & 7-Day Subscriptions</h3>
+                <div id="users-directory-zone" class="space-y-3"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, updateDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
+        authDomain: "mahalakshmi-1358f.firebaseapp.com",
+        projectId: "mahalakshmi-1358f",
+        storageBucket: "mahalakshmi-1358f.firebasestorage.app",
+        messagingSenderId: "26487681138",
+        appId: "1:26487681138:web:dfa4095fa2285b584212eb",
+        measurementId: "G-Y2SVGE7BVJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    const WEEKLY_DAYS = 7;
+    const WEEKLY_MS = WEEKLY_DAYS * 24 * 60 * 60 * 1000;
+
+    const ADMIN_DAYS = [
+        { key: "monday", label: "Monday" },
+        { key: "tuesday", label: "Tuesday" },
+        { key: "wednesday", label: "Wednesday" },
+        { key: "thursday", label: "Thursday" },
+        { key: "friday", label: "Friday" },
+        { key: "saturday", label: "Saturday" },
+        { key: "sunday", label: "Sunday" }
+    ];
+
+    let expandedMarketId = null;
+    let expandedDayKey = null;
+
+    let globalMarketsCache = {};
+    let cachedUsersList = [];
+    let openedUserCards = new Set();
+    let isHistoryOpen = false;
+
+    let mediaRecorderEngine = null;
+    let registeredAudioChunks = [];
+
+    function parseExpiryMs(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const num = Number(val);
+            if (!Number.isNaN(num) && num > 0) return num;
+            const parsed = Date.parse(val);
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        if (typeof val === 'object') {
+            if (typeof val.toMillis === 'function') return val.toMillis();
+            if (typeof val.seconds === 'number') return val.seconds * 1000;
+        }
+        return 0;
+    }
+
+    function getUserSubscriptionInfo(u = {}) {
+        const now = Date.now();
+        const rawExpiry =
+            u.subscriptionExpiry ??
+            u.subscription_expiry ??
+            u.subscribedUntil ??
+            u.subscriptionEnd ??
+            u.weeklyExpiry ??
+            0;
+        const expiryMs = parseExpiryMs(rawExpiry);
+        if (expiryMs > now) {
+            const daysLeft = Math.max(1, Math.ceil((expiryMs - now) / (24 * 60 * 60 * 1000)));
+            return { active: true, expiryMs, daysLeft };
+        }
+        return { active: false, expiryMs: 0, daysLeft: 0 };
+    }
+
+    const inputsZone = document.getElementById('slider-inputs-zone');
+    inputsZone.innerHTML = '';
+    for(let i=1; i<=6; i++) {
+        inputsZone.innerHTML += `
+            <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200 flex flex-col space-y-1">
+                <div class="flex justify-between items-center text-[10px] text-gray-400 font-bold"><span>SLOT ${i}</span><span id="status-${i}" class="text-gray-400">Empty</span></div>
+                <input type="text" id="slide-${i}" placeholder="Image link placeholder..." class="w-full bg-white border border-slate-200 rounded-xl p-1.5 text-xs text-gray-800 focus:outline-none overflow-hidden text-ellipsis">
+                <div class="flex space-x-2 mt-1">
+                    <input type="file" id="file-${i}" accept="image/*" onchange="uploadImageFromGallery(${i})" class="text-[9px] text-gray-500 file:py-1 file:px-2 file:rounded-xl file:border-0 file:bg-blue-500/10 file:text-blue-600 font-bold cursor-pointer flex-1">
+                    <button onclick="clearImageSlot(${i})" class="bg-red-100 text-red-600 px-2.5 py-1 rounded-xl text-[10px] font-bold">Clear</button>
+                </div>
+            </div>
+        `;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('admin-gate').classList.add('hidden');
+            loadLiveHooks();
+        } else {
+            document.getElementById('admin-gate').classList.remove('hidden');
+        }
+    });
+
+    window.loginAdminFirebase = async function() {
+        const email = document.getElementById('admin-email').value.trim();
+        const password = document.getElementById('admin-password').value.trim();
+        
+        if(!email || !password) {
+            alert("Please enter both email and password.");
+            return;
+        }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch(e) {
+            alert("❌ Login failed: " + e.message);
+        }
+    }
+
+    window.handleAdminLogout = async () => { 
+        try {
+            await signOut(auth);
+            window.location.reload();
+        } catch(e) {}
+    }
+
+    window.openTab = function(tabId) {
+        ['system', 'games', 'users'].forEach(t => {
+            document.getElementById('tab-'+t).classList.add('hidden');
+            document.getElementById('nav-'+t).className = "py-4 border-b-2 border-transparent";
+        });
+        document.getElementById('tab-'+tabId).classList.remove('hidden');
+        document.getElementById('nav-'+tabId).className = "py-4 border-b-2 border-blue-600 text-blue-600";
+    }
+
+    window.sendPushNotificationToAll = async function() {
+        const title = document.getElementById('notif-title').value.trim();
+        const message = document.getElementById('notif-body').value.trim();
+
+        if (!message) {
+            alert("Please type a notification message first.");
+            return;
+        }
+
+        try {
+            const notifId = "notif_" + Date.now();
+            await setDoc(doc(db, "notifications", notifId), {
+                title: title || "Mahalakshmi Update",
+                message: message,
+                sentAt: serverTimestamp()
+            });
+
+            document.getElementById('notif-body').value = '';
+            alert("🚀 Push notification broadcasted successfully to all app users!");
+        } catch (e) {
+            alert("❌ Failed to send notification: " + e.message);
+        }
+    }
+
+    window.toggleDepositHistory = function() {
+        const container = document.getElementById('deposit-history-container');
+        const arrow = document.getElementById('history-arrow');
+        isHistoryOpen = !isHistoryOpen;
+        if(isHistoryOpen) {
+            container.classList.remove('hidden');
+            arrow.innerText = "▲";
+        } else {
+            container.classList.add('hidden');
+            arrow.innerText = "▼";
+        }
+    }
+
+    window.clearAllDepositHistory = async function() {
+        if(confirm("Are you sure you want to clear all transaction history?")) {
+            try {
+                const querySnap = await getDocs(collection(db, "deposits"));
+                let deletePromises = [];
+                querySnap.forEach((dDoc) => {
+                    deletePromises.push(deleteDoc(doc(db, "deposits", dDoc.id)));
+                });
+                await Promise.all(deletePromises);
+                alert("Transaction history cleared successfully!");
+            } catch(e) {
+                alert("Failed to clear history: " + e.message);
+            }
+        }
+    }
+
+    window.publishAppShortcutLink = async function() {
+        const headline = document.getElementById('link-headline').value.trim();
+        const targetUrl = document.getElementById('link-target-url').value.trim();
+        
+        if(!headline || !targetUrl) return alert("Please specify both a link headline and a destination URL.");
+        
+        try {
+            const idString = "link_" + Date.now();
+            await setDoc(doc(db, "app_links", idString), { headline: headline, url: targetUrl, timestamp: Date.now() });
+            document.getElementById('link-headline').value = '';
+            document.getElementById('link-target-url').value = '';
+            alert("App shortcut link channel updated live instantly!");
+        } catch(e) { alert("Link broadcast failed."); }
+    }
+
+    window.deleteAppShortcutLink = async function(id) {
+        if(confirm("Wipe this interactive redirect shortcut link?")) { await deleteDoc(doc(db, "app_links", id)); }
+    }
+
+    window.initiateMicrophoneRecording = async function() {
+        registeredAudioChunks = [];
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            let options = { mimeType: 'audio/webm' };
+            if (MediaRecorder.isTypeSupported('audio/mp4')) { options = { mimeType: 'audio/mp4' }; }
+
+            mediaRecorderEngine = new MediaRecorder(stream, options);
+            mediaRecorderEngine.ondataavailable = (e) => { if(e.data.size > 0) registeredAudioChunks.push(e.data); };
+            
+            mediaRecorderEngine.onstop = async () => {
+                const recordedMime = mediaRecorderEngine.mimeType;
+                const audioBlob = new Blob(registeredAudioChunks, { type: recordedMime });
+                
+                document.getElementById('rec-preview-zone').classList.remove('hidden');
+                document.getElementById('audio-playback-preview').src = URL.createObjectURL(audioBlob);
+                
+                const status = document.getElementById('voice-upload-status');
+                status.innerText = "STORING RECORDING..."; status.className = "text-blue-600 font-bold animate-pulse text-[9px]";
+                
+                const fileExt = recordedMime.includes('mp4') ? 'mp4' : 'webm';
+                const fileRef = ref(storage, `voice_notes/record_${Date.now()}.${fileExt}`);
+                
+                const snap = await uploadBytes(fileRef, audioBlob, { contentType: recordedMime });
+                const linkUrl = await getDownloadURL(snap.ref);
+                
+                document.getElementById('voice-url').value = linkUrl;
+                status.innerText = "✓ RECORD READY"; status.className = "text-green-600 font-bold text-[9px]";
+            };
+
+            mediaRecorderEngine.start();
+            document.getElementById('btn-start-rec').classList.add('bg-gray-400');
+            document.getElementById('btn-start-rec').innerText = "Recording...";
+            document.getElementById('btn-stop-rec').disabled = false;
+            document.getElementById('btn-stop-rec').className = "bg-blue-600 text-white font-bold text-[10px] px-3.5 py-2 rounded-xl uppercase";
+        } catch(err) { alert("Microphone hardware access verification failure."); }
+    }
+
+    window.stopMicrophoneRecording = function() {
+        if(mediaRecorderEngine && mediaRecorderEngine.state !== "inactive") {
+            mediaRecorderEngine.stop();
+            mediaRecorderEngine.stream.getTracks().forEach(track => track.stop());
+            document.getElementById('btn-start-rec').className = "bg-blue-600 text-white font-bold text-[10px] px-3.5 py-2 rounded-xl uppercase";
+            document.getElementById('btn-start-rec').innerText = "Start Record";
+            document.getElementById('btn-stop-rec').disabled = true;
+            document.getElementById('btn-stop-rec').className = "bg-gray-300 text-gray-600 font-bold text-[10px] px-3.5 py-2 rounded-xl uppercase";
+        }
+    }
+
+    window.uploadVoiceFileToServer = async function() {
+        const file = document.getElementById('voice-file-input').files[0];
+        const status = document.getElementById('voice-upload-status');
+        if(!file) return;
+        status.innerText = "UPLOADING..."; status.className = "text-blue-600 font-bold animate-pulse text-[9px]";
+        try {
+            const storageRef = ref(storage, `voice_notes/audio_${Date.now()}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadUrl = await getDownloadURL(snapshot.ref);
+            document.getElementById('voice-url').value = downloadUrl;
+            status.innerText = "✓ READY"; status.className = "text-green-600 font-bold text-[9px]";
+        } catch(e) { status.innerText = "❌ ERROR"; status.className = "text-red-500 font-bold text-[9px]"; }
+    }
+
+    window.publishVoiceNote = async function() {
+        let title = document.getElementById('voice-title').value.trim();
+        const url = document.getElementById('voice-url').value.trim();
+        if(!url) return alert("Please record an audio note or select a file first.");
+        
+        if (!title) {
+            const now = new Date();
+            title = "Voice Announcement (" + now.toLocaleDateString() + " " + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ")";
+        }
+        
+        try {
+            const idString = "voice_" + Date.now();
+            await setDoc(doc(db, "voicenotes", idString), { title: title, url: url, timestamp: Date.now() });
+            document.getElementById('voice-title').value = '';
+            document.getElementById('voice-url').value = '';
+            document.getElementById('voice-file-input').value = '';
+            document.getElementById('voice-upload-status').innerText = 'Idle';
+            document.getElementById('rec-preview-zone').classList.add('hidden');
+            alert("Voice note broadcast updated live instantly!");
+        } catch(e) { alert("Broadcast failed."); }
+    }
+
+    window.deleteVoiceNote = async function(id) {
+        if(confirm("Permanently wipe this audio message track?")) { await deleteDoc(doc(db, "voicenotes", id)); }
+    }
+
+    window.uploadImageFromGallery = async function(slot) {
+        const file = document.getElementById(`file-${slot}`).files[0];
+        const label = document.getElementById(`status-${slot}`);
+        if(!file) return;
+        label.innerText = "UPLOADING..."; label.className = "text-blue-600 font-bold animate-pulse";
+        try {
+            const snapshot = await uploadBytes(ref(storage, `slider_banners/slot_${slot}`), file);
+            const downloadUrl = await getDownloadURL(snapshot.ref);
+            document.getElementById(`slide-${slot}`).value = downloadUrl;
+            label.innerText = "✓ UPLOADED"; label.className = "text-green-600 font-bold";
+            saveSystemConfig();
+        } catch(e) { label.innerText = "❌ FAILED"; label.className = "text-red-500 font-bold"; }
+    }
+
+    window.clearImageSlot = function(slot) {
+        document.getElementById(`slide-${slot}`).value = "";
+        document.getElementById(`file-${slot}`).value = "";
+        document.getElementById(`status-${slot}`).innerText = "Cleared";
+        document.getElementById(`status-${slot}`).className = "text-red-500 font-bold";
+        saveSystemConfig();
+    }
+
+    function renderMarketsAccordionList() {
+        const list = document.getElementById('admin-markets-list');
+        if (!list) return;
+        const sortedIds = Object.keys(globalMarketsCache).sort((a, b) => (Number(globalMarketsCache[a].serialNo) || 999) - (Number(globalMarketsCache[b].serialNo) || 999));
+
+        list.innerHTML = sortedIds.map(id => {
+            const m = globalMarketsCache[id];
+            const isMktOpen = expandedMarketId === id;
+            const weeklyMap = (m && m.weeklyGames) || {};
+
+            let daysSectionHtml = "";
+            if (isMktOpen) {
+                const dayRowsHtml = ADMIN_DAYS.map(d => {
+                    const isDayOpen = expandedDayKey === d.key;
+                    const dayObj = weeklyMap[d.key] || {};
+                    const curStatus = dayObj.status || 'active';
+                    const curPrice = dayObj.price !== undefined && dayObj.price !== '' ? dayObj.price : (m.price || 100);
+                    const curTiming = dayObj.timing || '';
+                    const curOtc = dayObj.otcValue || '';
+                    const curJodi = dayObj.jodiValue || '';
+                    const curPanel = dayObj.panelValue || '';
+
+                    const editorFormHtml = isDayOpen ? `
+                        <div class="bg-slate-50 border-t border-slate-200 p-3 space-y-2.5 rounded-b-2xl" onclick="event.stopPropagation()">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 font-bold mb-1">${d.label} Status</label>
+                                    <select id="day-status-${id}-${d.key}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold text-gray-800">
+                                        <option value="active" ${curStatus === 'active' ? 'selected' : ''}>Active (Normal)</option>
+                                        <option value="locked" ${curStatus === 'locked' ? 'selected' : ''}>Locked (Closed)</option>
+                                        <option value="force_show" ${curStatus === 'force_show' ? 'selected' : ''}>Force Show to Everyone (Override)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 font-bold mb-1">${d.label} Price (₹)</label>
+                                    <input type="number" id="day-price-${id}-${d.key}" value="${curPrice}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold text-blue-600">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">🕒 ${d.label} Timing / Date</label>
+                                <input type="text" id="day-timing-${id}-${d.key}" value="${curTiming.replace(/"/g, '&quot;')}" placeholder="e.g. 19/11/2026 | 11:30 AM - 01:30 PM" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">🎲 OTC Value Line</label>
+                                <input type="text" id="day-otc-${id}-${d.key}" value="${curOtc.replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">🔗 Jodi Value Line</label>
+                                <input type="text" id="day-jodi-${id}-${d.key}" value="${curJodi.replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-500 font-bold mb-1">📊 Panel Value Line</label>
+                                <input type="text" id="day-panel-${id}-${d.key}" value="${curPanel.replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-bold">
+                            </div>
+                            <button type="button" onclick="saveMarketDayUpdate('${id}', '${d.key}')" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-black py-2.5 rounded-xl text-xs uppercase tracking-wider shadow">Save ${d.label}</button>
+                        </div>` : "";
+
+                    return `
+                        <div class="bg-white border ${isDayOpen ? 'border-blue-400 shadow-sm' : 'border-slate-200'} rounded-2xl overflow-hidden">
+                            <div class="px-3.5 py-2.5 flex items-center justify-between gap-2">
+                                <div onclick="toggleDayEditor('${id}', '${d.key}')" class="flex-1 flex items-center justify-between cursor-pointer hover:bg-blue-50/50 rounded-xl py-0.5 pr-1 transition-colors min-w-0">
+                                    <span class="text-xs font-black text-blue-950">${d.label}</span>
+                                    <span class="text-[10px] font-mono text-slate-500 truncate max-w-[125px]">${curTiming || 'Tap to edit'}</span>
+                                </div>
+                                <button type="button" onclick="event.stopPropagation(); clearSingleDayData('${id}', '${d.key}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[9px] font-black px-2 py-1 rounded-lg uppercase shrink-0">Clear Data</button>
+                            </div>
+                            ${editorFormHtml}
+                        </div>`;
+                }).join('');
+
+                daysSectionHtml = `
+                    <div class="px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-2 bg-slate-50/60" onclick="event.stopPropagation()">
+                        ${dayRowsHtml}
+                    </div>`;
+            }
+
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-3.5 flex justify-between items-center cursor-pointer gap-2" onclick="toggleMarketDays('${id}')">
+                        <div class="flex items-center space-x-2 min-w-0">
+                            <span class="font-black text-gray-900 text-xs uppercase truncate">${id}</span>
+                            <span class="text-[11px] bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded-xl font-black font-mono shrink-0">₹${m.price || 100}</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <button type="button" onclick="event.stopPropagation(); clearMarketAllData('${id}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-black px-2.5 py-1 rounded-xl uppercase">Clear Data</button>
+                            <button type="button" onclick="event.stopPropagation(); deleteMarket('${id}')" class="text-red-500 text-xs font-bold px-2 py-1 bg-red-50 rounded-xl">Delete</button>
+                        </div>
+                    </div>
+                    ${daysSectionHtml}
+                </div>`;
+        }).join('');
+    }
+
+    window.clearMarketAllData = async function(id) {
+        if (!confirm(`Clear all weekly data for ${id}?`)) return;
+        await setDoc(doc(db, "markets", id), {
+            weeklyGames: {}
+        }, { merge: true });
+        alert(`Cleared all data for ${id}.`);
+    }
+
+    window.clearSingleDayData = async function(id, dayKey) {
+        const dayLabel = (ADMIN_DAYS.find(d => d.key === dayKey)?.label) || dayKey;
+        if (!confirm(`Clear ${dayLabel} data for ${id}?`)) return;
+        const existingMarket = globalMarketsCache[id] || {};
+        const existingWeekly = { ...(existingMarket.weeklyGames || {}) };
+        delete existingWeekly[dayKey];
+
+        await setDoc(doc(db, "markets", id), {
+            weeklyGames: existingWeekly
+        }, { merge: true });
+        alert(`Cleared ${dayLabel} data for ${id}.`);
+    }
+
+    window.toggleMarketDays = function(id) {
+        if (expandedMarketId === id) {
+            expandedMarketId = null;
+            expandedDayKey = null;
+        } else {
+            expandedMarketId = id;
+            expandedDayKey = null;
+        }
+        renderMarketsAccordionList();
+    }
+
+    window.toggleDayEditor = function(id, dayKey) {
+        if (expandedDayKey === dayKey) {
+            expandedDayKey = null;
+        } else {
+            expandedDayKey = dayKey;
+        }
+        renderMarketsAccordionList();
+    }
+
+    window.addNewMarketOnly = async function() {
+        const name = document.getElementById('new-mkt-name').value.trim().toUpperCase();
+        if (!name) return alert("Enter Game Name.");
+
+        const serialNo = Number(document.getElementById('new-mkt-serial').value) || 0;
+        const price = Number(document.getElementById('new-mkt-price').value) || 100;
+        const gameDate = document.getElementById('new-mkt-date').value.trim();
+
+        const existing = globalMarketsCache[name] || {};
+        await setDoc(doc(db, "markets", name), {
+            serialNo: serialNo,
+            price: price,
+            gameDate: gameDate || existing.gameDate || '',
+            marketStatus: existing.marketStatus || 'active',
+            weeklyGames: existing.weeklyGames || {}
+        }, { merge: true });
+
+        document.getElementById('new-mkt-name').value = '';
+        document.getElementById('new-mkt-serial').value = '';
+        document.getElementById('new-mkt-price').value = '';
+        document.getElementById('new-mkt-date').value = '';
+        alert("Market added!");
+    }
+
+    window.saveMarketDayUpdate = async function(id, dayKey) {
+        const selectedStatus = document.getElementById(`day-status-${id}-${dayKey}`).value;
+        const dayPrice = Number(document.getElementById(`day-price-${id}-${dayKey}`).value) || Number(globalMarketsCache[id]?.price) || 100;
+        const dayTiming = document.getElementById(`day-timing-${id}-${dayKey}`).value.trim();
+        const otcVal = document.getElementById(`day-otc-${id}-${dayKey}`).value.trim();
+        const jodiVal = document.getElementById(`day-jodi-${id}-${dayKey}`).value.trim();
+        const panelVal = document.getElementById(`day-panel-${id}-${dayKey}`).value.trim();
+
+        const existingMarket = globalMarketsCache[id] || {};
+        const existingWeekly = { ...(existingMarket.weeklyGames || {}) };
+
+        existingWeekly[dayKey] = {
+            status: selectedStatus,
+            price: dayPrice,
+            timing: dayTiming,
+            otcValue: otcVal,
+            jodiValue: jodiVal,
+            panelValue: panelVal,
+            updatedAt: Date.now()
+        };
+
+        await setDoc(doc(db, "markets", id), {
+            weeklyGames: existingWeekly
+        }, { merge: true });
+
+        const dayLabel = (ADMIN_DAYS.find(d => d.key === dayKey)?.label) || dayKey;
+        alert(`Saved ${id} - ${dayLabel}!`);
+    }
+
+    function loadLiveHooks() {
+        onSnapshot(doc(db, "system_config", "settings"), (snap) => {
+            if(snap.exists()) {
+                const s = snap.data();
+                document.getElementById('cfg-notice').value = s.notice_text || '';
+                document.getElementById('cfg-sliding').value = s.sliding_text || 'Welcome to mahalaxmiplay.online';
+                document.getElementById('cfg-upi').value = s.upi_address || "mahalaxmi@upi";
+                document.getElementById('cfg-support-phone').value = s.support_phone || '';
+                document.getElementById('cfg-weekly-price').value = s.weekly_subscription_price || s.subscription_price || 99;
+                
+                const imgs = s.slider_images || [];
+                for(let i=1; i<=6; i++) { 
+                    if(document.getElementById(`status-${i}`).innerText !== "UPLOADING...") {
+                        document.getElementById(`slide-${i}`).value = imgs[i-1] || '';
+                        if(imgs[i-1]) {
+                            document.getElementById(`status-${i}`).innerText = "✓ Active";
+                            document.getElementById(`status-${i}`).className = "text-green-600 font-bold";
+                        }
+                    } 
+                }
+            }
+        });
+
+        onSnapshot(collection(db, "pending_deposits"), (snapshot) => {
+            const zone = document.getElementById('pending-deposits-zone');
+            zone.innerHTML = '';
+            let count = 0;
+            snapshot.forEach(dDoc => {
+                count++;
+                const d = dDoc.data();
+                const reqUserId = d.userid || d.userMobile || d.phone || d.mobile || '';
+                const reqAmount = Number(d.amount) || 0;
+                const reqName = d.name || d.userName || 'User';
+                const reqPassType = d.passType || d.plan || 'Weekly Subscription (7 Days)';
+                const safeName = String(reqName).replace(/'/g, "\\'");
+                const safePassType = String(reqPassType).replace(/'/g, "\\'");
+
+                zone.innerHTML += `
+                    <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col space-y-2 text-xs shadow-sm">
+                        <div class="flex justify-between font-bold">
+                            <span class="text-blue-950 font-bold">${reqName} <span class="text-slate-400">(${reqUserId})</span></span>
+                            <span class="text-emerald-600 font-black text-sm">₹${reqAmount}</span>
+                        </div>
+                        <p class="font-mono text-[10px] text-gray-500">Plan / Type: <span class="font-bold text-blue-700">${reqPassType}</span></p>
+                        <p class="font-mono text-[10px] text-gray-500">UTR / Ref: <span class="font-bold text-gray-800">${d.utr || d.ref || '--'}</span></p>
+                        <div class="flex space-x-2 pt-1">
+                            <button onclick="approveDeposit('${dDoc.id}', '${reqUserId}', ${reqAmount}, '${safeName}', '${safePassType}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold uppercase shadow">Approve</button>
+                            <button onclick="rejectDeposit('${dDoc.id}', '${reqUserId}', ${reqAmount}, '${safeName}', '${safePassType}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-xl font-bold uppercase shadow">Reject</button>
+                        </div>
+                    </div>`;
+            });
+            if (count === 0) zone.innerHTML = `<p class="text-[11px] text-gray-500 italic">No pending deposit requests.</p>`;
+        });
+
+        onSnapshot(collection(db, "app_links"), (querySnapshot) => {
+            const container = document.getElementById('admin-links-list');
+            container.innerHTML = '';
+            querySnapshot.forEach((lDoc) => {
+                const linkObj = lDoc.data();
+                container.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl flex items-center justify-between text-xs">
+                        <div class="overflow-hidden mr-2">
+                            <p class="font-bold text-gray-800 truncate">${linkObj.headline || 'App Shortcut'}</p>
+                            <p class="text-[9px] text-gray-400 font-mono truncate">${linkObj.url}</p>
+                        </div>
+                        <button onclick="deleteAppShortcutLink('${lDoc.id}')" class="bg-red-100 text-red-600 font-bold text-[10px] px-2.5 py-1 rounded-xl shrink-0">Wipe</button>
+                    </div>`;
+            });
+        });
+
+        onSnapshot(collection(db, "voicenotes"), (querySnapshot) => {
+            const container = document.getElementById('admin-voice-list');
+            container.innerHTML = '';
+            querySnapshot.forEach((vDoc) => {
+                const v = vDoc.data();
+                container.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-2xl flex items-center justify-between text-xs">
+                        <div class="overflow-hidden mr-2">
+                            <p class="font-bold text-gray-800 truncate">${v.title || 'Audio Note'}</p>
+                        </div>
+                        <button onclick="deleteVoiceNote('${vDoc.id}')" class="bg-red-100 text-red-600 font-bold text-[10px] px-2.5 py-1 rounded-xl shrink-0">Wipe</button>
+                    </div>`;
+            });
+        });
+
+        onSnapshot(collection(db, "markets"), (querySnapshot) => {
+            globalMarketsCache = {};
+            querySnapshot.forEach(doc => {
+                globalMarketsCache[doc.id] = doc.data();
+            });
+            renderMarketsAccordionList();
+        });
+
+        onSnapshot(collection(db, "users"), (querySnapshot) => {
+            cachedUsersList = [];
+            let activeSubsCount = 0;
+            querySnapshot.forEach(uDoc => { 
+                const uData = uDoc.data();
+                const userObj = { id: uDoc.id, ...uData };
+                cachedUsersList.push(userObj);
+                if (getUserSubscriptionInfo(userObj).active) {
+                    activeSubsCount++;
+                }
+            });
+            
+            cachedUsersList.sort((a, b) => {
+                const aTime = Number(a.joinedAt) || 0;
+                const bTime = Number(b.joinedAt) || 0;
+                return bTime - aTime;
+            });
+
+            document.getElementById('label-total-users').innerText = cachedUsersList.length;
+            document.getElementById('label-active-subs').innerText = activeSubsCount;
+            triggerUserFilterDisplay();
+        });
+
+        const processTransactionsSnapshots = (transDocs) => {
+            const historyZone = document.getElementById('deposit-history-zone');
+            historyZone.innerHTML = '';
+            let count = 0;
+            let depositsList = [];
+            transDocs.forEach(dDoc => { depositsList.push({ id: dDoc.id, ...dDoc.data() }); });
+
+            const getTs = x => {
+                let t = Number(x.timestamp) || Number(x.createdAt) || Number(x.time) || Number(x.date) || 0;
+                return (t < 10000000000) ? t * 1000 : t;
+            };
+            depositsList.sort((a, b) => getTs(b) - getTs(a));
+
+            depositsList.forEach(d => {
+                count++;
+                let ts = getTs(d);
+                let parsedTime = ts > 0 ? new Date(ts).toLocaleString() : "--";
+                let amountStr = d.amount || d.txnAmount || d.price || d.value || 0;
+                let mobileStr = d.userMobile || d.userid || d.userId || d.phone || d.mobile || d.id || 'N/A';
+                let nameStr = d.userName || d.name || 'User';
+                let statusStr = String(d.status || 'success').toLowerCase();
+                let badgeClass = statusStr === 'rejected'
+                    ? 'font-mono bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-bold'
+                    : 'font-mono bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold';
+
+                historyZone.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col space-y-1 text-xs">
+                        <div class="flex justify-between font-bold">
+                            <span class="text-slate-900">${nameStr} <span class="text-slate-400 font-normal">(${mobileStr})</span></span>
+                            <span class="text-emerald-700 font-mono font-black">₹${amountStr}</span>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>📅 ${parsedTime}</span>
+                            <span class="${badgeClass}">${d.status || 'success'}</span>
+                        </div>
+                    </div>`;
+            });
+
+            if(count === 0) { historyZone.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold italic text-center py-2">No transaction history found.</p>`; }
+        };
+
+        onSnapshot(collection(db, "deposits"), (snap1) => {
+            onSnapshot(collection(db, "transactions"), (snap2) => {
+                onSnapshot(collection(db, "payments"), (snap3) => {
+                    let combinedDocs = [];
+                    snap1.forEach(doc => combinedDocs.push(doc));
+                    snap2.forEach(doc => combinedDocs.push(doc));
+                    snap3.forEach(doc => combinedDocs.push(doc));
+                    processTransactionsSnapshots(combinedDocs);
+                });
+            });
+        });
+    }
+
+    async function applySevenDaySubscriptionToUser(userId) {
+        if (!userId) throw new Error("Missing user ID");
+        const now = Date.now();
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+        const existingExpiry = userSnap.exists() ? getUserSubscriptionInfo(userSnap.data()).expiryMs : 0;
+        const baseTime = existingExpiry > now ? existingExpiry : now;
+        const newExpiry = baseTime + WEEKLY_MS;
+
+        await setDoc(userRef, {
+            isSubscribed: true,
+            subscriptionActive: true,
+            subscriptionPlan: "weekly_7d",
+            subscriptionDays: WEEKLY_DAYS,
+            subscriptionStart: now,
+            subscriptionExpiry: newExpiry,
+            subscription_expiry: newExpiry
+        }, { merge: true });
+
+        return newExpiry;
+    }
+
+    window.grantManualSevenDaySubscription = async function(userId, userName) {
+        if (!confirm(`Activate 7-day subscription for ${userName} (${userId})?`)) return;
+        try {
+            const expiryMs = await applySevenDaySubscriptionToUser(userId);
+            const expDate = new Date(expiryMs).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            alert(`✅ 7-day subscription activated for ${userId}! Valid till ${expDate}.`);
+        } catch (e) {
+            alert("❌ Failed to activate subscription: " + e.message);
+        }
+    }
+
+    window.revokeUserSubscription = async function(userId, userName) {
+        if (!confirm(`Cancel/revoke active subscription for ${userName} (${userId})?`)) return;
+        try {
+            await setDoc(doc(db, "users", userId), {
+                isSubscribed: false,
+                subscriptionActive: false,
+                subscriptionExpiry: 0,
+                subscription_expiry: 0
+            }, { merge: true });
+            alert(`Subscription revoked for ${userId}.`);
+        } catch (e) {
+            alert("❌ Failed to revoke subscription: " + e.message);
+        }
+    }
+
+    window.approveDeposit = async function(reqId, userId, amount, userName, passType) {
+        if (!confirm(`Approve subscription payment of ₹${amount} and activate 7-day subscription for ${userName} (${userId})?`)) return;
+        try {
+            const expiryMs = await applySevenDaySubscriptionToUser(userId);
+
+            await setDoc(doc(db, "deposits", reqId), {
+                userid: userId,
+                userMobile: userId,
+                name: userName,
+                passType: passType || 'Weekly Subscription (7 Days)',
+                subscriptionPlan: "weekly_7d",
+                subscriptionDays: WEEKLY_DAYS,
+                subscriptionExpiry: expiryMs,
+                amount: Number(amount) || 0,
+                timestamp: Date.now(),
+                status: "approved"
+            }, { merge: true });
+
+            await deleteDoc(doc(db, "pending_deposits", reqId));
+            alert("✅ Deposit approved and 7-day subscription accepted!");
+        } catch(e) {
+            alert("❌ Approval failed: " + e.message);
+        }
+    }
+
+    window.rejectDeposit = async function(reqId, userId = '', amount = 0, userName = 'User', passType = 'Weekly Subscription (7 Days)') {
+        if (confirm("Reject this deposit / subscription request?")) {
+            try {
+                if (userId) {
+                    await setDoc(doc(db, "deposits", reqId), {
+                        userid: userId,
+                        userMobile: userId,
+                        name: userName,
+                        passType: passType,
+                        amount: Number(amount) || 0,
+                        timestamp: Date.now(),
+                        status: "rejected"
+                    }, { merge: true });
+                }
+                await deleteDoc(doc(db, "pending_deposits", reqId));
+                alert("Subscription/deposit request rejected.");
+            } catch (e) {
+                alert("❌ Reject failed: " + e.message);
+            }
+        }
+    }
+
+    window.triggerUserFilterDisplay = function() {
+        const query = document.getElementById('user-search-bar').value.toLowerCase().trim();
+        const filterVal = document.getElementById('user-filter-dropdown').value;
+        let filtered = [...cachedUsersList];
+
+        if (query) {
+            filtered = filtered.filter(u => 
+                (u.name && u.name.toLowerCase().includes(query)) || (u.id && u.id.includes(query))
+            );
+        }
+
+        const getLastSeen = x => Number(x.lastSeen) || 0;
+
+        if (filterVal === "subscribed") {
+            filtered = filtered.filter(u => getUserSubscriptionInfo(u).active);
+        } else if (filterVal === "unsubscribed") {
+            filtered = filtered.filter(u => !getUserSubscriptionInfo(u).active);
+        } else if (filterVal === "online") {
+            filtered = filtered.filter(u => u.lastSeen && (Date.now() - Number(u.lastSeen) < 15 * 1000));
+        } else if (filterVal === "offline") {
+            filtered = filtered.filter(u => !u.lastSeen || (Date.now() - Number(u.lastSeen) >= 15 * 1000));
+        } else if (filterVal === "lastseen") {
+            filtered.sort((a, b) => getLastSeen(b) - getLastSeen(a));
+        }
+
+        renderUserDirectoryItems(filtered);
+    }
+
+    window.toggleUserCard = function(userId) {
+        const detailsDiv = document.getElementById(`user-details-${userId}`);
+        if (detailsDiv.classList.contains('hidden')) {
+            detailsDiv.classList.remove('hidden');
+            openedUserCards.add(userId);
+        } else {
+            detailsDiv.classList.add('hidden');
+            openedUserCards.delete(userId);
+        }
+    }
+
+    function renderUserDirectoryItems(usersArray) {
+        const container = document.getElementById('users-directory-zone');
+        container.innerHTML = '';
+        usersArray.forEach(u => {
+            const isBlocked = u.status === "blocked";
+            const subInfo = getUserSubscriptionInfo(u);
+            
+            let isOnline = false;
+            let lastSeenStr = "Never";
+            if(u.lastSeen) {
+                const diff = Date.now() - Number(u.lastSeen);
+                if (diff < 15 * 1000) { isOnline = true; }
+                lastSeenStr = new Date(Number(u.lastSeen)).toLocaleString();
+            }
+
+            let joinedStr = u.joinedAt ? new Date(Number(u.joinedAt)).toLocaleString() : "Unknown";
+            const blockBadge = isBlocked ? '<span class="text-white bg-slate-900 px-2 py-0.5 rounded-full font-bold text-[9px]">BLOCKED</span>' : '';
+            const subPill = subInfo.active
+                ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-black text-[9px] uppercase">⭐ Subscribed (${subInfo.daysLeft}d)</span>`
+                : '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full font-bold text-[9px] uppercase">Unsubscribed</span>';
+
+            const statusBadge = isOnline 
+                ? '<span class="text-green-600 bg-green-50 px-2.5 py-1 rounded-xl font-bold text-[10px] inline-flex items-center gap-1 border border-green-200"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online</span>' 
+                : '<span class="text-gray-500 bg-gray-100 px-2.5 py-1 rounded-xl font-bold text-[10px]">Offline</span>';
+
+            const subExpiryText = subInfo.active && subInfo.expiryMs > 0
+                ? new Date(subInfo.expiryMs).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                : "Not Active";
+
+            const safeUserName = String(u.name || 'User').replace(/'/g, "\\'");
+
+            container.innerHTML += `
+                <div class="bg-white border border-slate-200 p-3.5 rounded-2xl flex flex-col space-y-2 text-xs cursor-pointer shadow-sm" onclick="toggleUserCard('${u.id}')">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center flex-wrap gap-1.5">
+                                <p class="font-bold text-gray-900 text-sm">${u.name || 'User'}</p>
+                                ${blockBadge}
+                                ${subPill}
+                            </div>
+                            <p class="text-[11px] text-gray-500 font-mono mt-0.5">Mobile: ${u.id}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 shrink-0">
+                            ${statusBadge}
+                            <span class="text-gray-400 text-xs">▼</span>
+                        </div>
+                    </div>
+                    <div id="user-details-${u.id}" class="${openedUserCards.has(u.id) ? '' : 'hidden'} space-y-2.5 pt-3 border-t border-slate-100" onclick="event.stopPropagation()">
+                        <div class="flex justify-between items-start bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <div>
+                                <p class="text-xs text-blue-950 font-black">🎟️ Subscription: ${subInfo.active ? `Active (${subInfo.daysLeft} days left • Till ${subExpiryText})` : 'Unsubscribed'}</p>
+                                <p class="text-[10px] text-blue-700 font-bold mt-1">📅 Joined: ${joinedStr}</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5">👁️ Last Seen: ${lastSeenStr}</p>
+                            </div>
+                            <button onclick="deleteUser('${u.id}')" class="bg-red-100 text-red-600 px-2.5 py-1.5 rounded-xl text-[10px] font-bold">Delete</button>
+                        </div>
+                        <div class="flex space-x-2 pt-1 items-center">
+                            <button onclick="grantManualSevenDaySubscription('${u.id}', '${safeUserName}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow">
+                                + Give 7-Day Subscription
+                            </button>
+                            ${subInfo.active ? `<button onclick="revokeUserSubscription('${u.id}', '${safeUserName}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider">Revoke</button>` : ''}
+                        </div>
+                        <div class="pt-1">
+                            <button onclick="toggleUserBlockStatus('${u.id}', ${isBlocked})" class="w-full ${isBlocked ? 'bg-slate-700' : 'bg-slate-950'} text-white py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow">
+                                ${isBlocked ? 'Unblock User' : 'Block User'}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    window.saveSystemConfig = async function() {
+        try {
+            const slider_images = [];
+            for(let i=1; i<=6; i++) { const v = document.getElementById(`slide-${i}`).value.trim(); if(v) slider_images.push(v); }
+            const weeklyPrice = Number(document.getElementById('cfg-weekly-price').value) || 99;
+            await setDoc(doc(db, "system_config", "settings"), {
+                notice_text: document.getElementById('cfg-notice').value.trim(),
+                sliding_text: document.getElementById('cfg-sliding').value.trim(),
+                upi_address: document.getElementById('cfg-upi').value.trim(),
+                support_phone: document.getElementById('cfg-support-phone').value.trim(),
+                weekly_subscription_price: weeklyPrice,
+                subscription_price: weeklyPrice,
+                slider_images: slider_images
+            }, { merge: true });
+            alert("Parameters successfully saved!");
+        } catch(e) { alert("Save failed."); }
+    }
+
+    window.toggleUserBlockStatus = async function(userId, currentlyBlocked) {
+        await updateDoc(doc(db, "users", userId), { status: currentlyBlocked ? "allowed" : "blocked" });
+        alert(currentlyBlocked ? "User unblocked." : "User blocked.");
+    }
+
+    window.deleteMarket = async function(id) {
+        if(confirm("Wipe market?")) {
+            if (expandedMarketId === id) {
+                expandedMarketId = null;
+                expandedDayKey = null;
+            }
+            await deleteDoc(doc(db, "markets", id));
+        }
+    }
+
+    window.deleteUser = async function(id) { if(confirm("Permanently delete this user from database?")) await deleteDoc(doc(db, "users", id)); }
+</script>
+</body>
+</html>
