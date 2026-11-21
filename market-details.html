@@ -72,13 +72,9 @@
             </div>
         </div>
 
-        <!-- COMPACT SUBSCRIPTION NOTICE AT BOTTOM (BELOW DAY CARD) -->
-        <div id="bottom-subscription-box" class="hidden bg-amber-50/95 border border-amber-200 rounded-2xl px-3.5 py-2.5 shadow-sm flex items-center justify-between gap-2.5">
-            <div class="min-w-0">
-                <p id="bottom-sub-title" class="text-[11px] font-black text-blue-950 truncate">🔒 Subscribers Only • 7 Days</p>
-                <p id="bottom-sub-desc" class="text-[10px] text-slate-600 font-semibold leading-tight mt-0.5">Subscribe to view game details.</p>
-            </div>
-            <div id="bottom-sub-cta" class="shrink-0"></div>
+        <!-- FULL SUBSCRIPTION DETAILS BOX BELOW SELECTED DAY CARD -->
+        <div id="bottom-subscription-box" class="hidden bg-amber-50/90 border border-amber-200 rounded-3xl p-4 text-center space-y-2.5 shadow-sm">
+            <!-- Populated by JS -->
         </div>
 
     </div>
@@ -374,9 +370,6 @@
         const badgeEl = document.getElementById('card-action-badge');
         const contentEl = document.getElementById('card-inner-content');
         const bottomBox = document.getElementById('bottom-subscription-box');
-        const bottomTitle = document.getElementById('bottom-sub-title');
-        const bottomDesc = document.getElementById('bottom-sub-desc');
-        const bottomCta = document.getElementById('bottom-sub-cta');
 
         const dayStatus = (selectedDayEntry && selectedDayEntry.status) || 'active';
         const canAccessGame = isActiveSubscriber || dayStatus === 'force_show';
@@ -384,29 +377,41 @@
         if (dayStatus === 'locked') {
             badgeEl.innerHTML = `<div class="bg-gray-100 text-gray-500 font-bold text-[10px] py-1 px-2.5 rounded-xl uppercase tracking-wider border border-gray-200">🔒 CLOSED</div>`;
             contentEl.innerHTML = `<div class="w-full bg-gray-50 text-gray-400 font-bold text-xs py-2.5 px-3 rounded-2xl uppercase tracking-wider border border-gray-100 text-center">Market is currently closed</div>`;
-            if (bottomBox) bottomBox.classList.add('hidden');
+            if (bottomBox) {
+                bottomBox.classList.add('hidden');
+                bottomBox.innerHTML = '';
+            }
         } else if (canAccessGame) {
             badgeEl.innerHTML = `<div class="bg-emerald-500 text-white font-bold text-[10px] py-1 px-2.5 rounded-xl uppercase tracking-wider">✓ SUBSCRIBED</div>`;
             contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry);
-            if (bottomBox) bottomBox.classList.add('hidden');
+            if (bottomBox) {
+                bottomBox.classList.add('hidden');
+                bottomBox.innerHTML = '';
+            }
         } else {
-            badgeEl.innerHTML = `<div class="bg-amber-100 text-amber-900 font-black text-[9px] py-1 px-2 rounded-lg uppercase tracking-wider border border-amber-300">🔒 SUBSCRIBERS ONLY</div>`;
-            contentEl.innerHTML = `<p class="text-[11px] text-slate-500 font-semibold text-center py-2">${dayMeta.label} details are locked for non-subscribers.</p>`;
+            badgeEl.innerHTML = `<div class="bg-amber-100 text-amber-900 font-black text-[9px] px-2 py-0.5 rounded-lg uppercase tracking-wider border border-amber-300 leading-tight">🔒 SUBSCRIBERS ONLY</div>`;
+            contentEl.innerHTML = `<p class="text-[11px] text-slate-500 font-semibold text-center py-1.5">${dayMeta.label} game details are locked for non-subscribers.</p>`;
 
             if (bottomBox) {
                 bottomBox.classList.remove('hidden');
                 if (hasPendingSubscriptionRequest) {
-                    if (bottomTitle) bottomTitle.innerText = "⏳ Subscription Pending • 7 Days";
-                    if (bottomDesc) bottomDesc.innerText = pendingUtrCode ? `UTR (${pendingUtrCode}) under review.` : "Waiting for admin approval.";
-                    if (bottomCta) {
-                        bottomCta.innerHTML = `<span class="inline-block bg-blue-950 text-amber-300 font-black text-[10px] px-3 py-1.5 rounded-xl uppercase tracking-wider">Pending</span>`;
-                    }
+                    bottomBox.innerHTML = `
+                        <p class="text-xs font-black text-blue-950">Subscription Request Pending</p>
+                        <p class="text-[11px] text-slate-600 font-semibold leading-relaxed">
+                            ${pendingUtrCode ? `UTR (${pendingUtrCode}) submitted. ` : ''}Waiting for admin approval or rejection.
+                        </p>
+                        <div class="inline-block bg-blue-950 text-amber-300 font-black text-xs px-4 py-2 rounded-xl uppercase tracking-wider">
+                            Pending
+                        </div>`;
                 } else {
-                    if (bottomTitle) bottomTitle.innerText = "🔒 Subscribers Only • 7 Days";
-                    if (bottomDesc) bottomDesc.innerText = `Weekly plan: ₹${weeklyPlanPrice} for 7 days.`;
-                    if (bottomCta) {
-                        bottomCta.innerHTML = `<button type="button" onclick="goToWeeklySubscription()" class="bg-blue-900 hover:bg-blue-950 text-amber-300 font-black text-[10px] px-3 py-2 rounded-xl uppercase tracking-wider shadow transition-transform active:scale-95">Subscribe (₹${weeklyPlanPrice})</button>`;
-                    }
+                    bottomBox.innerHTML = `
+                        <p class="text-xs font-black text-blue-950">7-Day Weekly Subscription Required</p>
+                        <p class="text-[11px] text-slate-600 font-semibold leading-relaxed">
+                            Game details are available only for active subscribers. Subscribe for 7 days (₹${weeklyPlanPrice}) to view game numbers directly.
+                        </p>
+                        <button type="button" onclick="goToWeeklySubscription()" class="bg-blue-900 hover:bg-blue-950 text-amber-300 font-black text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider shadow transition-transform active:scale-95">
+                            Subscribe (7 Days • ₹${weeklyPlanPrice})
+                        </button>`;
                 }
             }
         }
