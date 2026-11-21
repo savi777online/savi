@@ -87,7 +87,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, collection, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA5JXFuo-bImK26QTZMYj8OrD2l1ncf_O4",
@@ -135,6 +135,8 @@
     let savedMobile = "";
     let marketName = "";
     let isActiveSubscriber = false;
+    let hasPendingSubscriptionRequest = false;
+    let pendingUtrCode = "";
     let weeklyPlanPrice = readCachedPrice();
     let marketDocData = null;
     let serverTimeOffset = 0;
@@ -144,11 +146,12 @@
     let readyFlags = {
         user: false,
         market: false,
-        settings: false
+        settings: false,
+        pending: false
     };
 
     function isAllDataReady() {
-        return readyFlags.user && readyFlags.market && readyFlags.settings && weeklyPlanPrice !== null;
+        return readyFlags.user && readyFlags.market && readyFlags.settings && readyFlags.pending && weeklyPlanPrice !== null;
     }
 
     function syncReadyGate() {
@@ -252,7 +255,7 @@
     }
 
     window.goToWeeklySubscription = function() {
-        if (!isAllDataReady() || weeklyPlanPrice === null) return;
+        if (!isAllDataReady() || weeklyPlanPrice === null || hasPendingSubscriptionRequest) return;
         const mobileParam = encodeURIComponent(savedMobile || "");
         window.location.href = `payment.html?userid=${mobileParam}&plan=weekly_7d&days=${WEEKLY_DAYS}&amount=${Number(weeklyPlanPrice)}`;
     }
@@ -321,6 +324,9 @@
             if (isActiveSubscriber) {
                 headerBadge.innerText = "Subscribed";
                 headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-300/60 text-emerald-200 shrink-0";
+            } else if (hasPendingSubscriptionRequest) {
+                headerBadge.innerText = "Pending";
+                headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-400/20 border border-amber-300/60 text-amber-300 shrink-0";
             } else {
                 headerBadge.innerText = "7-Day Plan";
                 headerBadge.className = "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 border border-blue-700/60 text-amber-300 shrink-0";
@@ -360,6 +366,18 @@
         } else if (canAccessGame) {
             badgeEl.innerHTML = `<div class="bg-emerald-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider">✓ SUBSCRIBED</div>`;
             contentEl.innerHTML = buildNumbersGridHtml(selectedDayEntry);
+        } else if (hasPendingSubscriptionRequest) {
+            badgeEl.innerHTML = `<div class="bg-amber-400 text-blue-950 font-black text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider shadow-sm">⏳ Pending</div>`;
+            contentEl.innerHTML = `
+                <div class="bg-amber-50/90 border border-amber-200 rounded-2xl p-4 text-center space-y-2">
+                    <p class="text-xs font-black text-blue-950">Subscription Request Pending</p>
+                    <p class="text-[11px] text-slate-600 font-semibold leading-relaxed">
+                        ${pendingUtrCode ? `UTR (${pendingUtrCode}) submitted. ` : ''}Waiting for admin approval or rejection.
+                    </p>
+                    <div class="inline-block bg-blue-950 text-amber-300 font-black text-xs px-4 py-2 rounded-xl uppercase tracking-wider">
+                        Pending
+                    </div>
+                </div>`;
         } else {
             badgeEl.innerHTML = `<div class="bg-amber-100 text-amber-900 font-black text-[10px] py-1.5 px-3 rounded-xl uppercase tracking-wider border border-amber-300">🔒 SUBSCRIBERS ONLY</div>`;
             contentEl.innerHTML = `
@@ -411,6 +429,27 @@
             }
             isActiveSubscriber = checkSubscriptionActive(uData);
             readyFlags.user = true;
+            syncReadyGate();
+        });
+
+        onSnapshot(collection(db, "pending_deposits"), (querySnapshot) => {
+            let foundPending = false;
+            let utrValue = "";
+            const cleanSavedMobile = String(savedMobile || "").trim();
+
+            querySnapshot.forEach((pDoc) => {
+                const pData = pDoc.data() || {};
+                const docUser = String(pData.userid || pData.userMobile || pData.phone || pData.mobile || "").trim();
+                const statusVal = String(pData.status || "pending").toLowerCase();
+                if (cleanSavedMobile && docUser === cleanSavedMobile && statusVal !== "approved" && statusVal !== "rejected") {
+                    foundPending = true;
+                    utrValue = pData.utr || pData.ref || "";
+                }
+            });
+
+            hasPendingSubscriptionRequest = foundPending;
+            pendingUtrCode = utrValue;
+            readyFlags.pending = true;
             syncReadyGate();
         });
 
