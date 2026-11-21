@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mahalakshmi - Manual UPI Deposit</title>
+    <title>Mahalakshmi - Weekly Subscription Payment</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: linear-gradient(135deg, #eff6ff 0%, #fdfbf7 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
@@ -28,10 +28,10 @@
             </div>
 
             <div>
-                <label id="pass-label-title" class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Enter Deposit Amount</label>
+                <label id="pass-label-title" class="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1 px-1">Weekly Subscription Amount (7 Days • Fixed)</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-base font-black text-blue-600">₹</span>
-                    <input type="number" id="amount-input" placeholder="500" oninput="updateQrCode()" class="w-full bg-blue-50/30 border border-gray-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-gray-800 focus:outline-none focus:border-blue-600 shadow-inner">
+                    <input type="text" id="amount-input" readonly tabindex="-1" aria-readonly="true" placeholder="--" class="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 pl-8 pr-3 text-base font-black text-blue-950 font-mono shadow-inner cursor-not-allowed select-none">
                 </div>
             </div>
 
@@ -73,18 +73,29 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    const PRICE_CACHE_KEY = "mahalakshmi_weekly_price_cache";
+
+    function readCachedPrice() {
+        try {
+            const num = Number(localStorage.getItem(PRICE_CACHE_KEY));
+            if (!Number.isNaN(num) && num > 0) return num;
+        } catch (e) {}
+        return null;
+    }
+
     let adminUpiId = "mahalakshmi@upi";
     let userId = "";
-    let passType = "weekly";
-    let targetAmount = 500;
+    let passType = "weekly_7d";
+    let targetAmount = null;
     let targetMarket = "";
 
     window.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
         userId = urlParams.get('userid') || localStorage.getItem('app_user_mobile');
-        passType = urlParams.get('passtype') || 'weekly';
-        
-        const urlAmount = urlParams.get('amount');
+        passType = urlParams.get('plan') || urlParams.get('passtype') || 'weekly_7d';
+
+        const urlAmountRaw = urlParams.get('amount');
+        const parsedUrlAmount = urlAmountRaw !== null ? Number(urlAmountRaw) : NaN;
         targetMarket = urlParams.get('market') || '';
 
         if (!userId) {
@@ -94,30 +105,48 @@
         }
         document.getElementById('userid-input').value = userId;
 
-        // Fetch UPI address from admin settings
+        if (!Number.isNaN(parsedUrlAmount) && parsedUrlAmount > 0) {
+            targetAmount = parsedUrlAmount;
+        }
+
         try {
             const configSnap = await getDoc(doc(db, "system_config", "settings"));
             if (configSnap.exists()) {
                 const data = configSnap.data();
                 if (data.upi_address) adminUpiId = data.upi_address;
+                if (targetAmount === null) {
+                    const adminPrice = Number(
+                        data.weekly_subscription_price ??
+                        data.weeklyPrice ??
+                        data.subscription_price
+                    );
+                    if (!Number.isNaN(adminPrice) && adminPrice > 0) {
+                        targetAmount = adminPrice;
+                    }
+                }
             }
         } catch(e) {}
 
-        // Set exact amount if passed from game click
-        if (urlAmount) {
-            targetAmount = Number(urlAmount) || 500;
+        if (targetAmount === null) {
+            targetAmount = readCachedPrice();
         }
 
-        let labelText = targetMarket ? `Pay for Game: ${targetMarket}` : `Enter Deposit Amount`;
+        const labelText = targetMarket
+            ? `Subscription Plan: ${targetMarket} (Fixed)`
+            : `Weekly Subscription (7 Days • Fixed)`;
         document.getElementById('pass-label-title').innerText = labelText;
-        document.getElementById('amount-input').value = targetAmount;
-        updateQrCode();
+
+        if (targetAmount !== null && targetAmount > 0) {
+            document.getElementById('amount-input').value = String(targetAmount);
+            updateQrCode();
+        }
     });
 
     window.updateQrCode = function() {
-        const amt = document.getElementById('amount-input').value.trim();
+        const amt = Number(targetAmount);
         const qrBox = document.getElementById('qr-box');
-        if (amt && Number(amt) > 0) {
+        if (amt && amt > 0) {
+            document.getElementById('amount-input').value = String(amt);
             qrBox.classList.remove('hidden');
             const upiLink = `upi://pay?pa=${adminUpiId}&pn=Mahalakshmi&am=${amt}&cu=INR`;
             document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
@@ -128,11 +157,11 @@
     }
 
     window.submitDepositRequest = async function() {
-        const amount = Number(document.getElementById('amount-input').value);
+        const amount = Number(targetAmount);
         const utr = document.getElementById('utr-input').value.trim();
 
         if (!amount || amount <= 0) {
-            alert("❌ Please enter a valid deposit amount.");
+            alert("❌ Fixed subscription amount not found. Please go back to dashboard and try again.");
             return;
         }
         if (!utr || utr.length < 6) {
@@ -152,7 +181,9 @@
                 userid: userId,
                 userMobile: userId,
                 name: userName,
-                passType: targetMarket ? `Game: ${targetMarket}` : passType,
+                passType: targetMarket ? `Subscription: ${targetMarket}` : "Weekly Subscription (7 Days)",
+                plan: passType,
+                days: 7,
                 amount: amount,
                 utr: utr,
                 timestamp: Date.now(),
